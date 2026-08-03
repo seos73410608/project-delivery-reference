@@ -1,2 +1,46 @@
-# project-delivery-reference
-A reference repository for project delivery processes, PMO practices, infrastructure build management, and implementation documentation.
+# Project Delivery Reference
+
+## 개요
+
+기업 IT 프로젝트 수행 과정에서 필요한
+프로젝트 관리, 구축 관리, 검수 관리, 구성 관리 체계를
+정리한 레퍼런스 저장소입니다.
+
+## 목적
+
+- 프로젝트 수행 프로세스 표준화
+- 구축 단계별 관리 항목 정의
+- 산출물 및 증적 관리 체계 정리
+- 재사용 가능한 프로젝트 관리 템플릿 제공
+
+## 관리 영역
+
+### 프로젝트 관리
+- WBS
+- 일정
+- 이슈
+- 리스크
+- Action Item
+
+### 구축 관리
+- 서버 구축
+- 소프트웨어 설치
+- 환경 구성
+- 작업 일정 관리
+
+### 검수 관리
+- 설치 확인
+- 검수 절차
+- 증적 관리
+- 완료 보고
+
+### 구성 관리
+- 서버
+- DB
+- Middleware
+- Software
+
+### 협력사 관리
+- 작업 요청
+- 일정 조율
+- 결과 관리
