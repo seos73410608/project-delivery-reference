@@ -1,0 +1,15 @@
+@host=http://localhost:8080
+
+### Public
+GET {{host}}/api/test/public
+
+###
+
+### Token
+GET {{host}}/api/test/token
+
+###
+
+### Private
+GET {{host}}/api/test/private
+Authorization: Bearer eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJhZG1pbiIsInVzZXJJZCI6MSwicm9sZSI6IlJPTEVfQURNSU4iLCJpYXQiOjE3ODU4MTE3NjAsImV4cCI6MTc4NTgxNTM2MH0.MFbimoqCT147U-OiyuujrhwcPUVpUthUogY4AWRhmAFvtJgPuNVc5LDqrdQ5fFVW

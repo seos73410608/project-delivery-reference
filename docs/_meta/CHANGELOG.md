@@ -11,14 +11,14 @@
 
 기록 대상은 다음과 같다.
 
-- 기능 추가 (Feature)
-- 기능 개선 (Improvement)
-- 버그 수정 (Bug Fix)
-- 리팩토링 (Refactoring)
-- 성능 개선 (Performance)
-- 보안 강화 (Security)
-- 문서 변경 (Documentation)
-- 의존성 변경 (Build)
+- Feature
+- Improvement
+- Bug Fix
+- Refactoring
+- Security
+- Performance
+- Documentation
+- Build
 
 ---
 
@@ -47,378 +47,362 @@ MAJOR.MINOR.PATCH
 
 # Release History
 
-## v0.1.0 (Planning)
+---
 
-### 프로젝트 초기 구성
+## v0.1.0 (2026-08-03)
+
+### Project Initialization
 
 #### Added
 
 - Spring Boot 프로젝트 생성
 - Java 21 적용
 - Gradle Kotlin DSL 적용
-- GitHub Repository 생성
+- MariaDB 연동
+- Git Repository 생성
+- Git Flow 브랜치 전략 적용
 - 기본 프로젝트 구조 생성
 
 ---
 
-## v0.2.0 (Project Structure)
+## v0.2.0 (2026-08-03)
 
-### 패키지 구조 설계
-
-#### Added
-
-- Domain 중심 패키지 구성
-- auth
-- user
-- project
-- schedule
-- wbs
-- issue
-- risk
-- change
-- report
-- dashboard
-- cmdb
-- file
-- batch
-- common
+### Common Infrastructure
 
 #### Added
 
-공통 패키지
-
-- annotation
-- constant
-- dto
-- enums
-- util
-- validation
-
----
-
-## v0.3.0 (Common Module)
-
-### 공통 모듈 구축
-
-#### Added
-
+- Domain 중심 Package 구조
 - BaseEntity
 - ApiResponse
 - ErrorCode
+- CommonErrorCode
 - BusinessException
 - GlobalExceptionHandler
 - JpaConfig
+- WebConfig
 
 #### Changed
 
 - API 응답 표준화
-- 예외 처리 구조 통일
+- 공통 예외 처리 구조 적용
 
 ---
 
-## v0.4.0 (Security)
+## v0.3.0 (2026-08-04)
 
-### 인증 및 보안
+### Security Infrastructure
 
 #### Added
 
-- Spring Security
-- JWT 인증
-- BCrypt Password Encoder
-- Authentication Filter
+- Spring Security 적용
 - JWT Provider
-- UserDetails 구현
+- JwtAuthenticationFilter
+- JwtAuthenticationEntryPoint
+- JwtAccessDeniedHandler
+- UserPrincipal
+- BCrypt PasswordEncoder
+- SecurityConfig
+- Stateless Authentication
+- CORS 설정
+- JWT Property 구성
+
+#### Added
+
+Test API
+
+- GET /api/test/public
+- GET /api/test/private
+- GET /api/test/token
 
 #### Changed
 
-- Stateless Authentication 적용
+- Session 기반 인증 제거
+- JWT 기반 인증 구조 적용
 
 ---
 
-## v0.5.0 (User)
+## v0.3.1 (2026-08-04)
 
-### 사용자 관리
+### Security Verification
 
-#### Planned
+#### Added
 
-- 회원가입
-- 로그인
-- 사용자 조회
-- 권한 관리
-- 비밀번호 변경
+- JWT Access Token 생성 테스트
+- Authorization Header 기반 인증 테스트
+- Protected API 접근 테스트
 
----
+#### Fixed
 
-## v0.6.0 (Project)
-
-### 프로젝트 관리
-
-#### Planned
-
-- 프로젝트 생성
-- 프로젝트 수정
-- 프로젝트 종료
-- 프로젝트 상태 관리
+- Spring Boot 4.x → 3.5.x 변경
+- JWT 라이브러리 호환성 수정
+- ObjectMapper 의존성 문제 해결
+- Security Handler 개선
 
 ---
 
-## v0.7.0 (Schedule)
+## v0.4.0 (Planned)
 
-### 일정 관리
+### Authentication
 
 #### Planned
 
-- 일정 등록
-- 일정 변경
-- 일정 진척률
-- 일정 조회
+- User Entity
+- Role Entity
+- Login API
+- Logout API
+- Refresh Token
+- Token Reissue
+- UserDetailsService
+- AuthenticationManager
 
 ---
 
-## v0.8.0 (WBS)
+## v0.5.0 (Planned)
 
-### 작업 관리
+### Project Management
 
 #### Planned
 
-- WBS 생성
-- 작업 등록
-- 담당자 지정
-- 진척률 계산
+- Project CRUD
+- Project Search
+- Pagination
+- Specification
+- Project Status
 
 ---
 
-## v0.9.0 (Issue)
+## v0.6.0 (Planned)
 
-### 이슈 관리
+### WBS & Schedule
 
 #### Planned
 
-- 이슈 등록
-- 담당자 지정
-- 조치 관리
-- 완료 처리
+- WBS CRUD
+- Schedule CRUD
+- Progress Calculation
+- Calendar API
+- Gantt API
 
 ---
 
-## v0.10.0 (Risk)
+## v0.7.0 (Planned)
 
-### 리스크 관리
+### Issue / Risk / Change
 
 #### Planned
 
-- Risk 등록
-- Impact 분석
-- 대응 전략
-- 상태 관리
+Issue
+
+- CRUD
+- Assignment
+- Status
+
+Risk
+
+- Risk Assessment
+- Response Strategy
+
+Change
+
+- Request
+- Approval
+- History
 
 ---
 
-## v0.11.0 (Change)
+## v0.8.0 (Planned)
 
-### 변경 관리
-
-#### Planned
-
-- 변경 요청
-- 영향도 분석
-- 승인 프로세스
-- 변경 이력 관리
-
----
-
-## v0.12.0 (Dashboard)
-
-### Dashboard
+### CMDB
 
 #### Planned
 
-- 프로젝트 현황
-- 일정 현황
-- 이슈 현황
-- 리스크 현황
-- KPI Dashboard
-
----
-
-## v0.13.0 (CMDB)
-
-### Configuration Management
-
-#### Planned
-
-- CI 관리
 - Server CI
 - Database CI
 - Software CI
-- 관계 관리
+- Relationship Model
+- Version History
 
 ---
 
-## v0.14.0 (Report)
+## v0.9.0 (Planned)
 
-### 보고서
+### Dashboard & Reporting
 
 #### Planned
 
-- 주간 보고서
-- 월간 보고서
-- 완료 보고서
-- PDF 출력
-- Excel 출력
+Dashboard
+
+- Project Dashboard
+- Schedule Dashboard
+- Issue Dashboard
+- Risk Dashboard
+
+Report
+
+- Excel
+- PDF
+- Statistics
 
 ---
 
-## v0.15.0 (Spring AI)
+## v1.0.0 (Planned)
 
-### AI 기능
+### Spring AI Integration
 
 #### Planned
 
 - AI PM Assistant
-- 프로젝트 요약
-- 일정 예측
-- 리스크 예측
-- 변경 영향도 분석
-- 회의록 요약
-- 보고서 자동 생성
+- AI Risk Analysis
+- AI Report Summary
+- AI Schedule Analysis
+- AI Meeting Summary
+- AI Change Impact Analysis
 
 ---
 
-# Git Commit Convention
-
-본 프로젝트는 Conventional Commits를 사용한다.
-
-| Prefix | 설명 |
-|---------|------|
-| feat | 새로운 기능 |
-| fix | 버그 수정 |
-| refactor | 리팩토링 |
-| docs | 문서 변경 |
-| style | 코드 스타일 |
-| test | 테스트 |
-| build | Build 변경 |
-| chore | 기타 변경 |
-| perf | 성능 개선 |
-| security | 보안 관련 |
-
-예시
-
-```text
-feat: add project management API
-
-fix: resolve login authentication issue
-
-refactor: improve exception handling
-
-docs: update development roadmap
-
-build: upgrade Spring Boot dependencies
-
-chore: initialize project package structure
-```
-
----
-
-# 브랜치 전략
-
-Git Flow 기반으로 브랜치를 운영한다.
+# Git Flow
 
 ```
 main
 │
 develop
 │
-├── feature/security
-├── feature/user
-├── feature/project
-├── feature/wbs
-├── feature/issue
-├── feature/risk
-├── feature/change
-├── feature/report
-└── feature/spring-ai
+├── feature/auth-jwt
+├── feature/auth-login
+├── feature/auth-role
+│
+├── feature/project-crud
+├── feature/project-search
+│
+├── feature/wbs-management
+├── feature/schedule-management
+│
+├── feature/issue-management
+├── feature/risk-management
+├── feature/change-management
+│
+├── feature/cmdb-management
+│
+├── feature/report-excel
+├── feature/report-pdf
+│
+├── feature/dashboard
+│
+├── feature/spring-ai-assistant
+├── feature/ai-risk-analysis
+└── feature/ai-report-summary
 ```
 
-브랜치 역할
+브랜치 정책
 
-- **main** : 운영(Release)
-- **develop** : 통합 개발
-- **feature/** : 기능 개발
-- **hotfix/** : 긴급 수정
-- **release/** : 릴리즈 준비
+- **main** : Release
+- **develop** : Integration
+- **feature/** : Feature Development
+- **release/** : Release Preparation
+- **hotfix/** : Production Fix
 
 ---
 
-# 변경 기록 작성 규칙
+# Commit Convention
 
-각 변경 사항은 아래 형식으로 기록한다.
+| Prefix | Description |
+|---------|-------------|
+| feat | Feature |
+| fix | Bug Fix |
+| refactor | Refactoring |
+| docs | Documentation |
+| style | Code Style |
+| test | Test |
+| build | Build |
+| chore | Maintenance |
+| perf | Performance |
+| security | Security |
+
+예시
+
+```text
+feat: implement JWT authentication
+
+feat: add project CRUD API
+
+fix: resolve JWT validation issue
+
+docs: update roadmap
+
+refactor: improve exception handling
+
+build: upgrade Spring Boot to 3.5.x
+```
+
+---
+
+# Change Log Template
 
 ```markdown
-## v0.x.x
+## vX.Y.Z
 
 ### YYYY-MM-DD
 
 #### Added
 
-- 새로운 기능
+-
 
 #### Changed
 
-- 변경 사항
+-
 
 #### Fixed
 
-- 버그 수정
+-
 
 #### Removed
 
-- 제거된 기능
+-
 ```
 
 ---
 
-# 향후 릴리즈 계획
+# Target Releases
 
-| Version | 내용 |
+| Version | Goal |
 |----------|------|
-| v0.5.0 | 사용자 관리 |
-| v0.6.0 | 프로젝트 관리 |
-| v0.7.0 | 일정 관리 |
-| v0.8.0 | WBS |
-| v0.9.0 | 이슈 관리 |
-| v0.10.0 | 리스크 관리 |
-| v0.11.0 | 변경 관리 |
-| v0.12.0 | Dashboard |
-| v0.13.0 | CMDB |
-| v0.14.0 | 보고서 |
-| v0.15.0 | Spring AI |
+| v0.4 | Authentication 완료 |
+| v0.5 | Project CRUD |
+| v0.6 | WBS / Schedule |
+| v0.7 | Issue / Risk / Change |
+| v0.8 | CMDB |
+| v0.9 | Dashboard / Report |
+| v1.0 | Spring AI Assistant |
 
 ---
 
-# 프로젝트 목표 버전
+# Long-term Roadmap
 
-| Version | 목표 |
+| Version | Goal |
 |----------|------|
-| 0.x | 기능 개발 |
-| 1.0 | PMIS 핵심 기능 완료 |
-| 1.5 | Dashboard 및 CMDB 고도화 |
-| 2.0 | Spring AI 기반 AI PM Assistant 적용 |
-| 3.0 | Enterprise PMIS Platform 완성 |
+| 1.x | PMIS Core Complete |
+| 2.x | Enterprise PMIS |
+| 3.x | AI Native PMIS Platform |
 
 ---
 
-# 유지보수 정책
+# Maintenance Policy
 
 - 모든 변경 사항은 CHANGELOG에 기록한다.
 - 모든 기능은 Feature Branch에서 개발한다.
 - Pull Request 검토 후 Develop 브랜치에 병합한다.
-- 테스트 완료 후 Main 브랜치에 릴리즈한다.
-- 버전 태그(Tag)를 생성하여 릴리즈 이력을 관리한다.
+- Main 브랜치에는 검증된 코드만 릴리즈한다.
+- Semantic Versioning을 준수한다.
+- Release마다 Git Tag를 생성한다.
 
 ---
 
-**Last Updated** : 2026-08-03
-**Project** : PMIS (Project Management Information System)
-**Maintainer** : SEO S
-**License** : MIT
+**Last Updated** : 2026-08-04
+
+**Current Version** : v0.3.1
+
+**Current Branch** : feature/auth-jwt
+
+**Current Sprint** : Sprint 1 - Authentication & Security
+
+**Maintainer** : Seo Seokhyeon

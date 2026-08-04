@@ -1,57 +1,126 @@
 # PMIS Development Roadmap
 
-> Version: 1.0  
-> Project: Project Management Information System (PMIS)  
-> Architecture: Spring Boot + MariaDB + Spring Security + JWT + Spring AI  
-> Development Methodology: Agile Scrum (2-Week Sprint)
+> Version: **1.1**
+>
+> Last Updated: **2026-08-04**
+>
+> Project: **Project Management Information System (PMIS)**
+>
+> Architecture:
+> Spring Boot 3.5.x
+> Spring Security
+> JWT
+> Spring AI
+> MariaDB
+>
+> Development Methodology:
+> Agile Scrum + Git Flow
 
 ---
 
 # 1. Development Goal
 
-본 프로젝트는 단순한 CRUD 프로젝트가 아니라 실제 SI 프로젝트에서 사용하는 PMIS(Project Management Information System)를 구현하는 것을 목표로 한다.
+본 프로젝트는 단순 CRUD 프로젝트가 아니라 실제 SI 프로젝트에서 사용하는
+Project Management Information System(PMIS)를 구현하는 것을 목표로 한다.
 
 구현 대상은 다음과 같다.
 
+- 사용자/권한 관리
 - 프로젝트 관리
-- 일정(WBS) 관리
+- WBS 관리
+- 일정 관리
 - 이슈 관리
 - 리스크 관리
-- 변경관리
+- 변경 관리
 - CMDB
 - Dashboard
 - Report
-- 사용자/권한관리
-- AI Assistant(Spring AI)
+- Spring AI Assistant
 
-실제 운영 가능한 수준의 구조와 품질을 목표로 개발한다.
+실제 운영 가능한 수준의 아키텍처와 품질을 목표로 개발한다.
 
 ---
 
 # 2. Development Strategy
 
-## Branch Strategy
+## Development Flow
 
 ```
 main
- ├── develop
- │
- ├── feature/project
- ├── feature/security
- ├── feature/user
- ├── feature/wbs
- ├── feature/issue
- ├── feature/risk
- ├── feature/change
- ├── feature/cmdb
- ├── feature/dashboard
- ├── feature/report
- └── feature/ai
+        ▲
+        │
+release
+        ▲
+        │
+develop
+        ▲
+        │
+feature/*
 ```
 
-모든 기능은 Feature Branch에서 개발 후 Develop에 Merge한다.
+모든 기능은 Feature Branch에서 개발 후
+Develop으로 Merge한다.
 
-완료 후 Main으로 Release한다.
+검증 완료 후 Main으로 Release 한다.
+
+---
+
+## Branch Strategy
+
+```
+feature/auth-jwt
+feature/auth-login
+feature/auth-role
+
+feature/project-crud
+feature/project-search
+
+feature/wbs-management
+
+feature/schedule-management
+
+feature/issue-management
+
+feature/risk-management
+
+feature/change-management
+
+feature/cmdb-management
+
+feature/report-excel
+feature/report-pdf
+
+feature/dashboard
+
+feature/spring-ai-assistant
+feature/ai-risk-analysis
+feature/ai-report-summary
+```
+
+모든 기능은 독립 Feature Branch에서 개발한다.
+
+---
+
+## Version Strategy (Semantic Versioning)
+
+```
+1.0.0
+│ │ └─ Patch
+│ └──── Minor
+└────── Major
+```
+
+### Major
+
+호환되지 않는 변경
+
+### Minor
+
+새로운 기능 추가
+
+### Patch
+
+버그 수정 및 개선
 
 ---
 
@@ -71,26 +140,24 @@ chore:
 예시
 
 ```
-feat: add JWT authentication
+feat: implement JWT authentication
 
 fix: resolve login validation issue
 
-refactor: extract common response class
+refactor: extract common exception handler
 
-docs: update architecture document
+docs: update architecture documentation
 ```
 
 ---
 
 # 3. Sprint Plan
 
-프로젝트는 약 8개의 Sprint로 구성한다.
-
 ---
 
 # Sprint 0
 
-## Development Environment
+## Base Project
 
 ### Goal
 
@@ -100,24 +167,20 @@ docs: update architecture document
 
 - Spring Boot
 - Gradle
-- MariaDB
 - Git Flow
+- MariaDB
 - Package Structure
+- Base Entity
 - Global Response
-- Exception Handler
-- BaseEntity
-- JPA Config
+- Exception
+- JPA
 - Build Configuration
 
 ### Deliverables
 
+- Base Project
 - Build Success
 - Git Repository
-- Base Project
-
-### Status
-
-Completed
 
 ---
 
@@ -127,26 +190,33 @@ Completed
 
 ### Goal
 
-사용자 인증 시스템 구축
+JWT 기반 인증/인가 구축
+
+### Feature Branch
+
+```
+feature/auth-jwt
+feature/auth-login
+feature/auth-role
+```
 
 ### Tasks
 
-- User Entity
-- Role Entity
-- JWT
+- JWT Provider
+- JWT Filter
+- SecurityConfig
+- UserPrincipal
 - Login
 - Logout
 - Refresh Token
-- Spring Security
-- Authentication Filter
-- Authorization Filter
-- Password Encryption
+- Role Authorization
+- Password Encoder
 
 ### Deliverables
 
-- JWT Login
-- Role Based Authorization
-- Security Config
+- JWT Authentication
+- Role Authorization
+- Security Framework
 
 ---
 
@@ -154,25 +224,27 @@ Completed
 
 ## Project Management
 
-### Goal
+### Feature Branch
 
-프로젝트 관리 기능 구현
+```
+feature/project-crud
+feature/project-search
+```
 
 ### Tasks
 
 - Project CRUD
 - Customer
 - PM
-- 기간 관리
-- 상태 관리
-- 프로젝트 검색
+- Status
+- Project Search
 - Pagination
 - Specification
 
 ### Deliverables
 
 - Project API
-- Project Search
+- Search API
 
 ---
 
@@ -180,25 +252,26 @@ Completed
 
 ## WBS & Schedule
 
-### Goal
+### Feature Branch
 
-일정 관리 기능 구축
+```
+feature/wbs-management
+
+feature/schedule-management
+```
 
 ### Tasks
 
 - WBS CRUD
-- 일정 등록
-- 일정 수정
-- 일정 삭제
-- 진척률 계산
-- Gantt Data
+- Schedule CRUD
+- Progress Calculation
 - Calendar API
+- Gantt Data
 
 ### Deliverables
 
 - WBS API
 - Schedule API
-- Progress Calculation
 
 ---
 
@@ -206,9 +279,15 @@ Completed
 
 ## Issue / Risk / Change
 
-### Goal
+### Feature Branch
 
-프로젝트 운영 관리
+```
+feature/issue-management
+
+feature/risk-management
+
+feature/change-management
+```
 
 ### Tasks
 
@@ -221,13 +300,13 @@ Issue
 Risk
 
 - 위험도 계산
-- 대응방안
+- 대응
 
 Change
 
 - 변경 요청
 - 승인
-- 변경 이력
+- 이력 관리
 
 ### Deliverables
 
@@ -241,33 +320,40 @@ Change
 
 ## CMDB
 
-### Goal
+### Feature Branch
 
-구성관리 시스템 구축
+```
+feature/cmdb-management
+```
 
 ### Tasks
 
 - Server CI
 - Software CI
 - Database CI
-- CI Relationship
+- Relationship
 - Version History
 - Change Tracking
 
 ### Deliverables
 
 - CMDB API
-- Relationship Model
 
 ---
 
 # Sprint 6
 
-## Dashboard & Reporting
+## Dashboard & Report
 
-### Goal
+### Feature Branch
 
-관리자 Dashboard 구축
+```
+feature/dashboard
+
+feature/report-excel
+
+feature/report-pdf
+```
 
 ### Tasks
 
@@ -282,7 +368,6 @@ Report
 
 - Excel Export
 - PDF Export
-- 통계 Report
 
 ### Deliverables
 
@@ -294,11 +379,17 @@ Report
 
 # Sprint 7
 
-## Spring AI Integration
+## Spring AI
 
-### Goal
+### Feature Branch
 
-AI 기반 PM Assistant 구축
+```
+feature/spring-ai-assistant
+
+feature/ai-risk-analysis
+
+feature/ai-report-summary
+```
 
 ### Tasks
 
@@ -306,24 +397,22 @@ Spring AI
 
 - OpenAI 연동
 - Prompt 관리
-- Chat Service
+- AI Chat
 
 AI 기능
 
 - 일정 분석
 - 리스크 분석
-- 프로젝트 상태 분석
-- 보고서 자동 생성
+- 프로젝트 분석
+- 보고서 요약
 - 회의록 요약
 - Action Item 생성
 - 변경 영향도 분석
-- 이슈 우선순위 추천
 
 ### Deliverables
 
 - AI Chat API
-- AI Report Generator
-- AI Dashboard Assistant
+- AI Assistant
 
 ---
 
@@ -337,45 +426,44 @@ AI 기능
 
 ### Tasks
 
-- Test
 - Refactoring
-- API Documentation
+- Unit Test
+- Integration Test
 - Swagger
-- README
 - Docker
 - Docker Compose
-- CI/CD
 - GitHub Actions
-- Portfolio 정리
+- README
+- Portfolio
 
 ### Deliverables
 
-- 운영 가능한 PMIS
+- Production Ready PMIS
 - Portfolio Repository
-- Deployment
 
 ---
 
-# 4. Milestone
+# 4. Milestones
 
 | Milestone | Description |
-|-----------|-------------|
+|------------|-------------|
 | M1 | Base Project Complete |
 | M2 | Authentication Complete |
 | M3 | Project Management Complete |
-| M4 | WBS Complete |
+| M4 | WBS & Schedule Complete |
 | M5 | Issue/Risk/Change Complete |
 | M6 | CMDB Complete |
-| M7 | Dashboard Complete |
+| M7 | Dashboard & Report Complete |
 | M8 | Spring AI Complete |
-| M9 | Portfolio Release |
+| M9 | Production Ready |
+| M10 | Portfolio Release |
 
 ---
 
 # 5. Estimated Schedule
 
 | Sprint | Duration |
-|----------|---------|
+|---------|----------|
 | Sprint 0 | 1 Week |
 | Sprint 1 | 2 Weeks |
 | Sprint 2 | 2 Weeks |
@@ -386,7 +474,7 @@ AI 기능
 | Sprint 7 | 2 Weeks |
 | Sprint 8 | 1 Week |
 
-**Total Duration**
+**Estimated Total**
 
 약 **16~18주**
 
@@ -394,11 +482,12 @@ AI 기능
 
 # 6. Quality Objectives
 
-## Code Quality
+## Architecture
 
-- Clean Architecture
-- SOLID
 - Layered Architecture
+- Clean Architecture
+- SOLID Principles
+- RESTful API
 - DTO Pattern
 - Mapper Pattern
 - Specification Pattern
@@ -408,6 +497,7 @@ AI 기능
 ## Development Standards
 
 - Git Flow
+- Semantic Versioning
 - Conventional Commit
 - Pull Request
 - Code Review
@@ -418,13 +508,13 @@ AI 기능
 
 ## Documentation
 
-프로젝트와 함께 아래 문서를 지속적으로 관리한다.
+다음 문서를 지속적으로 관리한다.
 
-- Project Overview
-- Development Roadmap
-- Architecture
-- Changelog
-- Portfolio
+- PROJECT_OVERVIEW.md
+- DEVELOPMENT_ROADMAP.md
+- ARCHITECTURE.md
+- CHANGELOG.md
+- PORTFOLIO.md
 
 ---
 
@@ -434,15 +524,19 @@ AI 기능
 
 - PMIS Backend
 - Spring Boot REST API
-- MariaDB Schema
 - JWT Authentication
-- Dashboard
+- MariaDB Schema
+- Project Management
+- WBS Management
+- Issue Management
+- Risk Management
+- Change Management
 - CMDB
-- WBS
+- Dashboard
 - Report System
 - Spring AI Assistant
-- Docker Deployment
 - Swagger API
+- Docker Deployment
 - GitHub Repository
 - Portfolio Documentation
 
@@ -455,9 +549,10 @@ AI 기능
 - 실제 SI 프로젝트 수준의 PMIS 구현
 - Spring Boot 기반 엔터프라이즈 아키텍처 적용
 - JWT 기반 인증/인가 구현
-- Spring AI를 활용한 AI Assistant 제공
+- Spring AI 기반 AI Assistant 제공
 - Docker 기반 배포 환경 구축
 - Git Flow 기반 협업 프로세스 적용
+- 운영 가능한 백엔드 시스템 완성
 - 포트폴리오 및 기술 시연 가능한 수준의 결과물 확보
 
 ---
@@ -467,3 +562,4 @@ AI 기능
 | Version | Date | Author | Description |
 |----------|------|--------|-------------|
 | 1.0 | 2026-08-03 | Seo Seokhyeon | Initial Development Roadmap |
+| 1.1 | 2026-08-04 | Seo Seokhyeon | Updated roadmap, branch strategy, semantic versioning, sprint structure |

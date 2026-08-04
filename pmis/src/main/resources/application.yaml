@@ -17,3 +17,10 @@ spring:
 
   application:
     name: pmis
+
+jwt:
+  # Base64 인코딩된 512bit Secret Key
+  secret: MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDE=
+
+  access-token-expiration: 3600000
+  refresh-token-expiration: 1209600000

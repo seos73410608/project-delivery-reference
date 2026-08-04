@@ -7,8 +7,11 @@ import org.springframework.http.HttpStatus;
 public enum CommonErrorCode implements ErrorCode {
 
     /**
+     * =========================================================================
      * Common
+     * =========================================================================
      */
+
     INVALID_PARAMETER(
             HttpStatus.BAD_REQUEST,
             "COMMON_001",
@@ -37,6 +40,48 @@ public enum CommonErrorCode implements ErrorCode {
             HttpStatus.METHOD_NOT_ALLOWED,
             "COMMON_005",
             "지원하지 않는 HTTP 메서드입니다."
+    ),
+
+    /**
+     * =========================================================================
+     * Authentication
+     * =========================================================================
+     */
+
+    UNAUTHORIZED(
+            HttpStatus.UNAUTHORIZED,
+            "AUTH_001",
+            "인증이 필요합니다."
+    ),
+
+    ACCESS_DENIED(
+            HttpStatus.FORBIDDEN,
+            "AUTH_002",
+            "접근 권한이 없습니다."
+    ),
+
+    INVALID_TOKEN(
+            HttpStatus.UNAUTHORIZED,
+            "AUTH_003",
+            "유효하지 않은 JWT 토큰입니다."
+    ),
+
+    EXPIRED_TOKEN(
+            HttpStatus.UNAUTHORIZED,
+            "AUTH_004",
+            "JWT 토큰이 만료되었습니다."
+    ),
+
+    UNSUPPORTED_TOKEN(
+            HttpStatus.UNAUTHORIZED,
+            "AUTH_005",
+            "지원하지 않는 JWT 토큰입니다."
+    ),
+
+    MALFORMED_TOKEN(
+            HttpStatus.UNAUTHORIZED,
+            "AUTH_006",
+            "잘못된 형식의 JWT 토큰입니다."
     );
 
     private final HttpStatus httpStatus;
@@ -53,5 +98,10 @@ public enum CommonErrorCode implements ErrorCode {
         this.httpStatus = httpStatus;
         this.code = code;
         this.message = message;
+    }
+
+    @Override
+    public HttpStatus getHttpStatus() {
+        return httpStatus;
     }
 }
