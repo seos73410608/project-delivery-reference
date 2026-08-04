@@ -28,16 +28,21 @@ public class UserPrincipal implements UserDetails {
     private String username;
 
     /**
-     * 권한
-     * 예) ROLE_ADMIN, ROLE_USER
+     * 암호화된 비밀번호
+     */
+    private String password;
+
+    /**
+     * ROLE_ADMIN
+     * ROLE_USER
      */
     private String role;
 
     /**
-     * JWT 인증에서는 사용하지 않음
+     * 계정 활성 여부
      */
     @Builder.Default
-    private String password = "";
+    private boolean enabled = true;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -79,10 +84,10 @@ public class UserPrincipal implements UserDetails {
     }
 
     /**
-     * 계정 활성화 여부
+     * 계정 활성 여부
      */
     @Override
     public boolean isEnabled() {
-        return true;
+        return enabled;
     }
 }

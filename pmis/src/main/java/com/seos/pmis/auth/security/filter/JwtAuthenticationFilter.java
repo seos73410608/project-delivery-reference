@@ -1,7 +1,7 @@
 package com.seos.pmis.auth.security.filter;
 
 import com.seos.pmis.auth.security.jwt.JwtProvider;
-import com.seos.pmis.auth.security.principal.UserPrincipal;
+import com.seos.pmis.auth.service.CustomUserDetailsService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -21,6 +22,7 @@ import java.io.IOException;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtProvider jwtProvider;
+    private final CustomUserDetailsService userDetailsService;
 
     @Override
     protected void doFilterInternal(
@@ -35,17 +37,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             if (StringUtils.hasText(token) && jwtProvider.validateToken(token)) {
 
-                UserPrincipal principal = UserPrincipal.builder()
-                        .userId(jwtProvider.getUserId(token))
-                        .username(jwtProvider.getUsername(token))
-                        .role(jwtProvider.getRole(token))
-                        .build();
+                String username = jwtProvider.getUsername(token);
+
+                UserDetails userDetails =
+                        userDetailsService.loadUserByUsername(username);
 
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(
-                                principal,
+                                userDetails,
                                 null,
-                                principal.getAuthorities()
+                                userDetails.getAuthorities()
                         );
 
                 authentication.setDetails(

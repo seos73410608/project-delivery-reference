@@ -82,6 +82,24 @@ public enum CommonErrorCode implements ErrorCode {
             HttpStatus.UNAUTHORIZED,
             "AUTH_006",
             "잘못된 형식의 JWT 토큰입니다."
+    ),
+
+    USER_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+            "AUTH_007",
+            "사용자를 찾을 수 없습니다."
+    ),
+
+    INVALID_USERNAME_OR_PASSWORD(
+            HttpStatus.UNAUTHORIZED,
+            "AUTH_008",
+            "아이디 또는 비밀번호가 올바르지 않습니다."
+    ),
+
+    ACCOUNT_DISABLED(
+            HttpStatus.FORBIDDEN,
+            "AUTH_009",
+            "비활성화된 계정입니다."
     );
 
     private final HttpStatus httpStatus;
