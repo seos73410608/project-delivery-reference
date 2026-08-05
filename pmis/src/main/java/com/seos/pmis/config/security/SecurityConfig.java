@@ -5,6 +5,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
+import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -46,13 +50,13 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
 
                 // -----------------------------------------------------------------
-                // Form Login / HTTP Basic 비활성화
+                // Form Login / HTTP Basic
                 // -----------------------------------------------------------------
                 .formLogin(form -> form.disable())
                 .httpBasic(basic -> basic.disable())
 
                 // -----------------------------------------------------------------
-                // Stateless Session
+                // Session
                 // -----------------------------------------------------------------
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
@@ -84,13 +88,23 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**")
                         .permitAll()
 
-                        // Test API
+                        // Public Test API
                         .requestMatchers(
                                 "/api/test/public",
                                 "/api/test/token"
                         ).permitAll()
 
-                        // Preflight
+                        // URL 권한(@PreAuthorize으로 변경.)
+                        //.requestMatchers("/api/admin/**")
+                        //.hasRole("ADMIN")
+
+                        //.requestMatchers("/api/pm/**")
+                        //.hasRole("PM")
+
+                        //.requestMatchers("/api/user/**")
+                        //.hasRole("USER")
+
+                        // OPTIONS
                         .requestMatchers(HttpMethod.OPTIONS, "/**")
                         .permitAll()
 
@@ -116,6 +130,45 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    /**
+     * Role Hierarchy
+     *
+     * ROLE_ADMIN
+     *      >
+     * ROLE_PM
+     *      >
+     * ROLE_USER
+     */
+    @Bean
+    public RoleHierarchy roleHierarchy() {
+
+        RoleHierarchyImpl hierarchy = new RoleHierarchyImpl();
+
+        hierarchy.setHierarchy("""
+                ROLE_ADMIN > ROLE_PM
+                ROLE_PM > ROLE_USER
+                """);
+
+        return hierarchy;
+    }
+
+    /**
+     * Method Security(@PreAuthorize)에서
+     * RoleHierarchy 적용
+     */
+    @Bean
+    public MethodSecurityExpressionHandler methodSecurityExpressionHandler(
+            RoleHierarchy roleHierarchy
+    ) {
+
+        DefaultMethodSecurityExpressionHandler handler =
+                new DefaultMethodSecurityExpressionHandler();
+
+        handler.setRoleHierarchy(roleHierarchy);
+
+        return handler;
     }
 
     /**

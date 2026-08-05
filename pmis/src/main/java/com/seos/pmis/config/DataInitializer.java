@@ -19,28 +19,67 @@ public class DataInitializer {
 
     @Bean
     CommandLineRunner initData() {
+
         return args -> {
 
-            if (userRepository.findByUsername("admin").isPresent()) {
-                return;
-            }
+            createUser(
+                    "admin",
+                    "admin123",
+                    "관리자",
+                    "admin@pmis.com",
+                    UserRole.ROLE_ADMIN
+            );
 
-            User admin = User.builder()
-                    .username("admin")
-                    .password(passwordEncoder.encode("admin123"))
-                    .name("관리자")
-                    .email("admin@pmis.com")
-                    .role(UserRole.ROLE_ADMIN)
-                    .enabled(true)
-                    .build();
+            createUser(
+                    "pm",
+                    "pm1234",
+                    "프로젝트 관리자",
+                    "pm@pmis.com",
+                    UserRole.ROLE_PM
+            );
 
-            userRepository.save(admin);
+            createUser(
+                    "user",
+                    "user1234",
+                    "일반 사용자",
+                    "user@pmis.com",
+                    UserRole.ROLE_USER
+            );
 
-            System.out.println("====================================");
-            System.out.println(" Test Admin Created");
-            System.out.println(" username : admin");
-            System.out.println(" password : admin123");
-            System.out.println("====================================");
+            System.out.println("========================================");
+            System.out.println(" PMIS Test Accounts");
+            System.out.println("----------------------------------------");
+            System.out.println("ADMIN : admin / admin123");
+            System.out.println("PM    : pm    / pm1234");
+            System.out.println("USER  : user  / user1234");
+            System.out.println("========================================");
         };
+    }
+
+    /**
+     * 테스트 계정 생성
+     */
+    private void createUser(
+            String username,
+            String password,
+            String name,
+            String email,
+            UserRole role
+    ) {
+
+        if (userRepository.findByUsername(username).isPresent()) {
+            return;
+        }
+
+        User user = User.builder()
+                .username(username)
+                .password(passwordEncoder.encode(password))
+                .name(name)
+                .email(email)
+                .role(role)
+                .enabled(true)
+                .build();
+
+        userRepository.save(user);
     }
 }

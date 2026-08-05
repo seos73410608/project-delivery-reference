@@ -4,8 +4,8 @@
 # Variables
 ##################################################
 
-@accessToken=eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJhZG1pbiIsInVzZXJJZCI6MSwicm9sZSI6IlJPTEVfQURNSU4iLCJpYXQiOjE3ODU5MDAyODEsImV4cCI6MTc4NTkwMzg4MX0.3cpIlvSTVc8BxFHYvWTcHcWLLsE0xhHMCrRXaFeYOZCl-dK37i3WSHqL62HYd6iZ
-@refreshToken=eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJhZG1pbiIsInVzZXJJZCI6MSwicm9sZSI6IlJPTEVfQURNSU4iLCJpYXQiOjE3ODU5MDAyODEsImV4cCI6MTc4NzEwOTg4MX0.GxZDlOLO5WwXp_sjbDQhJ9-WKBc4QJUw8bj-dHTsEKkeIYPOjd9FRf0Vzi4EgT5K
+@accessToken=eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJ1c2VyIiwidXNlcklkIjozLCJyb2xlIjoiUk9MRV9VU0VSIiwiaWF0IjoxNzg1OTEwMDQyLCJleHAiOjE3ODU5MTM2NDJ9.hfYwJKj7Lx7Tu-V4ji-1W6WkPOFxxKqvThvEXZ1yDbQ_3MBuAS0VtDajkvyZrujI
+@refreshToken=eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJ1c2VyIiwidXNlcklkIjozLCJyb2xlIjoiUk9MRV9VU0VSIiwiaWF0IjoxNzg1OTEwMDQyLCJleHAiOjE3ODcxMTk2NDJ9.P81A5WMt6oM2PU5EEVlI-fkC4Rth4ivI1uhbTHMvME1Gu8ryU7DLuHISTRKYKMCq
 
 ##################################################
 # Public API
@@ -15,7 +15,7 @@
 GET {{host}}/api/test/public
 
 ##################################################
-# Login
+# Login - ADMIN
 ##################################################
 
 ###
@@ -25,6 +25,32 @@ Content-Type: application/json
 {
   "username": "admin",
   "password": "admin123"
+}
+
+##################################################
+# Login - PM
+##################################################
+
+###
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "pm",
+  "password": "pm1234"
+}
+
+##################################################
+# Login - USER
+##################################################
+
+###
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "user",
+  "password": "user1234"
 }
 
 ##################################################
@@ -40,7 +66,7 @@ Content-Type: application/json
 }
 
 ##################################################
-# Private API
+# JWT Authentication Test
 ##################################################
 
 ###
@@ -48,7 +74,33 @@ GET {{host}}/api/test/private
 Authorization: Bearer {{accessToken}}
 
 ##################################################
-# Temporary Test Token API
+# Role Test
+##################################################
+
+### Authenticated
+GET {{host}}/api/role/authenticated
+Authorization: Bearer {{accessToken}}
+
+###
+
+### USER
+GET {{host}}/api/role/user
+Authorization: Bearer {{accessToken}}
+
+###
+
+### PM
+GET {{host}}/api/role/pm
+Authorization: Bearer {{accessToken}}
+
+###
+
+### ADMIN
+GET {{host}}/api/role/admin
+Authorization: Bearer {{accessToken}}
+
+##################################################
+# Temporary Token API
 # feature/auth-refresh 완료 후 삭제 예정
 ##################################################
 
