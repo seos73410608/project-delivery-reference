@@ -1,15 +1,56 @@
 @host=http://localhost:8080
 
-### Public
+##################################################
+# Variables
+##################################################
+
+@accessToken=eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJhZG1pbiIsInVzZXJJZCI6MSwicm9sZSI6IlJPTEVfQURNSU4iLCJpYXQiOjE3ODU5MDAyODEsImV4cCI6MTc4NTkwMzg4MX0.3cpIlvSTVc8BxFHYvWTcHcWLLsE0xhHMCrRXaFeYOZCl-dK37i3WSHqL62HYd6iZ
+@refreshToken=eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJhZG1pbiIsInVzZXJJZCI6MSwicm9sZSI6IlJPTEVfQURNSU4iLCJpYXQiOjE3ODU5MDAyODEsImV4cCI6MTc4NzEwOTg4MX0.GxZDlOLO5WwXp_sjbDQhJ9-WKBc4QJUw8bj-dHTsEKkeIYPOjd9FRf0Vzi4EgT5K
+
+##################################################
+# Public API
+##################################################
+
+###
 GET {{host}}/api/test/public
 
+##################################################
+# Login
+##################################################
+
 ###
+POST {{host}}/api/auth/login
+Content-Type: application/json
 
-### Token
-GET {{host}}/api/test/token
+{
+  "username": "admin",
+  "password": "admin123"
+}
+
+##################################################
+# Refresh Token
+##################################################
 
 ###
+POST {{host}}/api/auth/refresh
+Content-Type: application/json
 
-### Private
+{
+  "refreshToken": "{{refreshToken}}"
+}
+
+##################################################
+# Private API
+##################################################
+
+###
 GET {{host}}/api/test/private
-Authorization: Bearer eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJhZG1pbiIsInVzZXJJZCI6MSwicm9sZSI6IlJPTEVfQURNSU4iLCJpYXQiOjE3ODU4MTE3NjAsImV4cCI6MTc4NTgxNTM2MH0.MFbimoqCT147U-OiyuujrhwcPUVpUthUogY4AWRhmAFvtJgPuNVc5LDqrdQ5fFVW
+Authorization: Bearer {{accessToken}}
+
+##################################################
+# Temporary Test Token API
+# feature/auth-refresh 완료 후 삭제 예정
+##################################################
+
+###
+GET {{host}}/api/test/token
