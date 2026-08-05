@@ -1,6 +1,7 @@
 package com.seos.pmis.auth.controller;
 
 import com.seos.pmis.auth.dto.request.LoginRequest;
+import com.seos.pmis.auth.dto.request.RefreshTokenRequest;
 import com.seos.pmis.auth.dto.response.LoginResponse;
 import com.seos.pmis.auth.service.AuthService;
 import com.seos.pmis.common.response.ApiResponse;
@@ -27,6 +28,22 @@ public class AuthController {
 
         return ApiResponse.success(
                 "로그인에 성공했습니다.",
+                response
+        );
+    }
+
+    /**
+     * Access Token / Refresh Token 재발급
+     */
+    @PostMapping("/refresh")
+    public ApiResponse<LoginResponse> refresh(
+            @Valid @RequestBody RefreshTokenRequest request
+    ) {
+
+        LoginResponse response = authService.refresh(request);
+
+        return ApiResponse.success(
+                "토큰이 재발급되었습니다.",
                 response
         );
     }

@@ -35,7 +35,9 @@ public class JwtProvider {
 
     @PostConstruct
     protected void init() {
+
         byte[] keyBytes = Decoders.BASE64.decode(secret);
+
         this.secretKey = Keys.hmacShaKeyFor(keyBytes);
     }
 
@@ -47,6 +49,7 @@ public class JwtProvider {
             String username,
             String role
     ) {
+
         return generateToken(
                 userId,
                 username,
@@ -63,6 +66,7 @@ public class JwtProvider {
             String username,
             String role
     ) {
+
         return generateToken(
                 userId,
                 username,
@@ -107,28 +111,47 @@ public class JwtProvider {
     }
 
     /**
-     * username 조회
-     */
-    public String getUsername(String token) {
-        return getClaims(token).getSubject();
-    }
-
-    /**
-     * userId 조회
+     * 사용자 ID 조회
      */
     public Long getUserId(String token) {
         return getClaims(token).get("userId", Long.class);
     }
 
     /**
-     * role 조회
+     * 사용자명 조회
+     */
+    public String getUsername(String token) {
+        return getClaims(token).getSubject();
+    }
+
+    /**
+     * 권한 조회
      */
     public String getRole(String token) {
         return getClaims(token).get("role", String.class);
     }
 
     /**
-     * 토큰 검증
+     * 만료 시간 조회
+     */
+    public Date getExpiration(String token) {
+        return getClaims(token).getExpiration();
+    }
+
+    /**
+     * 토큰 만료 여부
+     */
+    public boolean isTokenExpired(String token) {
+
+        try {
+            return getExpiration(token).before(new Date());
+        } catch (ExpiredJwtException e) {
+            return true;
+        }
+    }
+
+    /**
+     * Access Token 검증
      */
     public boolean validateToken(String token) {
 
@@ -142,21 +165,34 @@ public class JwtProvider {
             return true;
 
         } catch (SecurityException e) {
+
             log.debug("Invalid JWT Signature", e);
 
         } catch (MalformedJwtException e) {
+
             log.debug("Malformed JWT", e);
 
         } catch (ExpiredJwtException e) {
+
             log.debug("Expired JWT", e);
 
         } catch (UnsupportedJwtException e) {
+
             log.debug("Unsupported JWT", e);
 
         } catch (IllegalArgumentException e) {
+
             log.debug("JWT claims string is empty", e);
+
         }
 
         return false;
+    }
+
+    /**
+     * Refresh Token 검증
+     */
+    public boolean validateRefreshToken(String refreshToken) {
+        return validateToken(refreshToken);
     }
 }
