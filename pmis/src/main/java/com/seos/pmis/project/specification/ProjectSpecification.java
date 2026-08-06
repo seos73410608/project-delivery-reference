@@ -5,9 +5,29 @@ import com.seos.pmis.project.entity.ProjectPriority;
 import com.seos.pmis.project.entity.ProjectStatus;
 import org.springframework.data.jpa.domain.Specification;
 
+import java.time.LocalDate;
+
 public final class ProjectSpecification {
 
     private ProjectSpecification() {
+    }
+
+    /**
+     * 프로젝트 코드
+     */
+    public static Specification<Project> projectCodeContains(String projectCode) {
+
+        return (root, query, cb) -> {
+
+            if (projectCode == null || projectCode.isBlank()) {
+                return null;
+            }
+
+            return cb.like(
+                    cb.lower(root.get("projectCode")),
+                    "%" + projectCode.toLowerCase() + "%"
+            );
+        };
     }
 
     /**
@@ -93,4 +113,77 @@ public final class ProjectSpecification {
             return cb.equal(root.get("priority"), priority);
         };
     }
+
+    /**
+     * 시작일 From
+     */
+    public static Specification<Project> startDateFrom(LocalDate startDateFrom) {
+
+        return (root, query, cb) -> {
+
+            if (startDateFrom == null) {
+                return null;
+            }
+
+            return cb.greaterThanOrEqualTo(
+                    root.get("startDate"),
+                    startDateFrom
+            );
+        };
+    }
+
+    /**
+     * 시작일 To
+     */
+    public static Specification<Project> startDateTo(LocalDate startDateTo) {
+
+        return (root, query, cb) -> {
+
+            if (startDateTo == null) {
+                return null;
+            }
+
+            return cb.lessThanOrEqualTo(
+                    root.get("startDate"),
+                    startDateTo
+            );
+        };
+    }
+
+    /**
+     * 종료일 From
+     */
+    public static Specification<Project> endDateFrom(LocalDate endDateFrom) {
+
+        return (root, query, cb) -> {
+
+            if (endDateFrom == null) {
+                return null;
+            }
+
+            return cb.greaterThanOrEqualTo(
+                    root.get("endDate"),
+                    endDateFrom
+            );
+        };
+    }
+
+    /**
+     * 종료일 To
+     */
+    public static Specification<Project> endDateTo(LocalDate endDateTo) {
+
+        return (root, query, cb) -> {
+
+            if (endDateTo == null) {
+                return null;
+            }
+
+            return cb.lessThanOrEqualTo(
+                    root.get("endDate"),
+                    endDateTo
+            );
+        };
+    }
+
 }

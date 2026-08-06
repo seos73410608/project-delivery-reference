@@ -3,17 +3,23 @@ package com.seos.pmis.project.service;
 import com.seos.pmis.common.exception.BusinessException;
 import com.seos.pmis.common.exception.code.CommonErrorCode;
 import com.seos.pmis.project.dto.request.CreateProjectRequest;
+import com.seos.pmis.project.dto.request.ProjectSearchRequest;
 import com.seos.pmis.project.dto.request.UpdateProjectRequest;
 import com.seos.pmis.project.dto.response.ProjectResponse;
 import com.seos.pmis.project.entity.Project;
 import com.seos.pmis.project.entity.ProjectStatus;
 import com.seos.pmis.project.mapper.ProjectMapper;
 import com.seos.pmis.project.repository.ProjectRepository;
+import com.seos.pmis.project.specification.ProjectSpecification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -22,6 +28,22 @@ public class ProjectService {
 
     private final ProjectRepository projectRepository;
     private final ProjectMapper projectMapper;
+
+    /**
+     * 허용된 정렬 컬럼
+     */
+    private static final Set<String> ALLOWED_SORT_PROPERTIES = Set.of(
+            "projectCode",
+            "projectName",
+            "customerName",
+            "projectManager",
+            "status",
+            "priority",
+            "startDate",
+            "endDate",
+            "createdAt",
+            "updatedAt"
+    );
 
     /**
      * 프로젝트 생성
@@ -54,11 +76,28 @@ public class ProjectService {
     }
 
     /**
-     * 프로젝트 목록 조회
+     * 프로젝트 검색
      */
-    public Page<ProjectResponse> getProjects(Pageable pageable) {
+    public Page<ProjectResponse> searchProjects(
+            ProjectSearchRequest request,
+            Pageable pageable
+    ) {
 
-        return projectRepository.findAll(pageable)
+        validateSort(pageable);
+
+        Specification<Project> specification = Specification
+                .where(ProjectSpecification.projectCodeContains(request.getProjectCode()))
+                .and(ProjectSpecification.projectNameContains(request.getProjectName()))
+                .and(ProjectSpecification.customerNameContains(request.getCustomerName()))
+                .and(ProjectSpecification.projectManagerContains(request.getProjectManager()))
+                .and(ProjectSpecification.hasStatus(request.getStatus()))
+                .and(ProjectSpecification.hasPriority(request.getPriority()))
+                .and(ProjectSpecification.startDateFrom(request.getStartDateFrom()))
+                .and(ProjectSpecification.startDateTo(request.getStartDateTo()))
+                .and(ProjectSpecification.endDateFrom(request.getEndDateFrom()))
+                .and(ProjectSpecification.endDateTo(request.getEndDateTo()));
+
+        return projectRepository.findAll(specification, pageable)
                 .map(projectMapper::toResponse);
     }
 
@@ -107,5 +146,18 @@ public class ProjectService {
                 .orElseThrow(() ->
                         new BusinessException(CommonErrorCode.RESOURCE_NOT_FOUND)
                 );
+    }
+
+    /**
+     * 허용된 정렬 컬럼 검증
+     */
+    private void validateSort(Pageable pageable) {
+
+        for (Sort.Order order : pageable.getSort()) {
+
+            if (!ALLOWED_SORT_PROPERTIES.contains(order.getProperty())) {
+                throw new BusinessException(CommonErrorCode.INVALID_REQUEST);
+            }
+        }
     }
 }

@@ -42,6 +42,12 @@ public enum CommonErrorCode implements ErrorCode {
             "지원하지 않는 HTTP 메서드입니다."
     ),
 
+    INVALID_SORT_PROPERTY(
+            HttpStatus.BAD_REQUEST,
+            "COMMON_006",
+            "지원하지 않는 정렬 컬럼입니다."
+    ),
+
     /**
      * =========================================================================
      * Authentication

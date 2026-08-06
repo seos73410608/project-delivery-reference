@@ -2,6 +2,7 @@ package com.seos.pmis.project.controller;
 
 import com.seos.pmis.common.response.ApiResponse;
 import com.seos.pmis.project.dto.request.CreateProjectRequest;
+import com.seos.pmis.project.dto.request.ProjectSearchRequest;
 import com.seos.pmis.project.dto.request.UpdateProjectRequest;
 import com.seos.pmis.project.dto.response.ProjectResponse;
 import com.seos.pmis.project.service.ProjectService;
@@ -67,20 +68,21 @@ public class ProjectController {
     }
 
     /**
-     * 프로젝트 목록 조회
+     * 프로젝트 검색
      */
     @Operation(
-            summary = "프로젝트 목록 조회",
-            description = "프로젝트 목록을 페이지 단위로 조회합니다."
+            summary = "프로젝트 검색",
+            description = "검색 조건을 이용하여 프로젝트를 조회합니다."
     )
     @PreAuthorize("hasRole('USER')")
     @GetMapping
-    public ApiResponse<Page<ProjectResponse>> getProjects(
+    public ApiResponse<Page<ProjectResponse>> searchProjects(
+            @ModelAttribute ProjectSearchRequest request,
             Pageable pageable
     ) {
 
         return ApiResponse.success(
-                projectService.getProjects(pageable)
+                projectService.searchProjects(request, pageable)
         );
     }
 
