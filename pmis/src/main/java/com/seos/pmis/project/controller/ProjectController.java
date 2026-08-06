@@ -5,13 +5,21 @@ import com.seos.pmis.project.dto.request.CreateProjectRequest;
 import com.seos.pmis.project.dto.request.UpdateProjectRequest;
 import com.seos.pmis.project.dto.response.ProjectResponse;
 import com.seos.pmis.project.service.ProjectService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+@Tag(
+        name = "Project",
+        description = "프로젝트 관리 API"
+)
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/projects")
@@ -22,6 +30,11 @@ public class ProjectController {
     /**
      * 프로젝트 생성
      */
+    @Operation(
+            summary = "프로젝트 생성",
+            description = "신규 프로젝트를 생성합니다."
+    )
+    @PreAuthorize("hasRole('PM')")
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public ApiResponse<ProjectResponse> createProject(
@@ -37,8 +50,14 @@ public class ProjectController {
     /**
      * 프로젝트 단건 조회
      */
+    @Operation(
+            summary = "프로젝트 조회",
+            description = "프로젝트 ID로 프로젝트를 조회합니다."
+    )
+    @PreAuthorize("hasRole('USER')")
     @GetMapping("/{projectId}")
     public ApiResponse<ProjectResponse> getProject(
+            @Parameter(description = "프로젝트 ID")
             @PathVariable Long projectId
     ) {
 
@@ -50,6 +69,11 @@ public class ProjectController {
     /**
      * 프로젝트 목록 조회
      */
+    @Operation(
+            summary = "프로젝트 목록 조회",
+            description = "프로젝트 목록을 페이지 단위로 조회합니다."
+    )
+    @PreAuthorize("hasRole('USER')")
     @GetMapping
     public ApiResponse<Page<ProjectResponse>> getProjects(
             Pageable pageable
@@ -63,8 +87,14 @@ public class ProjectController {
     /**
      * 프로젝트 수정
      */
+    @Operation(
+            summary = "프로젝트 수정",
+            description = "프로젝트 정보를 수정합니다."
+    )
+    @PreAuthorize("hasRole('PM')")
     @PutMapping("/{projectId}")
     public ApiResponse<ProjectResponse> updateProject(
+            @Parameter(description = "프로젝트 ID")
             @PathVariable Long projectId,
             @Valid @RequestBody UpdateProjectRequest request
     ) {
@@ -78,8 +108,14 @@ public class ProjectController {
     /**
      * 프로젝트 삭제
      */
+    @Operation(
+            summary = "프로젝트 삭제",
+            description = "프로젝트를 삭제합니다."
+    )
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{projectId}")
     public ApiResponse<Void> deleteProject(
+            @Parameter(description = "프로젝트 ID")
             @PathVariable Long projectId
     ) {
 

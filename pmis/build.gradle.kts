@@ -73,6 +73,11 @@ dependencies {
     // implementation("org.springframework.ai:spring-ai-starter-model-ollama")
 
     // ------------------------------------------------------------------------
+    // Swagger
+    // ------------------------------------------------------------------------
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.9")
+
+    // ------------------------------------------------------------------------
     // Test
     // ------------------------------------------------------------------------
     testImplementation("org.springframework.boot:spring-boot-starter-test")

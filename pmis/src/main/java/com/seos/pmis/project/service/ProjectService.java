@@ -6,6 +6,7 @@ import com.seos.pmis.project.dto.request.CreateProjectRequest;
 import com.seos.pmis.project.dto.request.UpdateProjectRequest;
 import com.seos.pmis.project.dto.response.ProjectResponse;
 import com.seos.pmis.project.entity.Project;
+import com.seos.pmis.project.entity.ProjectStatus;
 import com.seos.pmis.project.mapper.ProjectMapper;
 import com.seos.pmis.project.repository.ProjectRepository;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +34,9 @@ public class ProjectService {
         }
 
         Project project = projectMapper.toEntity(request);
+
+        // 생성 시 기본 상태
+        project.changeStatus(ProjectStatus.PLANNING);
 
         Project savedProject = projectRepository.save(project);
 
@@ -104,5 +108,4 @@ public class ProjectService {
                         new BusinessException(CommonErrorCode.RESOURCE_NOT_FOUND)
                 );
     }
-
 }
