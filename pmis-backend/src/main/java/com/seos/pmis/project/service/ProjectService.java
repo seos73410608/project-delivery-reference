@@ -26,8 +26,11 @@ import java.util.Set;
 @Transactional(readOnly = true)
 public class ProjectService {
 
+
     private final ProjectRepository projectRepository;
+
     private final ProjectMapper projectMapper;
+
 
     /**
      * 허용된 정렬 컬럼
@@ -45,35 +48,55 @@ public class ProjectService {
             "updatedAt"
     );
 
+
     /**
      * 프로젝트 생성
      */
     @Transactional
-    public ProjectResponse create(CreateProjectRequest request) {
+    public ProjectResponse create(
+            CreateProjectRequest request
+    ) {
 
         if (projectRepository.existsByProjectCode(request.getProjectCode())) {
-            throw new BusinessException(CommonErrorCode.INVALID_REQUEST);
+
+            throw new BusinessException(
+                    CommonErrorCode.INVALID_REQUEST
+            );
         }
 
-        Project project = projectMapper.toEntity(request);
+
+        Project project =
+                projectMapper.toEntity(request);
+
 
         // 생성 시 기본 상태
-        project.changeStatus(ProjectStatus.PLANNING);
+        project.changeStatus(
+                ProjectStatus.PLANNING
+        );
 
-        Project savedProject = projectRepository.save(project);
+
+        Project savedProject =
+                projectRepository.save(project);
+
 
         return projectMapper.toResponse(savedProject);
     }
 
+
     /**
      * 프로젝트 단건 조회
      */
-    public ProjectResponse getProject(Long projectId) {
+    public ProjectResponse getProject(
+            Long projectId
+    ) {
 
-        Project project = findProject(projectId);
+        Project project =
+                findProject(projectId);
+
 
         return projectMapper.toResponse(project);
     }
+
 
     /**
      * 프로젝트 검색
@@ -83,23 +106,71 @@ public class ProjectService {
             Pageable pageable
     ) {
 
+
         validateSort(pageable);
 
-        Specification<Project> specification = Specification
-                .where(ProjectSpecification.projectCodeContains(request.getProjectCode()))
-                .and(ProjectSpecification.projectNameContains(request.getProjectName()))
-                .and(ProjectSpecification.customerNameContains(request.getCustomerName()))
-                .and(ProjectSpecification.projectManagerContains(request.getProjectManager()))
-                .and(ProjectSpecification.hasStatus(request.getStatus()))
-                .and(ProjectSpecification.hasPriority(request.getPriority()))
-                .and(ProjectSpecification.startDateFrom(request.getStartDateFrom()))
-                .and(ProjectSpecification.startDateTo(request.getStartDateTo()))
-                .and(ProjectSpecification.endDateFrom(request.getEndDateFrom()))
-                .and(ProjectSpecification.endDateTo(request.getEndDateTo()));
 
-        return projectRepository.findAll(specification, pageable)
+        Specification<Project> specification =
+                Specification
+                        .where(
+                                ProjectSpecification.projectCodeContains(
+                                        request.getProjectCode()
+                                )
+                        )
+                        .and(
+                                ProjectSpecification.projectNameContains(
+                                        request.getProjectName()
+                                )
+                        )
+                        .and(
+                                ProjectSpecification.customerNameContains(
+                                        request.getCustomerName()
+                                )
+                        )
+                        .and(
+                                ProjectSpecification.projectManagerContains(
+                                        request.getProjectManager()
+                                )
+                        )
+                        .and(
+                                ProjectSpecification.hasStatus(
+                                        request.getStatus()
+                                )
+                        )
+                        .and(
+                                ProjectSpecification.hasPriority(
+                                        request.getPriority()
+                                )
+                        )
+                        .and(
+                                ProjectSpecification.startDateFrom(
+                                        request.getStartDateFrom()
+                                )
+                        )
+                        .and(
+                                ProjectSpecification.startDateTo(
+                                        request.getStartDateTo()
+                                )
+                        )
+                        .and(
+                                ProjectSpecification.endDateFrom(
+                                        request.getEndDateFrom()
+                                )
+                        )
+                        .and(
+                                ProjectSpecification.endDateTo(
+                                        request.getEndDateTo()
+                                )
+                        );
+
+
+        return projectRepository.findAll(
+                        specification,
+                        pageable
+                )
                 .map(projectMapper::toResponse);
     }
+
 
     /**
      * 프로젝트 수정
@@ -110,7 +181,10 @@ public class ProjectService {
             UpdateProjectRequest request
     ) {
 
-        Project project = findProject(projectId);
+
+        Project project =
+                findProject(projectId);
+
 
         project.update(
                 request.getProjectName(),
@@ -123,41 +197,65 @@ public class ProjectService {
                 request.getPriority()
         );
 
+
         return projectMapper.toResponse(project);
     }
+
 
     /**
      * 프로젝트 삭제
      */
     @Transactional
-    public void delete(Long projectId) {
+    public void delete(
+            Long projectId
+    ) {
 
-        Project project = findProject(projectId);
+
+        Project project =
+                findProject(projectId);
+
 
         projectRepository.delete(project);
     }
 
+
     /**
      * 프로젝트 조회
      */
-    private Project findProject(Long projectId) {
+    private Project findProject(
+            Long projectId
+    ) {
+
 
         return projectRepository.findById(projectId)
-                .orElseThrow(() ->
-                        new BusinessException(CommonErrorCode.RESOURCE_NOT_FOUND)
+                .orElseThrow(
+                        () -> new BusinessException(
+                                CommonErrorCode.RESOURCE_NOT_FOUND
+                        )
                 );
     }
+
 
     /**
      * 허용된 정렬 컬럼 검증
      */
-    private void validateSort(Pageable pageable) {
+    private void validateSort(
+            Pageable pageable
+    ) {
+
 
         for (Sort.Order order : pageable.getSort()) {
 
-            if (!ALLOWED_SORT_PROPERTIES.contains(order.getProperty())) {
-                throw new BusinessException(CommonErrorCode.INVALID_REQUEST);
+
+            if (!ALLOWED_SORT_PROPERTIES.contains(
+                    order.getProperty()
+            )) {
+
+                throw new BusinessException(
+                        CommonErrorCode.INVALID_REQUEST
+                );
             }
         }
     }
+
 }
