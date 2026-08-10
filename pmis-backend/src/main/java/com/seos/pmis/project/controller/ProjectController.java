@@ -4,9 +4,7 @@ import com.seos.pmis.common.response.ApiResponse;
 import com.seos.pmis.project.dto.request.CreateProjectRequest;
 import com.seos.pmis.project.dto.request.ProjectSearchRequest;
 import com.seos.pmis.project.dto.request.UpdateProjectRequest;
-import com.seos.pmis.project.dto.response.ProjectDashboardResponse;
 import com.seos.pmis.project.dto.response.ProjectResponse;
-import com.seos.pmis.project.service.ProjectDashboardService;
 import com.seos.pmis.project.service.ProjectService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -19,7 +17,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-
 @Tag(
         name = "Project",
         description = "프로젝트 관리 API"
@@ -29,10 +26,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/projects")
 public class ProjectController {
 
-
     private final ProjectService projectService;
-
-    private final ProjectDashboardService projectDashboardService;
 
 
     /**
@@ -52,23 +46,6 @@ public class ProjectController {
         return ApiResponse.success(
                 "프로젝트가 생성되었습니다.",
                 projectService.create(request)
-        );
-    }
-
-
-    /**
-     * 프로젝트 Dashboard 조회
-     */
-    @Operation(
-            summary = "프로젝트 Dashboard 조회",
-            description = "프로젝트 현황 통계를 조회합니다."
-    )
-    @PreAuthorize("hasRole('USER')")
-    @GetMapping("/dashboard")
-    public ApiResponse<ProjectDashboardResponse> getDashboard() {
-
-        return ApiResponse.success(
-                projectDashboardService.getDashboard()
         );
     }
 
@@ -155,5 +132,4 @@ public class ProjectController {
                 "프로젝트가 삭제되었습니다."
         );
     }
-
 }
