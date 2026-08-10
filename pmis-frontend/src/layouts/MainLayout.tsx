@@ -1,5 +1,6 @@
 import { Outlet } from "react-router-dom";
 import Header from "@/components/layout/Header";
+import Sidebar from "@/components/layout/Sidebar";
 
 function MainLayout() {
   return (
@@ -21,15 +22,7 @@ function MainLayout() {
         }}
       >
         {/* Sidebar */}
-        <aside
-          style={{
-            width: "240px",
-            backgroundColor: "#eeeeee",
-            padding: "20px",
-          }}
-        >
-          Sidebar
-        </aside>
+        <Sidebar />
 
         {/* Content */}
         <main
