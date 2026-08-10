@@ -1,6 +1,7 @@
 import { Outlet } from "react-router-dom";
 import Header from "@/components/layout/Header";
 import Sidebar from "@/components/layout/Sidebar";
+import Breadcrumb from "@/components/layout/Breadcrumb";
 
 function MainLayout() {
   return (
@@ -33,14 +34,7 @@ function MainLayout() {
           }}
         >
           {/* Breadcrumb */}
-          <div
-            style={{
-              marginBottom: "20px",
-              fontWeight: "bold",
-            }}
-          >
-            Dashboard
-          </div>
+          <Breadcrumb />
 
           {/* Page */}
           <Outlet />
