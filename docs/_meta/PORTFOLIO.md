@@ -1,7 +1,11 @@
 # PMIS Portfolio
 
-> Enterprise Project Management Information System  
-> Spring Boot 4 + Java 21 + MariaDB + Spring Security + JWT + Spring AI
+> **Version:** 1.1  
+> **Last Updated:** 2026-08-08  
+> **Project:** Project Management Information System (PMIS)  
+> **Repository:** `project-delivery-reference`  
+> **Development Stage:** Backend Core + Frontend Foundation  
+> **Current Integration Branch:** `develop`
 
 ---
 
@@ -9,444 +13,856 @@
 
 PMIS(Project Management Information System)는 SI 및 SM 프로젝트 수행 과정에서 발생하는 프로젝트 관리 업무를 통합 지원하는 웹 시스템이다.
 
-일반적인 일정 관리 시스템이 아니라 실제 프로젝트 현장에서 사용하는 PMO(Project Management Office) 업무를 기반으로 설계하였다.
+단순한 일정 관리나 CRUD 예제가 아니라 실제 프로젝트 현장에서 수행되는 PMO(Project Management Office) 업무를 시스템화하는 것을 목표로 한다.
 
-본 프로젝트는 단순 CRUD 구현이 목적이 아니다.
+주요 관리 영역은 다음과 같다.
 
-실무 프로젝트에서 발생하는
-
-- 일정관리
+- 프로젝트 관리
 - WBS 관리
-- 이슈관리
-- 리스크관리
-- 변경관리
-- 검수관리
-- 구축관리
-- CMDB
-- 보고관리
-- 운영 인수인계
+- 일정 관리
+- 이슈 관리
+- 리스크 관리
+- 변경 관리
+- CMDB(Configuration Management Database)
+- Dashboard
+- Report
+- 파일 및 산출물 관리
+- 향후 AI 기반 PM Assistant
 
-전체 프로세스를 하나의 플랫폼으로 구현하는 것을 목표로 한다.
+Backend와 Frontend를 분리하여 독립적으로 개발하고 있으며, Git Flow 기반 Feature Branch 전략을 적용한다.
 
 ---
 
 # 2. 프로젝트 목표
 
-## 1차 목표
+## 2.1 1차 목표 — Enterprise PMIS Core
 
-Spring Boot 기반의 Enterprise PMIS 구축
+Spring Boot 기반의 엔터프라이즈 PMIS Backend를 구축한다.
 
-구현 대상
+구현 및 개발 대상:
 
+- 사용자/권한 관리
+- 인증/인가
 - 프로젝트 관리
+- WBS 관리
 - 일정 관리
-- WBS
-- 이슈
-- 리스크
-- 변경관리
-- 보고관리
+- 이슈 관리
+- 리스크 관리
+- 변경 관리
 - CMDB
 - Dashboard
+- Report
+- 파일 관리
 
 ---
 
-## 2차 목표
+## 2.2 2차 목표 — PMO 업무 시스템화
 
-현업에서 사용하는 PMO 문서를 자동 생성할 수 있는 시스템 구축
+실제 PMO 업무에서 사용하는 데이터를 시스템으로 관리한다.
 
-예)
+예:
 
-- 주간보고서
-- 회의록
-- 변경요청서
-- 검수보고서
-- 완료보고서
+- 프로젝트 기본정보
+- WBS
+- 일정 및 진척률
+- 구축 진행상황
+- 이슈 및 조치사항
+- 리스크
+- 변경 요청
+- 산출물 및 검수자료
+- 보고서
+- 구성정보(CMDB)
+
+이를 통해 문서 중심의 PMO 업무를 데이터 기반 관리 방식으로 전환하는 것을 목표로 한다.
 
 ---
 
-## 3차 목표
+## 2.3 3차 목표 — AI Powered PMIS
 
-Spring AI 기반 AI PM Assistant 구축
+Spring AI를 기반으로 PMIS 데이터를 활용하는 AI PM Assistant를 구축한다.
 
-AI가
+예정 기능:
 
-- 프로젝트 진행률 분석
-- 일정 지연 예측
-- 리스크 예측
+- 프로젝트 상태 요약
+- 일정 분석
+- 리스크 분석
+- 이슈 요약
 - 변경 영향도 분석
 - 회의록 요약
-- 보고서 자동 작성
+- Action Item 생성
+- 보고서 초안 생성
 
-을 수행한다.
+AI 기능은 PMIS Core가 안정화된 이후 단계적으로 추가한다.
 
 ---
 
 # 3. 프로젝트 특징
 
-## 실무 중심 설계
+## 3.1 실무 중심 설계
 
-실제 프로젝트 수행 프로세스를 기준으로 설계하였다.
+실제 SI 프로젝트의 PMO 수행 프로세스를 기준으로 기능을 설계한다.
 
-단순 CRUD 프로젝트가 아니라
+단순 CRUD 구현보다 다음과 같은 프로젝트 관리 흐름을 시스템으로 표현하는 것을 중요하게 본다.
 
-프로젝트 수행 프로세스 자체를 시스템으로 구현한다.
+```text
+Project
+   ↓
+WBS
+   ↓
+Schedule
+   ↓
+Progress
+   ↓
+Issue / Risk / Change
+   ↓
+Report / Dashboard
+   ↓
+Project Closure
+```
 
 ---
 
-## Domain Driven Design
+## 3.2 Domain 기반 설계
 
-모든 기능을 Domain 단위로 분리하였다.
+Backend 기능은 Domain 단위로 분리한다.
 
-예)
+주요 Domain:
 
-```
+```text
+auth
+user
 project
+wbs
+schedule
 issue
 risk
 change
-schedule
-wbs
 cmdb
 report
 dashboard
-auth
-user
+file
+batch
+common
+config
 ```
 
-각 Domain은
+각 Domain은 필요에 따라 다음 구조를 사용한다.
 
-- Controller
-- Service
-- Repository
-- Entity
-- DTO
-- Mapper
-
-구조를 동일하게 유지한다.
-
----
-
-## 계층 분리
-
-```
-Presentation
-
-↓
-
-Application(Service)
-
-↓
-
-Domain(Entity)
-
-↓
-
-Persistence(Repository)
-
-↓
-
-Database
+```text
+Controller
+Service
+Repository
+Entity
+DTO
+Mapper
 ```
 
-구조를 명확하게 유지한다.
+---
+
+## 3.3 Frontend / Backend 분리
+
+Repository 구조:
+
+```text
+project-delivery-reference
+│
+├── pmis-backend
+├── pmis-frontend
+└── docs
+```
+
+Frontend는 React 기반으로 별도 프로젝트로 구성하며 Backend REST API와 연동한다.
 
 ---
 
-## 공통 모듈화
+# 4. 현재 기술 스택
 
-공통 기능은 Common Module로 관리한다.
+## 4.1 Backend
 
-예)
+| Category | Technology |
+|---|---|
+| Language | Java 21 |
+| Framework | Spring Boot 4.1.0 |
+| Build | Gradle Kotlin DSL |
+| ORM | Spring Data JPA |
+| Database | MariaDB |
+| Security | Spring Security |
+| Authentication | JWT |
+| Validation | Jakarta Validation |
+| API | RESTful API |
+| Documentation | Swagger / OpenAPI |
+| Version Control | Git / GitHub |
 
-- ApiResponse
-- Exception
-- ErrorCode
-- BaseEntity
-- Validation
-- Utility
-
----
-
-# 4. 기술 스택
-
-## Backend
-
-- Java 21
-- Spring Boot 4
-- Spring Security
-- Spring Data JPA
-- Hibernate
-- JWT
+> Spring Boot 버전 및 라이브러리 구성은 실제 구현 상태를 기준으로 문서화한다.
 
 ---
 
-## Database
+## 4.2 Frontend
 
-- MariaDB
+| Category | Technology |
+|---|---|
+| Framework | React |
+| Language | TypeScript |
+| Build Tool | Vite |
+| Package Manager | npm |
+| Router | React Router DOM |
+| Runtime | Node.js |
+| UI Architecture | Component-based Architecture |
 
----
-
-## Build
-
-- Gradle Kotlin DSL
-
----
-
-## Documentation
-
-- Markdown
+현재 Frontend는 Foundation 단계이며 공통 Layout 및 UI Component를 구축하고 있다.
 
 ---
 
-## Version Control
+## 4.3 AI / Future Stack
 
-- Git
-- GitHub Flow
-
----
-
-## AI
-
-예정
+예정:
 
 - Spring AI
 - OpenAI
-- MCP
+- Azure OpenAI
+- Ollama
 - RAG
+- Vector Database
+- MCP
+- Multi-Agent Architecture
+
+AI 기술은 PMIS Core 기능 안정화 이후 적용한다.
 
 ---
 
-# 5. 아키텍처
+# 5. 현재 구현 상태
 
+## 5.1 Backend — Completed
+
+현재 Backend에는 다음 기반 기능이 구현되어 있다.
+
+### Project Foundation
+
+- Spring Boot 프로젝트
+- Java 21
+- Gradle Kotlin DSL
+- MariaDB 연동
+- Git Repository
+- 공통 Package 구조
+
+### Common Infrastructure
+
+- BaseEntity
+- JPA Auditing
+- ApiResponse
+- ErrorCode
+- Common Error Code
+- Domain Error Code 구조
+- BusinessException
+- GlobalExceptionHandler
+- JpaConfig
+
+### Security
+
+- Spring Security
+- BCrypt
+- Stateless Authentication
+- CORS
+- JWT Provider
+- JWT Authentication Filter
+- Authentication EntryPoint
+- Access Denied Handler
+- UserPrincipal
+- JWT Properties
+
+### Authentication / Authorization
+
+- Login API
+- Refresh Token API
+- Token Reissue
+- Access Token Validation
+- Refresh Token Validation
+- USER / PM / ADMIN Role
+- Role Hierarchy
+
+### API Documentation
+
+- OpenAPI 3
+- Swagger UI
+- JWT Authorization
+
+### Project Management
+
+- Project Entity
+- Project Repository
+- Project Service
+- Project Controller
+- Project CRUD API
+- Project Search
+- Sorting
+- Validation
+- Project Dashboard API
+
+---
+
+# 6. 현재 Frontend 구현 상태
+
+Frontend는 현재 **Foundation 및 공통 Layout Component 단계**이다.
+
+## 6.1 Frontend Foundation
+
+완료:
+
+- React
+- Vite
+- TypeScript
+- npm
+- React Router DOM
+- Backend / Frontend 분리
+- Feature 기반 Directory Structure
+- Alias(`@`) 기반 Import 구조
+
+---
+
+## 6.2 Layout
+
+완료:
+
+- App
+- AppRouter
+- MainLayout
+- Header
+- Sidebar
+- Breadcrumb
+- Content Area
+- Dashboard Page Skeleton
+
+현재 구조:
+
+```text
+App
+ ↓
+AppRouter
+ ↓
+MainLayout
+ ├── Header
+ ├── Sidebar
+ └── Content
+      ├── Breadcrumb
+      └── Outlet
 ```
-Browser
 
-↓
+---
 
-Spring Boot
+## 6.3 Common UI Components
 
-↓
+현재 공통 Component를 구축하였다.
 
-Controller
-
-↓
-
-Service
-
-↓
-
-Repository
-
-↓
-
-MariaDB
+```text
+src/components/common
+│
+├── Button.tsx
+├── Card.tsx
+├── EmptyState.tsx
+└── Loading.tsx
 ```
 
-향후
+Layout Component:
 
-```
-Spring AI
-
-↓
-
-LLM
-
-↓
-
-OpenAI
-
-↓
-
-PMIS Database
-
-↓
-
-RAG
-
-↓
-
-AI Assistant
+```text
+src/components/layout
+│
+├── Header.tsx
+├── Sidebar.tsx
+└── Breadcrumb.tsx
 ```
 
-구조를 추가할 예정이다.
+향후 Form, Modal, Table, Pagination 등의 공통 Component를 추가할 예정이다.
 
 ---
 
-# 6. 구현 예정 기능
+# 7. Frontend Architecture
 
-## 프로젝트
+현재 Frontend 구조:
 
-- 프로젝트 생성
-- 프로젝트 종료
-- 프로젝트 상태관리
+```text
+pmis-frontend
+│
+├── src
+│   ├── api
+│   ├── assets
+│   ├── components
+│   │   ├── common
+│   │   ├── form
+│   │   └── layout
+│   ├── features
+│   │   ├── admin
+│   │   ├── cmdb
+│   │   ├── dashboard
+│   │   ├── issue
+│   │   ├── project
+│   │   ├── report
+│   │   ├── risk
+│   │   ├── schedule
+│   │   └── task
+│   ├── hooks
+│   ├── layouts
+│   ├── pages
+│   ├── router
+│   ├── services
+│   ├── store
+│   ├── styles
+│   ├── types
+│   └── utils
+│
+├── package.json
+├── tsconfig.app.json
+└── vite.config.ts
+```
 
----
-
-## 일정
-
-- 일정 등록
-- 일정 변경
-- 일정 진척률
-
----
-
-## WBS
-
-- 작업 등록
-- 담당자 지정
-- 진행률 계산
-
----
-
-## 이슈
-
-- 이슈 등록
-- 조치 관리
-- 완료 처리
-
----
-
-## 리스크
-
-- Risk 등록
-- Impact 분석
-- 대응 전략
-
----
-
-## 변경관리
-
-- 변경 요청
-- 영향도 분석
-- 승인 프로세스
+Feature별 실제 화면 및 API 연동은 Core UI Foundation 이후 단계적으로 구현한다.
 
 ---
 
-## 보고관리
+# 8. 시스템 아키텍처
 
-- 주간보고
-- 월간보고
-- Dashboard
+전체적인 구조는 다음과 같다.
 
----
+```text
+┌─────────────────────────────┐
+│          Browser            │
+│       React Frontend        │
+└──────────────┬──────────────┘
+               │
+               │ HTTPS / REST API
+               ▼
+┌─────────────────────────────┐
+│       Spring Boot API       │
+│                             │
+│ Controller                  │
+│      ↓                      │
+│ Service                     │
+│      ↓                      │
+│ Repository                  │
+└──────────────┬──────────────┘
+               │
+               ▼
+        ┌─────────────┐
+        │   MariaDB   │
+        └─────────────┘
 
-## CMDB
-
-- CI 관리
-- Server
-- Database
-- Software
-- 관계관리
-
----
-
-## Dashboard
-
-- 프로젝트 현황
-- 일정
-- 이슈
-- 리스크
-- KPI
-
----
-
-## AI Assistant
-
-예정 기능
-
-- 일정 예측
-
-- 프로젝트 위험도 분석
-
-- 이슈 요약
-
-- 회의록 요약
-
-- 변경 영향도 분석
-
-- 프로젝트 상태 자동 분석
-
-- 보고서 자동 생성
+               │
+               │ Future
+               ▼
+        ┌─────────────┐
+        │  Spring AI  │
+        └──────┬──────┘
+               ▼
+          LLM / RAG
+```
 
 ---
 
-# 7. 개발 원칙
+# 9. PMIS Domain Model
 
-본 프로젝트는 아래 원칙을 따른다.
+주요 Domain 관계는 다음 방향으로 확장한다.
 
-- Clean Architecture
-- SOLID
-- DDD
+```text
+User
+ │
+ ▼
+Project
+ │
+ ├── WBS
+ │    └── Schedule
+ │
+ ├── Issue
+ │
+ ├── Risk
+ │
+ ├── Change
+ │
+ ├── CMDB
+ │
+ └── Report
+```
+
+Dashboard는 각 Domain의 데이터를 집계하여 프로젝트 상태를 표현한다.
+
+---
+
+# 10. PMO 업무 자동화 방향
+
+PMIS의 핵심 차별점은 PMO 업무를 단순 저장하는 것이 아니라 반복 업무를 시스템화하는 것이다.
+
+예:
+
+```text
+Project Data
+     ↓
+WBS / Schedule
+     ↓
+Progress Data
+     ↓
+Issue / Risk / Change
+     ↓
+Dashboard
+     ↓
+Weekly / Monthly Report
+```
+
+향후에는 다음과 같이 확장한다.
+
+```text
+PMIS Data
+    ↓
+AI Analysis
+    ↓
+Project Insight
+    ↓
+Report / Recommendation
+```
+
+---
+
+# 11. 개발 방법론
+
+## Git Flow
+
+```text
+main
+  │
+develop
+  │
+feature/*
+  │
+release/*
+  │
+hotfix/*
+```
+
+개발 절차:
+
+```text
+Planning
+   ↓
+Feature Branch 생성
+   ↓
+Development
+   ↓
+Local Test
+   ↓
+Documentation Update
+   ↓
+Commit
+   ↓
+Push
+   ↓
+Pull Request
+   ↓
+Code Review
+   ↓
+Merge to develop
+   ↓
+Release
+```
+
+---
+
+# 12. Commit Convention
+
+| Prefix | Meaning |
+|---|---|
+| feat | Feature |
+| fix | Bug Fix |
+| refactor | Refactoring |
+| docs | Documentation |
+| style | Code Style |
+| test | Test |
+| build | Build |
+| chore | Maintenance |
+| perf | Performance |
+| security | Security |
+
+예:
+
+```text
+feat(frontend): add sidebar component
+feat(frontend): add common UI components
+feat(frontend): implement application layout
+docs: update frontend development history
+```
+
+---
+
+# 13. Documentation
+
+현재 주요 문서:
+
+```text
+docs
+├── _meta
+│   └── CHANGELOG.md
+│
+├── design
+│   ├── issue
+│   ├── project
+│   ├── report
+│   ├── schedule
+│   ├── server
+│   └── wbs
+│
+└── development
+    └── frontend
+        ├── 001_frontend_architecture.md
+        ├── 002_frontend_folder_structure.md
+        ├── 003_frontend_coding_convention.md
+        ├── 004_frontend_ui_design.md
+        ├── 005_frontend_component_architecture.md
+        └── 006_frontend_development_history.md
+```
+
+문서와 소스코드는 동일한 상태를 유지하는 것을 원칙으로 한다.
+
+---
+
+# 14. 개발 진행 현황
+
+| Area | Status |
+|---|---|
+| Spring Boot Foundation | ✅ Completed |
+| Common Infrastructure | ✅ Completed |
+| Security / JWT | ✅ Completed |
+| Authentication | ✅ Completed |
+| Swagger / OpenAPI | ✅ Completed |
+| Project Management API | ✅ Completed |
+| React Foundation | ✅ Completed |
+| React Router | ✅ Completed |
+| Main Layout | ✅ Completed |
+| Header | ✅ Completed |
+| Sidebar | ✅ Completed |
+| Breadcrumb | ✅ Completed |
+| Common UI Components | ✅ Completed |
+| Dashboard UI | 🚧 Skeleton |
+| WBS | ⏳ Planned |
+| Schedule | ⏳ Planned |
+| Issue | ⏳ Planned |
+| Risk | ⏳ Planned |
+| Change | ⏳ Planned |
+| CMDB | ⏳ Planned |
+| Report | ⏳ Planned |
+| AI Assistant | ⏳ Planned |
+
+---
+
+# 15. 향후 개발 계획
+
+## Phase 1 — Frontend Foundation
+
+완료:
+
+- React Foundation
+- Routing
+- Main Layout
+- Header
+- Sidebar
+- Breadcrumb
+- Common UI Components
+
+다음:
+
+- Dashboard Widget
+- Table
+- Form
+- Modal
+- Pagination
+- API Client
+- Error Handling
+
+---
+
+## Phase 2 — WBS & Schedule
+
+Backend:
+
+- WBS CRUD
+- Schedule CRUD
+- Progress Calculation
+- Calendar API
+- Gantt Data
+
+Frontend:
+
+- WBS Tree
+- Schedule List
+- Calendar
+- Gantt View
+- Progress Visualization
+
+---
+
+## Phase 3 — Issue / Risk / Change
+
+Backend:
+
+- Issue Management
+- Risk Management
+- Change Management
+
+Frontend:
+
+- Issue Board
+- Risk Matrix
+- Change Workflow
+- Detail / History View
+
+---
+
+## Phase 4 — CMDB
+
+- Server CI
+- Database CI
+- Software CI
+- CI Relationship
+- Configuration History
+
+---
+
+## Phase 5 — Dashboard & Report
+
+- Executive Dashboard
+- Project Dashboard
+- WBS Dashboard
+- Schedule Dashboard
+- Issue Dashboard
+- Risk Dashboard
+- Weekly Report
+- Monthly Report
+- Excel Export
+- PDF Export
+
+---
+
+## Phase 6 — AI PM Assistant
+
+- Spring AI
+- Prompt Management
+- LLM Integration
+- RAG
+- Project Summary
+- Risk Analysis
+- Schedule Analysis
+- Report Generation
+- Meeting Summary
+- Action Item Generation
+
+---
+
+# 16. Portfolio Demonstration Scenario
+
+최종 포트폴리오에서는 실제 PMO 업무 흐름을 하나의 시나리오로 시연한다.
+
+```text
+1. Login
+   ↓
+2. Project 선택
+   ↓
+3. Project Dashboard
+   ↓
+4. WBS / Schedule 확인
+   ↓
+5. Progress 입력
+   ↓
+6. Issue / Risk 등록
+   ↓
+7. Change Request 등록
+   ↓
+8. Dashboard 집계
+   ↓
+9. Weekly Report 생성
+   ↓
+10. AI Project Summary
+```
+
+이를 통해 단순 화면 구현이 아니라 **프로젝트 관리 업무 전체가 하나의 시스템으로 연결되는 구조**를 보여준다.
+
+---
+
+# 17. 포트폴리오 가치
+
+본 프로젝트를 통해 다음 역량을 보여주는 것을 목표로 한다.
+
+### Backend
+
+- Java / Spring Boot
+- Enterprise Layered Architecture
 - REST API
-- Git Flow
-- Convention First
-- Testable Code
-- Reusable Component
-
----
-
-# 8. 프로젝트 진행 현황
-
-| Sprint | 내용 | 상태 |
-|---------|------|------|
-| Sprint 0 | 프로젝트 생성 | 완료 |
-| Sprint 1 | 패키지 구조 | 완료 |
-| Sprint 2 | 공통 모듈 | 진행중 |
-| Sprint 3 | Security/JWT | 예정 |
-| Sprint 4 | 사용자 관리 | 예정 |
-| Sprint 5 | 프로젝트 관리 | 예정 |
-| Sprint 6 | 일정 관리 | 예정 |
-| Sprint 7 | WBS | 예정 |
-| Sprint 8 | 이슈 관리 | 예정 |
-| Sprint 9 | 리스크 관리 | 예정 |
-| Sprint 10 | 변경 관리 | 예정 |
-| Sprint 11 | Dashboard | 예정 |
-| Sprint 12 | CMDB | 예정 |
-| Sprint 13 | Report | 예정 |
-| Sprint 14 | Spring AI | 예정 |
-| Sprint 15 | Portfolio 정리 | 예정 |
-
----
-
-# 9. 기대 효과
-
-본 프로젝트를 통해 다음 역량을 입증할 수 있다.
-
-- Enterprise Backend Architecture
-- Spring Boot 실무 프로젝트
 - Spring Security
 - JWT Authentication
-- JPA 설계
-- Database Modeling
-- REST API 설계
-- Git Flow 기반 협업
-- 프로젝트 관리 프로세스 이해
-- PMO 업무 자동화
-- AI 기반 프로젝트 관리 시스템 구축
+- JPA
+- MariaDB
+- API Documentation
+
+### Frontend
+
+- React
+- TypeScript
+- Vite
+- React Router
+- Component-based Architecture
+- Layout Architecture
+- Reusable UI Components
+- REST API Integration
+
+### PM / PMO
+
+- WBS
+- Schedule Management
+- Issue Management
+- Risk Management
+- Change Management
+- Dashboard
+- Reporting
+- CMDB
+
+### AI
+
+- Spring AI
+- LLM Integration
+- RAG
+- AI-based Project Analysis
+
+핵심적으로 **개발자 관점의 구현 능력과 PMO 관점의 업무 도메인 이해를 동시에 보여주는 포트폴리오**를 지향한다.
 
 ---
 
-# 10. 향후 확장 계획
+# 18. 향후 확장
 
-향후 아래 기능을 추가할 예정이다.
+PMIS Core가 안정화되면 다음 기술을 검토한다.
 
-- AI PM Assistant
-- Chat 기반 PMIS
-- AI 보고서 생성
-- AI 일정 분석
-- AI Risk Prediction
-- AI Change Impact Analysis
-- AI Dashboard
-- Vector Database 기반 RAG
-- MCP 연동
-- Multi Agent Architecture
+- Redis
+- QueryDSL
+- Elasticsearch
+- Kafka
+- RabbitMQ
+- Spring Batch
+- Prometheus
+- Grafana
+- Docker
+- GitHub Actions
+- Kubernetes
+- AWS
+- Object Storage
+- Vector Database
+- MCP
+- Multi-Agent Architecture
+
+모든 기술을 무조건 적용하지 않고 실제 요구사항과 학습 목적에 따라 선택한다.
 
 ---
 
-# 11. 포트폴리오 가치
+# 19. Document History
 
-이 프로젝트는 단순한 CRUD 예제가 아니라 실제 기업에서 사용할 수 있는 Enterprise PMIS를 목표로 한다.
+| Version | Date | Author | Description |
+|---|---|---|---|
+| 1.0 | 2026-08-03 | Seo Seokhyeon | Initial Portfolio Document |
+| 1.1 | 2026-08-08 | Seo Seokhyeon | Updated portfolio to reflect current Backend + Frontend implementation status |
 
-프로젝트 관리, 구축 관리, 검수 관리, CMDB, 보고 관리와 같은 실무 업무를 시스템으로 구현하고, Spring AI를 활용한 AI 기반 프로젝트 관리 기능까지 포함하여 현대적인 엔터프라이즈 애플리케이션 아키텍처를 제시한다.
+---
 
-이를 통해 백엔드 설계 능력, 프로젝트 관리 도메인 이해, AI 서비스 통합 역량을 함께 보여줄 수 있는 종합 포트폴리오를 완성하는 것을 목표로 한다.
+# End of Document
