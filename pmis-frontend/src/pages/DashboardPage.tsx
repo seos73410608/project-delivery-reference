@@ -1,25 +1,98 @@
+import KpiCard from "@/components/dashboard/KpiCard";
+import ProjectOverview from "@/components/dashboard/ProjectOverview";
+import WbsProgress from "@/components/dashboard/WbsProgress";
+import ScheduleSummary from "@/components/dashboard/ScheduleSummary";
+import IssueSummary from "@/components/dashboard/IssueSummary";
+import RecentActivity from "@/components/dashboard/RecentActivity";
+
 function DashboardPage() {
-    return (
-        <div>
-            <h1>PMIS Dashboard</h1>
+  return (
+    <div>
+      {/* Dashboard Header */}
+      <div
+        style={{
+          marginBottom: "24px",
+        }}
+      >
+        <h1
+          style={{
+            margin: 0,
+            fontSize: "28px",
+          }}
+        >
+          PMIS Dashboard
+        </h1>
 
-            <p>Welcome to the Project Management Information System.</p>
+        <p
+          style={{
+            marginTop: "8px",
+            color: "#666666",
+          }}
+        >
+          Project Management Information System
+        </p>
 
-            <hr />
+        <ProjectOverview />
+      </div>
 
-            <h3>Development Status</h3>
+      {/* KPI */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(4, 1fr)",
+          gap: "16px",
+          marginBottom: "24px",
+        }}
+      >
+        <KpiCard
+          title="Project Status"
+          value="ON TRACK"
+        />
 
-            <ul>
-                <li>✅ React + Vite</li>
-                <li>✅ TypeScript</li>
-                <li>✅ React Router</li>
-                <li>✅ Main Layout</li>
-                <li>🚧 Header</li>
-                <li>🚧 Sidebar</li>
-                <li>🚧 Breadcrumb</li>
-            </ul>
-        </div>
-    );
+        <KpiCard
+          title="Progress"
+          value="72%"
+        />
+
+        <KpiCard
+          title="Schedule"
+          value="68%"
+        />
+
+        <KpiCard
+          title="Issues"
+          value="12"
+        />
+      </div>
+
+      {/* WBS / Schedule */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: "16px",
+          marginBottom: "24px",
+        }}
+      >
+        <WbsProgress />
+
+        <ScheduleSummary />
+      </div>
+
+      {/* Issues / Activity */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: "16px",
+        }}
+      >
+        <IssueSummary />
+
+        <RecentActivity />
+      </div>
+    </div>
+  );
 }
 
 export default DashboardPage;
