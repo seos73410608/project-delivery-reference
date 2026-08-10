@@ -15,7 +15,16 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 
 @Tag(
         name = "Project",
@@ -27,7 +36,6 @@ import org.springframework.web.bind.annotation.*;
 public class ProjectController {
 
     private final ProjectService projectService;
-
 
     /**
      * 프로젝트 생성
@@ -49,27 +57,6 @@ public class ProjectController {
         );
     }
 
-
-    /**
-     * 프로젝트 단건 조회
-     */
-    @Operation(
-            summary = "프로젝트 조회",
-            description = "프로젝트 ID로 프로젝트를 조회합니다."
-    )
-    @PreAuthorize("hasRole('USER')")
-    @GetMapping("/{projectId}")
-    public ApiResponse<ProjectResponse> getProject(
-            @Parameter(description = "프로젝트 ID")
-            @PathVariable Long projectId
-    ) {
-
-        return ApiResponse.success(
-                projectService.getProject(projectId)
-        );
-    }
-
-
     /**
      * 프로젝트 검색
      */
@@ -88,7 +75,6 @@ public class ProjectController {
                 projectService.searchProjects(request, pageable)
         );
     }
-
 
     /**
      * 프로젝트 수정
@@ -110,7 +96,6 @@ public class ProjectController {
                 projectService.update(projectId, request)
         );
     }
-
 
     /**
      * 프로젝트 삭제

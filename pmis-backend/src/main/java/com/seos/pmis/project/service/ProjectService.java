@@ -26,11 +26,9 @@ import java.util.Set;
 @Transactional(readOnly = true)
 public class ProjectService {
 
-
     private final ProjectRepository projectRepository;
 
     private final ProjectMapper projectMapper;
-
 
     /**
      * 허용된 정렬 컬럼
@@ -48,7 +46,6 @@ public class ProjectService {
             "updatedAt"
     );
 
-
     /**
      * 프로젝트 생성
      */
@@ -57,46 +54,28 @@ public class ProjectService {
             CreateProjectRequest request
     ) {
 
-        if (projectRepository.existsByProjectCode(request.getProjectCode())) {
+        if (projectRepository.existsByProjectCode(
+                request.getProjectCode()
+        )) {
 
             throw new BusinessException(
                     CommonErrorCode.INVALID_REQUEST
             );
         }
 
-
         Project project =
                 projectMapper.toEntity(request);
-
 
         // 생성 시 기본 상태
         project.changeStatus(
                 ProjectStatus.PLANNING
         );
 
-
         Project savedProject =
                 projectRepository.save(project);
 
-
         return projectMapper.toResponse(savedProject);
     }
-
-
-    /**
-     * 프로젝트 단건 조회
-     */
-    public ProjectResponse getProject(
-            Long projectId
-    ) {
-
-        Project project =
-                findProject(projectId);
-
-
-        return projectMapper.toResponse(project);
-    }
-
 
     /**
      * 프로젝트 검색
@@ -106,9 +85,7 @@ public class ProjectService {
             Pageable pageable
     ) {
 
-
         validateSort(pageable);
-
 
         Specification<Project> specification =
                 Specification
@@ -163,14 +140,12 @@ public class ProjectService {
                                 )
                         );
 
-
         return projectRepository.findAll(
                         specification,
                         pageable
                 )
                 .map(projectMapper::toResponse);
     }
-
 
     /**
      * 프로젝트 수정
@@ -181,10 +156,8 @@ public class ProjectService {
             UpdateProjectRequest request
     ) {
 
-
         Project project =
                 findProject(projectId);
-
 
         project.update(
                 request.getProjectName(),
@@ -197,10 +170,8 @@ public class ProjectService {
                 request.getPriority()
         );
 
-
         return projectMapper.toResponse(project);
     }
-
 
     /**
      * 프로젝트 삭제
@@ -210,22 +181,20 @@ public class ProjectService {
             Long projectId
     ) {
 
-
         Project project =
                 findProject(projectId);
-
 
         projectRepository.delete(project);
     }
 
-
     /**
      * 프로젝트 조회
+     *
+     * 수정/삭제 등 프로젝트 존재 여부 확인에 사용합니다.
      */
     private Project findProject(
             Long projectId
     ) {
-
 
         return projectRepository.findById(projectId)
                 .orElseThrow(
@@ -235,7 +204,6 @@ public class ProjectService {
                 );
     }
 
-
     /**
      * 허용된 정렬 컬럼 검증
      */
@@ -243,9 +211,7 @@ public class ProjectService {
             Pageable pageable
     ) {
 
-
         for (Sort.Order order : pageable.getSort()) {
-
 
             if (!ALLOWED_SORT_PROPERTIES.contains(
                     order.getProperty()
@@ -257,5 +223,4 @@ public class ProjectService {
             }
         }
     }
-
 }
