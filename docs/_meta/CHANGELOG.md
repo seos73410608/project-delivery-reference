@@ -12,14 +12,14 @@
 
 기록 대상:
 
-- Feature
-- Improvement
-- Bug Fix
-- Refactoring
-- Security
-- Performance
-- Documentation
-- Build
+* Feature
+* Improvement
+* Bug Fix
+* Refactoring
+* Security
+* Performance
+* Documentation
+* Build
 
 ---
 
@@ -40,9 +40,9 @@ MAJOR.MINOR.PATCH
 └────── Major
 ```
 
-- **Major** : 호환되지 않는 변경
-- **Minor** : 기능 추가
-- **Patch** : 버그 수정
+* **Major** : 호환되지 않는 변경
+* **Minor** : 기능 추가
+* **Patch** : 버그 수정
 
 ---
 
@@ -56,13 +56,13 @@ MAJOR.MINOR.PATCH
 
 #### Added
 
-- Spring Boot 프로젝트 생성
-- Java 21 적용
-- Gradle Kotlin DSL 적용
-- MariaDB 연동
-- Git Repository 구성
-- Git Flow 브랜치 전략 적용
-- 기본 프로젝트 구조 생성
+* Spring Boot 프로젝트 생성
+* Java 21 적용
+* Gradle Kotlin DSL 적용
+* MariaDB 연동
+* Git Repository 구성
+* Git Flow 브랜치 전략 적용
+* 기본 프로젝트 구조 생성
 
 ---
 
@@ -72,19 +72,19 @@ MAJOR.MINOR.PATCH
 
 #### Added
 
-- Domain 기반 Package 구조
-- BaseEntity
-- ApiResponse
-- ErrorCode
-- CommonErrorCode
-- BusinessException
-- GlobalExceptionHandler
-- JpaConfig
+* Domain 기반 Package 구조
+* BaseEntity
+* ApiResponse
+* ErrorCode
+* CommonErrorCode
+* BusinessException
+* GlobalExceptionHandler
+* JpaConfig
 
 #### Changed
 
-- API Response 표준화
-- Global Exception 구조 적용
+* API Response 표준화
+* Global Exception 구조 적용
 
 ---
 
@@ -96,35 +96,35 @@ MAJOR.MINOR.PATCH
 
 Spring Security:
 
-- SecurityConfig
-- BCrypt PasswordEncoder
-- Stateless Authentication
-- CORS Configuration
+* SecurityConfig
+* BCrypt PasswordEncoder
+* Stateless Authentication
+* CORS Configuration
 
 JWT:
 
-- JwtProvider
-- JwtAuthenticationFilter
-- JwtAuthenticationEntryPoint
-- JwtAccessDeniedHandler
-- JWT Properties
+* JwtProvider
+* JwtAuthenticationFilter
+* JwtAuthenticationEntryPoint
+* JwtAccessDeniedHandler
+* JWT Properties
 
 Test API:
 
-- GET `/api/test/public`
-- GET `/api/test/private`
-- GET `/api/test/token`
+* GET `/api/test/public`
+* GET `/api/test/private`
+* GET `/api/test/token`
 
 #### Changed
 
-- Session 인증 제거
-- JWT 기반 인증 적용
+* Session 인증 제거
+* JWT 기반 인증 적용
 
 #### Fixed
 
-- Spring Boot 4.x → 3.5.x 변경
-- JWT 라이브러리 호환성 수정
-- Security Handler 개선
+* Spring Boot 4.x → 3.5.x 변경
+* JWT 라이브러리 호환성 수정
+* Security Handler 개선
 
 ---
 
@@ -136,45 +136,45 @@ Test API:
 
 Authentication:
 
-- Login API
-- Refresh Token API
-- Token Reissue
-- Authentication Service
-- User Authentication Flow
+* Login API
+* Refresh Token API
+* Token Reissue
+* Authentication Service
+* User Authentication Flow
 
 JWT:
 
-- Access Token Validation
-- Refresh Token Validation
+* Access Token Validation
+* Refresh Token Validation
 
 Authorization:
 
-- Role Hierarchy
-- USER Role
-- PM Role
-- ADMIN Role
+* Role Hierarchy
+* USER Role
+* PM Role
+* ADMIN Role
 
 Role Test API:
 
-- GET `/api/role/authenticated`
-- GET `/api/role/user`
-- GET `/api/role/pm`
-- GET `/api/role/admin`
+* GET `/api/role/authenticated`
+* GET `/api/role/user`
+* GET `/api/role/pm`
+* GET `/api/role/admin`
 
 Authentication API:
 
-- POST `/api/auth/login`
-- POST `/api/auth/refresh`
+* POST `/api/auth/login`
+* POST `/api/auth/refresh`
 
 #### Changed
 
-- Authentication Flow 개선
-- Authorization 처리 개선
+* Authentication Flow 개선
+* Authorization 처리 개선
 
 #### Fixed
 
-- JWT Validation
-- Security Exception 처리
+* JWT Validation
+* Security Exception 처리
 
 ---
 
@@ -186,14 +186,14 @@ Authentication API:
 
 Swagger:
 
-- OpenAPI 3
-- Swagger UI
-- JWT Authorization
-- API Documentation
+* OpenAPI 3
+* Swagger UI
+* JWT Authorization
+* API Documentation
 
 #### Changed
 
-- API 문서 자동화
+* API 문서 자동화
 
 ---
 
@@ -205,39 +205,44 @@ Swagger:
 
 Project Domain:
 
-- Project Entity
-- Project Service
-- Project Repository
-- Project Controller
+* Project Entity
+* Project Service
+* Project Repository
+* Project Controller
 
 Project API:
 
-- POST `/api/projects`
-- GET `/api/projects`
-- GET `/api/projects/{projectId}`
-- PUT `/api/projects/{projectId}`
-- DELETE `/api/projects/{projectId}`
+* POST `/api/projects`
+* GET `/api/projects`
+* GET `/api/projects/{projectId}`
+* PUT `/api/projects/{projectId}`
+* DELETE `/api/projects/{projectId}`
 
 Search:
 
-- Project Search
-- Sorting
-- Validation
+* Project Search
+* Sorting
+* Sorting Column Validation
 
 Dashboard:
 
-- Project Dashboard API
+* Project Dashboard API
+* Project Status KPI
+* Project Priority KPI
+* Recent Project KPI
+* Upcoming Deadline KPI
 
 #### Changed
 
-- Project Domain 구조 개선
-- Service Layer 리팩토링
-- Validation 구조 개선
+* Project Domain 구조 개선
+* Service Layer 리팩토링
+* Validation 구조 개선
+* 검색 API 정렬 컬럼 검증 적용
 
 #### Fixed
 
-- Project Validation 오류 수정
-- Search 조건 처리 개선
+* Project Validation 오류 수정
+* Search 조건 처리 개선
 
 ---
 
@@ -249,17 +254,17 @@ Dashboard:
 
 Frontend Project:
 
-- React
-- Vite
-- TypeScript
-- npm
-- React Router DOM
+* React
+* Vite
+* TypeScript
+* npm
+* React Router DOM
 
 Frontend Architecture:
 
-- Backend / Frontend 프로젝트 분리
-- Feature 기반 구조 적용
-- Layout 기반 화면 구성
+* Backend / Frontend 프로젝트 분리
+* Feature 기반 구조 적용
+* Layout 기반 화면 구성
 
 Project Structure:
 
@@ -307,31 +312,31 @@ src
 
 React Router:
 
-- AppRouter
-- MainLayout
-- DashboardPage
+* AppRouter
+* MainLayout
+* DashboardPage
 
 Dashboard:
 
-- PMIS Dashboard Skeleton
-- Development Status 화면
+* PMIS Dashboard Skeleton
+* Development Status 화면
 
 #### Changed
 
-- 기존 Vite Sample 제거
-- React Example 제거
-- Counter Example 제거
-- Hero Image 제거
-- React Logo 제거
-- Vite Logo 제거
-- Frontend Path Alias 구성
-- Vite / TypeScript Path Resolution 구성
+* 기존 Vite Sample 제거
+* React Example 제거
+* Counter Example 제거
+* Hero Image 제거
+* React Logo 제거
+* Vite Logo 제거
+* Frontend Path Alias 구성
+* Vite / TypeScript Path Resolution 구성
 
 #### Removed
 
-- Vite Example Application
-- Sample Assets
-- Sample Counter
+* Vite Example Application
+* Sample Assets
+* Sample Counter
 
 ---
 
@@ -343,46 +348,107 @@ Dashboard:
 
 Layout Components:
 
-- Header Component
-- Sidebar Component
-- Breadcrumb Component
+* Header Component
+* Sidebar Component
+* Breadcrumb Component
 
 Common UI Components:
 
-- Button Component
-- Card Component
-- Loading Component
-- EmptyState Component
+* Button Component
+* Card Component
+* Loading Component
+* EmptyState Component
 
 Main Layout:
 
-- Header / Sidebar / Breadcrumb 독립 Component 분리
-- MainLayout Refactoring
-- Router 기반 Content 영역 구성
+* Header / Sidebar / Breadcrumb 독립 Component 분리
+* MainLayout Refactoring
+* Router 기반 Content 영역 구성
 
 Breadcrumb:
 
-- 현재 Router Path 기반 Breadcrumb 구성
+* 현재 Router Path 기반 Breadcrumb 구성
 
 Common UI:
 
-- 재사용 가능한 Button Component
-- 공통 Card UI
-- Loading 상태 표시
-- Empty State 표시
+* 재사용 가능한 Button Component
+* 공통 Card UI
+* Loading 상태 표시
+* Empty State 표시
 
 #### Changed
 
-- MainLayout의 직접 구현 영역을 독립 Component로 분리
-- Layout Component와 Common UI Component를 분리
-- Frontend Component 구조 정리
-- `@/components/...` Alias 기반 Import 구조 적용
-- Vite Path Resolution 설정 정리
+* MainLayout의 직접 구현 영역을 독립 Component로 분리
+* Layout Component와 Common UI Component를 분리
+* Frontend Component 구조 정리
+* `@/components/...` Alias 기반 Import 구조 적용
+* Vite Path Resolution 설정 정리
 
 #### Documentation
 
-- `006_frontend_development_history.md` 현행화
-- Frontend Layout 및 Common UI Component 개발 이력 추가
+* `006_frontend_development_history.md` 현행화
+* Frontend Layout 및 Common UI Component 개발 이력 추가
+
+---
+
+## v0.5.2 (2026-08-10)
+
+### Project Detail API
+
+#### Added
+
+Project Detail:
+
+* `ProjectDetailController`
+* `ProjectDetailService`
+* `ProjectDetailResponse`
+* Project Detail API
+
+API:
+
+* GET `/api/projects/{projectId}/detail`
+
+#### Changed
+
+Project Controller 구조:
+
+* `ProjectController`
+* `ProjectDashboardController`
+* `ProjectDetailController`
+
+로 책임 분리
+
+Service 구조:
+
+* `ProjectService`
+* `ProjectDashboardService`
+* `ProjectDetailService`
+
+로 책임 분리
+
+Project Detail:
+
+* 기존 Project 단건 조회 API와 상세 조회 책임 분리
+* 프로젝트 상세 조회 전용 Controller 구성
+* 프로젝트 상세 조회 전용 Service 구성
+* 프로젝트 상세 조회 전용 Response DTO 구성
+
+Dashboard:
+
+* Project Dashboard Controller 분리
+* Dashboard 관련 API와 Project CRUD API 책임 분리
+
+#### Refactoring
+
+* Controller 단일 책임 구조 개선
+* Service 단일 책임 구조 개선
+* Project Domain API 구조 정리
+* 향후 WBS / Schedule / Issue / Risk / Change 연계 기반 마련
+
+#### Documentation
+
+* Project Detail API Swagger 문서화
+* Project Domain API 구조 문서화
 
 ---
 
@@ -398,16 +464,16 @@ Common UI:
 
 WBS:
 
-- WBS CRUD
-- Tree Structure
-- Progress Calculation
+* WBS CRUD
+* Tree Structure
+* Progress Calculation
 
 Schedule:
 
-- Schedule CRUD
-- Calendar
-- Gantt Chart
-- Milestone
+* Schedule CRUD
+* Calendar
+* Gantt Chart
+* Milestone
 
 ---
 
@@ -419,26 +485,26 @@ Schedule:
 
 Issue:
 
-- Issue CRUD
-- Issue Assignment
-- Issue Status Workflow
-- Priority Management
-- Attachment Management
+* Issue CRUD
+* Issue Assignment
+* Issue Status Workflow
+* Priority Management
+* Attachment Management
 
 Risk:
 
-- Risk CRUD
-- Risk Assessment
-- Probability / Impact Matrix
-- Response Strategy
-- Risk Monitoring
+* Risk CRUD
+* Risk Assessment
+* Probability / Impact Matrix
+* Response Strategy
+* Risk Monitoring
 
 Change:
 
-- Change Request
-- Change Approval
-- Change History
-- Change Impact Analysis
+* Change Request
+* Change Approval
+* Change History
+* Change Impact Analysis
 
 ---
 
@@ -450,21 +516,21 @@ Change:
 
 Configuration Item:
 
-- Server CI
-- Database CI
-- Software CI
-- Network CI
+* Server CI
+* Database CI
+* Software CI
+* Network CI
 
 Relationship:
 
-- CI Relationship
-- Dependency Graph
+* CI Relationship
+* Dependency Graph
 
 History:
 
-- Version Management
-- Configuration History
-- Audit Log
+* Version Management
+* Configuration History
+* Audit Log
 
 ---
 
@@ -476,23 +542,23 @@ History:
 
 Dashboard:
 
-- Executive Dashboard
-- Project Dashboard
-- WBS Dashboard
-- Schedule Dashboard
-- Issue Dashboard
-- Risk Dashboard
-- Change Dashboard
-- CMDB Dashboard
+* Executive Dashboard
+* Project Dashboard
+* WBS Dashboard
+* Schedule Dashboard
+* Issue Dashboard
+* Risk Dashboard
+* Change Dashboard
+* CMDB Dashboard
 
 Reporting:
 
-- Weekly Report
-- Monthly Report
-- Executive Report
-- Excel Export
-- PDF Export
-- Statistics Dashboard
+* Weekly Report
+* Monthly Report
+* Executive Report
+* Excel Export
+* PDF Export
+* Statistics Dashboard
 
 ---
 
@@ -504,26 +570,26 @@ Reporting:
 
 Spring AI:
 
-- AI PM Assistant
-- AI Project Summary
-- AI Issue Summary
-- AI Risk Analysis
-- AI Change Impact Analysis
-- AI Schedule Analysis
-- AI Meeting Summary
-- AI Report Generation
+* AI PM Assistant
+* AI Project Summary
+* AI Issue Summary
+* AI Risk Analysis
+* AI Change Impact Analysis
+* AI Schedule Analysis
+* AI Meeting Summary
+* AI Report Generation
 
 LLM Integration:
 
-- OpenAI
-- Azure OpenAI
-- Ollama (Local LLM)
+* OpenAI
+* Azure OpenAI
+* Ollama (Local LLM)
 
 Knowledge Base:
 
-- PMIS Document Search
-- Semantic Search
-- RAG 기반 질의응답
+* PMIS Document Search
+* Semantic Search
+* RAG 기반 질의응답
 
 ---
 
@@ -545,6 +611,7 @@ develop
 │
 ├── feature/project-search
 ├── feature/project-dashboard
+├── feature/project-detail
 │
 ├── feature/frontend-layout
 ├── feature/frontend-components
@@ -565,40 +632,43 @@ develop
 
 ### Branch Policy
 
-- **main** : Production Release
-- **develop** : Integration Branch
-- **feature/** : Feature Development
-- **release/** : Release Preparation
-- **hotfix/** : Production Hot Fix
+* **main** : Production Release
+* **develop** : Integration Branch
+* **feature/*** : Feature Development
+* **release/*** : Release Preparation
+* **hotfix/*** : Production Hot Fix
 
 ---
 
 # Commit Convention
 
-| Prefix | Description |
-| --- | --- |
-| feat | Feature |
-| fix | Bug Fix |
-| refactor | Refactoring |
-| docs | Documentation |
-| style | Code Style |
-| test | Test |
-| build | Build |
-| chore | Maintenance |
-| perf | Performance |
-| security | Security |
+| Prefix   | Description   |
+| -------- | ------------- |
+| feat     | Feature       |
+| fix      | Bug Fix       |
+| refactor | Refactoring   |
+| docs     | Documentation |
+| style    | Code Style    |
+| test     | Test          |
+| build    | Build         |
+| chore    | Maintenance   |
+| perf     | Performance   |
+| security | Security      |
 
 Example:
 
 ```text
 feat: implement JWT authentication
 feat: implement project CRUD
+feat: implement project dashboard
+feat: implement project detail api
 feat(frontend): implement React router
 feat(frontend): add sidebar component
 feat(frontend): add common UI components
 fix: resolve JWT validation issue
 docs: update roadmap
 refactor: improve exception handling
+refactor: separate project detail api
 build: upgrade Spring Boot
 ```
 
@@ -610,27 +680,21 @@ build: upgrade Spring Boot
 
 ```markdown
 ## vX.Y.Z (YYYY-MM-DD)
-
 ### Module Name
 
 #### Added
-
 -
 
 #### Changed
-
 -
 
 #### Fixed
-
 -
 
 #### Removed
-
 -
 
 #### Documentation
-
 -
 ```
 
@@ -638,23 +702,13 @@ build: upgrade Spring Boot
 
 # Target Releases
 
-| Version | Goal |
-| --- | --- |
-| v0.6.x | WBS & Schedule |
-| v0.7.x | Issue / Risk / Change |
-| v0.8.x | CMDB |
-| v0.9.x | Dashboard & Reporting |
-| v1.0.0 | AI Powered PMIS |
-
----
-
-# Long-term Roadmap
-
-| Version | Goal |
-| --- | --- |
-| 1.x | PMIS Core Platform |
-| 2.x | Enterprise PMIS |
-| 3.x | AI Native PMIS Platform |
+| Version | Goal                  |
+| ------- | --------------------- |
+| v0.6.x  | WBS & Schedule        |
+| v0.7.x  | Issue / Risk / Change |
+| v0.8.x  | CMDB                  |
+| v0.9.x  | Dashboard & Reporting |
+| v1.0.0  | AI Powered PMIS       |
 
 ---
 
@@ -664,22 +718,30 @@ build: upgrade Spring Boot
 
 ### Completed
 
-- Spring Boot
-- Common Infrastructure
-- Security
-- JWT Authentication
-- Login
-- Refresh Token
-- Role Hierarchy
-- Swagger
-- Project CRUD
-- Project Search
-- Dashboard API
+* Spring Boot
+* Common Infrastructure
+* Security
+* JWT Authentication
+* Login
+* Refresh Token
+* Role Hierarchy
+* Swagger
+* Project CRUD
+* Project Search
+* Project Search Sorting Validation
+* Project Dashboard API
+* Project Dashboard KPI
+* Project Dashboard Controller
+* Project Detail API
+* Project Detail Controller
+* Project Detail Service
+* Project Detail Response DTO
+* Project Controller / Dashboard Controller / Detail Controller 책임 분리
 
 ### In Progress
 
-- WBS
-- Schedule
+* WBS
+* Schedule
 
 ---
 
@@ -687,30 +749,30 @@ build: upgrade Spring Boot
 
 ### Completed
 
-- React
-- Vite
-- TypeScript
-- React Router
-- Main Layout
-- Dashboard Skeleton
-- Feature-based Directory Structure
-- Header Component
-- Sidebar Component
-- Breadcrumb Component
-- Button Component
-- Card Component
-- Loading Component
-- EmptyState Component
-- Frontend Path Alias
-- Layout Component Separation
+* React
+* Vite
+* TypeScript
+* React Router
+* Main Layout
+* Dashboard Skeleton
+* Feature-based Directory Structure
+* Header Component
+* Sidebar Component
+* Breadcrumb Component
+* Button Component
+* Card Component
+* Loading Component
+* EmptyState Component
+* Frontend Path Alias
+* Layout Component Separation
 
 ### In Progress
 
-- Dashboard UI
-- Project Module
-- Theme
-- API Integration
-- Form Components
+* Dashboard UI
+* Project Module
+* Theme
+* API Integration
+* Form Components
 
 ---
 
@@ -766,44 +828,44 @@ Release는 반드시 `develop` 브랜치에서 충분히 검증한 후 `main`으
 
 다음 문서는 항상 최신 상태를 유지한다.
 
-- CHANGELOG.md
-- DEVELOPMENT_ROADMAP.md
-- PROJECT_OVERVIEW.md
-- ARCHITECTURE.md
+* CHANGELOG.md
+* DEVELOPMENT_ROADMAP.md
+* PROJECT_OVERVIEW.md
+* ARCHITECTURE.md
 
 Frontend 문서:
 
-- `001_frontend_architecture.md`
-- `002_frontend_folder_structure.md`
-- `003_frontend_coding_convention.md`
-- `004_frontend_ui_design.md`
-- `005_frontend_component_architecture.md`
-- `006_frontend_development_history.md`
+* `001_frontend_architecture.md`
+* `002_frontend_folder_structure.md`
+* `003_frontend_coding_convention.md`
+* `004_frontend_ui_design.md`
+* `005_frontend_component_architecture.md`
+* `006_frontend_development_history.md`
 
 ---
 
 # Maintenance Policy
 
-- 모든 기능은 Feature Branch에서 개발한다.
-- 모든 변경 사항을 CHANGELOG에 기록한다.
-- 문서와 소스코드는 항상 동일한 상태를 유지한다.
-- Pull Request 검토 후 Develop 브랜치에 병합한다.
-- Main 브랜치에는 검증된 코드만 Release한다.
-- Semantic Versioning을 준수한다.
-- Release마다 Git Tag를 생성한다.
+* 모든 기능은 Feature Branch에서 개발한다.
+* 모든 변경 사항을 CHANGELOG에 기록한다.
+* 문서와 소스코드는 항상 동일한 상태를 유지한다.
+* Pull Request 검토 후 Develop 브랜치에 병합한다.
+* Main 브랜치에는 검증된 코드만 Release한다.
+* Semantic Versioning을 준수한다.
+* Release마다 Git Tag를 생성한다.
 
 ---
 
 # Current Information
 
-| Item | Value |
-| --- | --- |
-| Last Updated | 2026-08-10 |
-| Current Version | **v0.5.1** |
-| Current Branch | **feature/frontend-components** |
-| Current Sprint | **Sprint 2 - Frontend Foundation & Components** |
-| Development Stage | **Frontend Layout & Common UI Component** |
-| Maintainer | **Seo Seokhyeon** |
+| Item              | Value                                                    |
+| ----------------- | -------------------------------------------------------- |
+| Last Updated      | 2026-08-10                                               |
+| Current Version   | **v0.5.2**                                               |
+| Current Branch    | **develop**                                              |
+| Current Sprint    | **Sprint 3 - Project Management & Frontend Integration** |
+| Development Stage | **Project Detail API Completed**                         |
+| Maintainer        | **Seo Seokhyeon**                                        |
 
 ---
 
@@ -813,40 +875,41 @@ Frontend 문서:
 
 ### Frontend
 
-- Dashboard UI
-- Dashboard Widgets
-- Project List
-- Project Search
-- Project Detail
-- API Integration
-- Form Components
+* Dashboard UI
+* Dashboard Widgets
+* Project List
+* Project Search
+* Project Detail
+* API Integration
+* Form Components
 
 ### Backend
 
-- WBS CRUD
-- Schedule CRUD
-- Progress Calculation
-- Calendar API
+* WBS CRUD
+* Schedule CRUD
+* Progress Calculation
+* Calendar API
 
 ---
 
 # Release Summary
 
-| Version | Description |
-| --- | --- |
-| v0.1.0 | Project Initialization |
-| v0.2.0 | Common Infrastructure |
-| v0.3.0 | Security Foundation |
-| v0.3.1 | Authentication & Authorization |
-| v0.3.2 | Swagger / OpenAPI |
-| v0.4.0 | Project Management |
-| v0.5.0 | Frontend Foundation |
-| v0.5.1 | Frontend Layout & Common UI Components |
-| v0.6.x | WBS & Schedule |
-| v0.7.x | Issue / Risk / Change |
-| v0.8.x | CMDB |
-| v0.9.x | Dashboard & Reporting |
-| v1.0.0 | AI Powered PMIS |
+| Version | Description                                |
+| ------- | ------------------------------------------ |
+| v0.1.0  | Project Initialization                     |
+| v0.2.0  | Common Infrastructure                      |
+| v0.3.0  | Security Foundation                        |
+| v0.3.1  | Authentication & Authorization             |
+| v0.3.2  | Swagger / OpenAPI                          |
+| v0.4.0  | Project Management                         |
+| v0.5.0  | Frontend Foundation                        |
+| v0.5.1  | Frontend Layout & Common UI Components     |
+| v0.5.2  | Project Detail API & Controller Separation |
+| v0.6.x  | WBS & Schedule                             |
+| v0.7.x  | Issue / Risk / Change                      |
+| v0.8.x  | CMDB                                       |
+| v0.9.x  | Dashboard & Reporting                      |
+| v1.0.0  | AI Powered PMIS                            |
 
 ---
 
