@@ -10,7 +10,7 @@
 
 본 문서는 PMIS 프로젝트의 주요 변경 사항을 관리한다.
 
-기록 대상
+기록 대상:
 
 - Feature
 - Improvement
@@ -27,22 +27,22 @@
 
 PMIS는 Semantic Versioning(SemVer)을 따른다.
 
-```
+```text
 MAJOR.MINOR.PATCH
 ```
 
 예)
 
-```
+```text
 1.0.0
 │ │ └─ Patch
 │ └──── Minor
 └────── Major
 ```
 
-- Major : 호환되지 않는 변경
-- Minor : 기능 추가
-- Patch : 버그 수정
+- **Major** : 호환되지 않는 변경
+- **Minor** : 기능 추가
+- **Patch** : 버그 수정
 
 ---
 
@@ -50,11 +50,11 @@ MAJOR.MINOR.PATCH
 
 ---
 
-# v0.1.0 (2026-08-03)
+## v0.1.0 (2026-08-03)
 
-## Project Initialization
+### Project Initialization
 
-### Added
+#### Added
 
 - Spring Boot 프로젝트 생성
 - Java 21 적용
@@ -66,11 +66,11 @@ MAJOR.MINOR.PATCH
 
 ---
 
-# v0.2.0 (2026-08-03)
+## v0.2.0 (2026-08-03)
 
-## Common Infrastructure
+### Common Infrastructure
 
-### Added
+#### Added
 
 - Domain 기반 Package 구조
 - BaseEntity
@@ -81,27 +81,27 @@ MAJOR.MINOR.PATCH
 - GlobalExceptionHandler
 - JpaConfig
 
-### Changed
+#### Changed
 
 - API Response 표준화
 - Global Exception 구조 적용
 
 ---
 
-# v0.3.0 (2026-08-04)
+## v0.3.0 (2026-08-04)
 
-## Security Foundation
+### Security Foundation
 
-### Added
+#### Added
 
-Spring Security
+Spring Security:
 
 - SecurityConfig
 - BCrypt PasswordEncoder
 - Stateless Authentication
 - CORS Configuration
 
-JWT
+JWT:
 
 - JwtProvider
 - JwtAuthenticationFilter
@@ -109,18 +109,18 @@ JWT
 - JwtAccessDeniedHandler
 - JWT Properties
 
-Test API
+Test API:
 
-- GET /api/test/public
-- GET /api/test/private
-- GET /api/test/token
+- GET `/api/test/public`
+- GET `/api/test/private`
+- GET `/api/test/token`
 
-### Changed
+#### Changed
 
 - Session 인증 제거
 - JWT 기반 인증 적용
 
-### Fixed
+#### Fixed
 
 - Spring Boot 4.x → 3.5.x 변경
 - JWT 라이브러리 호환성 수정
@@ -128,13 +128,13 @@ Test API
 
 ---
 
-# v0.3.1 (2026-08-05)
+## v0.3.1 (2026-08-05)
 
-## Authentication
+### Authentication
 
-### Added
+#### Added
 
-Authentication
+Authentication:
 
 - Login API
 - Refresh Token API
@@ -142,111 +142,112 @@ Authentication
 - Authentication Service
 - User Authentication Flow
 
-JWT
+JWT:
 
 - Access Token Validation
 - Refresh Token Validation
 
-Authorization
+Authorization:
 
 - Role Hierarchy
 - USER Role
 - PM Role
 - ADMIN Role
 
-Role Test API
+Role Test API:
 
-- GET /api/role/authenticated
-- GET /api/role/user
-- GET /api/role/pm
-- GET /api/role/admin
+- GET `/api/role/authenticated`
+- GET `/api/role/user`
+- GET `/api/role/pm`
+- GET `/api/role/admin`
 
-Authentication API
+Authentication API:
 
-- POST /api/auth/login
-- POST /api/auth/refresh
+- POST `/api/auth/login`
+- POST `/api/auth/refresh`
 
-### Changed
+#### Changed
 
 - Authentication Flow 개선
 - Authorization 처리 개선
 
-### Fixed
+#### Fixed
 
 - JWT Validation
 - Security Exception 처리
 
 ---
 
-# v0.3.2 (2026-08-06)
+## v0.3.2 (2026-08-06)
 
-## API Documentation
+### API Documentation
 
-### Added
+#### Added
 
-Swagger
+Swagger:
 
 - OpenAPI 3
 - Swagger UI
 - JWT Authorization
 - API Documentation
 
-### Changed
+#### Changed
 
 - API 문서 자동화
+
 ---
 
-# v0.4.0 (2026-08-06)
+## v0.4.0 (2026-08-06)
 
-## Project Management
+### Project Management
 
-### Added
+#### Added
 
-Project Domain
+Project Domain:
 
 - Project Entity
 - Project Service
 - Project Repository
 - Project Controller
 
-Project API
+Project API:
 
-- POST /api/projects
-- GET /api/projects
-- GET /api/projects/{projectId}
-- PUT /api/projects/{projectId}
-- DELETE /api/projects/{projectId}
+- POST `/api/projects`
+- GET `/api/projects`
+- GET `/api/projects/{projectId}`
+- PUT `/api/projects/{projectId}`
+- DELETE `/api/projects/{projectId}`
 
-Search
+Search:
 
 - Project Search
 - Sorting
 - Validation
 
-Dashboard
+Dashboard:
 
 - Project Dashboard API
 
-### Changed
+#### Changed
 
 - Project Domain 구조 개선
 - Service Layer 리팩토링
 - Validation 구조 개선
 
-### Fixed
+#### Fixed
 
 - Project Validation 오류 수정
 - Search 조건 처리 개선
 
 ---
 
-# v0.5.0 (2026-08-07)
+## v0.5.0 (2026-08-07)
 
-## Frontend Foundation
+### Frontend Foundation
 
-### Added
+#### Added
 
-Frontend Project
+Frontend Project:
 
 - React
 - Vite
@@ -254,15 +255,15 @@ Frontend Project
 - npm
 - React Router DOM
 
-Frontend Architecture
+Frontend Architecture:
 
 - Backend / Frontend 프로젝트 분리
 - Feature 기반 구조 적용
 - Layout 기반 화면 구성
 
-Project Structure
+Project Structure:
 
-```
+```text
 project-delivery-reference
 │
 ├── pmis-backend
@@ -270,9 +271,9 @@ project-delivery-reference
 └── docs
 ```
 
-Frontend Directory
+Frontend Directory:
 
-```
+```text
 src
 │
 ├── api
@@ -304,18 +305,18 @@ src
 └── utils
 ```
 
-React Router
+React Router:
 
 - AppRouter
 - MainLayout
 - DashboardPage
 
-Dashboard
+Dashboard:
 
 - PMIS Dashboard Skeleton
 - Development Status 화면
 
-### Changed
+#### Changed
 
 - 기존 Vite Sample 제거
 - React Example 제거
@@ -323,12 +324,65 @@ Dashboard
 - Hero Image 제거
 - React Logo 제거
 - Vite Logo 제거
+- Frontend Path Alias 구성
+- Vite / TypeScript Path Resolution 구성
 
-### Removed
+#### Removed
 
 - Vite Example Application
 - Sample Assets
 - Sample Counter
+
+---
+
+## v0.5.1 (2026-08-08)
+
+### Frontend Layout & Common UI Components
+
+#### Added
+
+Layout Components:
+
+- Header Component
+- Sidebar Component
+- Breadcrumb Component
+
+Common UI Components:
+
+- Button Component
+- Card Component
+- Loading Component
+- EmptyState Component
+
+Main Layout:
+
+- Header / Sidebar / Breadcrumb 독립 Component 분리
+- MainLayout Refactoring
+- Router 기반 Content 영역 구성
+
+Breadcrumb:
+
+- 현재 Router Path 기반 Breadcrumb 구성
+
+Common UI:
+
+- 재사용 가능한 Button Component
+- 공통 Card UI
+- Loading 상태 표시
+- Empty State 표시
+
+#### Changed
+
+- MainLayout의 직접 구현 영역을 독립 Component로 분리
+- Layout Component와 Common UI Component를 분리
+- Frontend Component 구조 정리
+- `@/components/...` Alias 기반 Import 구조 적용
+- Vite Path Resolution 설정 정리
+
+#### Documentation
+
+- `006_frontend_development_history.md` 현행화
+- Frontend Layout 및 Common UI Component 개발 이력 추가
 
 ---
 
@@ -342,18 +396,19 @@ Dashboard
 
 #### Planned
 
-WBS
+WBS:
 
 - WBS CRUD
 - Tree Structure
 - Progress Calculation
 
-Schedule
+Schedule:
 
 - Schedule CRUD
 - Calendar
 - Gantt Chart
 - Milestone
+
 ---
 
 ## v0.7.0 (Planned)
@@ -362,7 +417,7 @@ Schedule
 
 #### Planned
 
-Issue
+Issue:
 
 - Issue CRUD
 - Issue Assignment
@@ -370,7 +425,7 @@ Issue
 - Priority Management
 - Attachment Management
 
-Risk
+Risk:
 
 - Risk CRUD
 - Risk Assessment
@@ -378,7 +433,7 @@ Risk
 - Response Strategy
 - Risk Monitoring
 
-Change
+Change:
 
 - Change Request
 - Change Approval
@@ -393,19 +448,19 @@ Change
 
 #### Planned
 
-Configuration Item
+Configuration Item:
 
 - Server CI
 - Database CI
 - Software CI
 - Network CI
 
-Relationship
+Relationship:
 
 - CI Relationship
 - Dependency Graph
 
-History
+History:
 
 - Version Management
 - Configuration History
@@ -419,7 +474,7 @@ History
 
 #### Planned
 
-Dashboard
+Dashboard:
 
 - Executive Dashboard
 - Project Dashboard
@@ -430,7 +485,7 @@ Dashboard
 - Change Dashboard
 - CMDB Dashboard
 
-Reporting
+Reporting:
 
 - Weekly Report
 - Monthly Report
@@ -447,7 +502,7 @@ Reporting
 
 #### Planned
 
-Spring AI
+Spring AI:
 
 - AI PM Assistant
 - AI Project Summary
@@ -458,13 +513,13 @@ Spring AI
 - AI Meeting Summary
 - AI Report Generation
 
-LLM Integration
+LLM Integration:
 
 - OpenAI
 - Azure OpenAI
 - Ollama (Local LLM)
 
-Knowledge Base
+Knowledge Base:
 
 - PMIS Document Search
 - Semantic Search
@@ -474,7 +529,7 @@ Knowledge Base
 
 # Git Flow
 
-```
+```text
 main
 │
 develop
@@ -492,6 +547,7 @@ develop
 ├── feature/project-dashboard
 │
 ├── feature/frontend-layout
+├── feature/frontend-components
 │
 ├── feature/wbs
 ├── feature/schedule
@@ -520,7 +576,7 @@ develop
 # Commit Convention
 
 | Prefix | Description |
-|---------|-------------|
+| --- | --- |
 | feat | Feature |
 | fix | Bug Fix |
 | refactor | Refactoring |
@@ -532,23 +588,20 @@ develop
 | perf | Performance |
 | security | Security |
 
-Example
+Example:
 
 ```text
 feat: implement JWT authentication
-
 feat: implement project CRUD
-
 feat(frontend): implement React router
-
+feat(frontend): add sidebar component
+feat(frontend): add common UI components
 fix: resolve JWT validation issue
-
 docs: update roadmap
-
 refactor: improve exception handling
-
 build: upgrade Spring Boot
 ```
+
 ---
 
 # Change Log Template
@@ -575,6 +628,10 @@ build: upgrade Spring Boot
 #### Removed
 
 -
+
+#### Documentation
+
+-
 ```
 
 ---
@@ -582,7 +639,7 @@ build: upgrade Spring Boot
 # Target Releases
 
 | Version | Goal |
-|----------|------|
+| --- | --- |
 | v0.6.x | WBS & Schedule |
 | v0.7.x | Issue / Risk / Change |
 | v0.8.x | CMDB |
@@ -594,7 +651,7 @@ build: upgrade Spring Boot
 # Long-term Roadmap
 
 | Version | Goal |
-|----------|------|
+| --- | --- |
 | 1.x | PMIS Core Platform |
 | 2.x | Enterprise PMIS |
 | 3.x | AI Native PMIS Platform |
@@ -637,14 +694,23 @@ build: upgrade Spring Boot
 - Main Layout
 - Dashboard Skeleton
 - Feature-based Directory Structure
+- Header Component
+- Sidebar Component
+- Breadcrumb Component
+- Button Component
+- Card Component
+- Loading Component
+- EmptyState Component
+- Frontend Path Alias
+- Layout Component Separation
 
 ### In Progress
 
-- Header Component
-- Sidebar Component
-- Breadcrumb
+- Dashboard UI
+- Project Module
 - Theme
-- Common Components
+- API Integration
+- Form Components
 
 ---
 
@@ -652,47 +718,27 @@ build: upgrade Spring Boot
 
 모든 기능은 아래 절차를 따른다.
 
-```
+```text
 Planning
-
 ↓
-
 Feature Branch 생성
-
 ↓
-
 Development
-
 ↓
-
 Local Test
-
 ↓
-
 Documentation Update
-
 ↓
-
 Commit
-
 ↓
-
 Push
-
 ↓
-
 Pull Request
-
 ↓
-
 Code Review
-
 ↓
-
 Merge to develop
-
 ↓
-
 Release
 ```
 
@@ -700,7 +746,7 @@ Release
 
 # Git Branch Strategy
 
-```
+```text
 main
     │
 develop
@@ -725,21 +771,21 @@ Release는 반드시 `develop` 브랜치에서 충분히 검증한 후 `main`으
 - PROJECT_OVERVIEW.md
 - ARCHITECTURE.md
 
-Frontend 문서
+Frontend 문서:
 
-- 001_frontend_architecture.md
-- 002_frontend_folder_structure.md
-- 003_frontend_coding_convention.md
-- 004_frontend_ui_design.md
-- 005_frontend_component_architecture.md
-- 006_frontend_development_history.md
+- `001_frontend_architecture.md`
+- `002_frontend_folder_structure.md`
+- `003_frontend_coding_convention.md`
+- `004_frontend_ui_design.md`
+- `005_frontend_component_architecture.md`
+- `006_frontend_development_history.md`
 
 ---
 
 # Maintenance Policy
 
 - 모든 기능은 Feature Branch에서 개발한다.
-- 모든 변경 사항은 CHANGELOG에 기록한다.
+- 모든 변경 사항을 CHANGELOG에 기록한다.
 - 문서와 소스코드는 항상 동일한 상태를 유지한다.
 - Pull Request 검토 후 Develop 브랜치에 병합한다.
 - Main 브랜치에는 검증된 코드만 Release한다.
@@ -751,12 +797,12 @@ Frontend 문서
 # Current Information
 
 | Item | Value |
-|------|-------|
-| Last Updated | 2026-08-07 |
-| Current Version | **v0.5.0** |
-| Current Branch | **feature/frontend-layout** |
-| Current Sprint | **Sprint 2 - Frontend Foundation** |
-| Development Stage | **Frontend Foundation & Project Management** |
+| --- | --- |
+| Last Updated | 2026-08-10 |
+| Current Version | **v0.5.1** |
+| Current Branch | **feature/frontend-components** |
+| Current Sprint | **Sprint 2 - Frontend Foundation & Components** |
+| Development Stage | **Frontend Layout & Common UI Component** |
 | Maintainer | **Seo Seokhyeon** |
 
 ---
@@ -765,15 +811,17 @@ Frontend 문서
 
 ## Sprint 3
 
-Frontend UI
+### Frontend
 
-- Header
-- Sidebar
-- Breadcrumb
+- Dashboard UI
 - Dashboard Widgets
-- Common Components
+- Project List
+- Project Search
+- Project Detail
+- API Integration
+- Form Components
 
-Backend
+### Backend
 
 - WBS CRUD
 - Schedule CRUD
@@ -785,7 +833,7 @@ Backend
 # Release Summary
 
 | Version | Description |
-|----------|-------------|
+| --- | --- |
 | v0.1.0 | Project Initialization |
 | v0.2.0 | Common Infrastructure |
 | v0.3.0 | Security Foundation |
@@ -793,6 +841,7 @@ Backend
 | v0.3.2 | Swagger / OpenAPI |
 | v0.4.0 | Project Management |
 | v0.5.0 | Frontend Foundation |
+| v0.5.1 | Frontend Layout & Common UI Components |
 | v0.6.x | WBS & Schedule |
 | v0.7.x | Issue / Risk / Change |
 | v0.8.x | CMDB |
