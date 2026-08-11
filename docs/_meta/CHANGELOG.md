@@ -1,5 +1,4 @@
 # CHANGELOG
-
 > PMIS (Project Management Information System) 변경 이력 관리 문서
 >
 > 프로젝트 진행 과정에서 발생한 주요 변경 사항과 릴리즈 이력을 기록한다.
@@ -11,7 +10,6 @@
 본 문서는 PMIS 프로젝트의 주요 변경 사항을 관리한다.
 
 기록 대상:
-
 * Feature
 * Improvement
 * Bug Fix
@@ -452,11 +450,96 @@ Dashboard:
 
 ---
 
+## v0.5.3 (2026-08-11)
+
+### Frontend Dashboard HMC Reference
+
+#### Added
+
+Dashboard Reference:
+
+* Power HMC (Hardware Management Console) 스타일을 참고한 PMIS Dashboard 화면 구성
+* PMIS Dashboard를 프로젝트 운영 현황 중심의 통합 Dashboard 형태로 확장
+* Project Overview 영역 추가
+* KPI 영역 추가
+* WBS Progress 영역 추가
+* Schedule Summary 영역 추가
+* Issue Summary 영역 추가
+* Recent Activity 영역 추가
+
+Dashboard Components:
+
+* `KpiCard`
+* `ProjectOverview`
+* `WbsProgress`
+* `ScheduleSummary`
+* `IssueSummary`
+* `RecentActivity`
+
+Dashboard Layout:
+
+* Project Overview
+* Project Status KPI
+* Progress KPI
+* Schedule KPI
+* Issues KPI
+* WBS Progress
+* Schedule Summary
+* Issues / Risks
+* Recent Activity
+
+#### Changed
+
+* 기존 Dashboard Skeleton을 PMIS 운영 Dashboard 형태로 확장
+* DashboardPage의 단일 화면 구현 영역을 Dashboard Component 단위로 분리
+* KPI 영역을 `KpiCard` 재사용 Component로 분리
+* Project Overview를 `ProjectOverview` Component로 분리
+* WBS Progress를 `WbsProgress` Component로 분리
+* Schedule Summary를 `ScheduleSummary` Component로 분리
+* Issue Summary를 `IssueSummary` Component로 분리
+* Recent Activity를 `RecentActivity` Component로 분리
+* Dashboard Component Import 구조 정리
+
+#### Build
+
+* TypeScript Build 오류 수정
+* TypeScript 6.x의 `baseUrl` deprecated 오류 대응을 위한 `ignoreDeprecations` 설정 적용
+* `npm run build` 성공 확인
+* Vite production build 성공 확인
+
+Build Result:
+
+```text
+vite v8.2.1 building client environment for production...
+✓ 36 modules transformed.
+✓ built in 1.73s
+```
+
+#### Git
+
+* Feature Branch 생성: `feature/frontend-dashboard-hmc-reference`
+* Feature Branch Push 완료
+* `develop` Branch Merge 완료
+* `develop` Push 완료
+
+#### Documentation
+
+* Dashboard Component 구조 및 개발 상태 Roadmap 반영
+* Frontend Dashboard 개발 이력 현행화 대상 추가
+
+#### Note
+
+* 현재 Dashboard의 데이터는 Reference UI 구현을 위한 정적 데이터이다.
+* 실제 Project / WBS / Schedule / Issue API 연동은 후속 Feature에서 진행한다.
+* 현재 단계에서는 Dashboard UI 구조와 Component 책임 분리를 우선 확보한다.
+
+---
+
 # Planned Releases
 
 ---
 
-## v0.6.0
+## v0.6.x
 
 ### WBS & Schedule
 
@@ -477,7 +560,7 @@ Schedule:
 
 ---
 
-## v0.7.0 (Planned)
+## v0.7.x (Planned)
 
 ### Issue / Risk / Change Management
 
@@ -508,7 +591,7 @@ Change:
 
 ---
 
-## v0.8.0 (Planned)
+## v0.8.x (Planned)
 
 ### CMDB
 
@@ -519,7 +602,6 @@ Configuration Item:
 * Server CI
 * Database CI
 * Software CI
-* Network CI
 
 Relationship:
 
@@ -534,7 +616,7 @@ History:
 
 ---
 
-## v0.9.0 (Planned)
+## v0.9.x (Planned)
 
 ### Dashboard & Reporting
 
@@ -559,6 +641,8 @@ Reporting:
 * Excel Export
 * PDF Export
 * Statistics Dashboard
+
+> Note: PMIS Frontend Dashboard Reference UI는 v0.5.3에서 선행 구현되었으며, v0.9.x에서는 Backend Dashboard API 및 실제 데이터 연동을 중심으로 확장한다.
 
 ---
 
@@ -609,25 +693,30 @@ develop
 │
 ├── feature/swagger
 │
+├── feature/project-crud
 ├── feature/project-search
 ├── feature/project-dashboard
 ├── feature/project-detail
 │
 ├── feature/frontend-layout
 ├── feature/frontend-components
+├── feature/frontend-dashboard-hmc-reference
 │
-├── feature/wbs
-├── feature/schedule
-├── feature/issue
-├── feature/risk
-├── feature/change
+├── feature/wbs-management
+├── feature/schedule-management
+├── feature/issue-management
+├── feature/risk-management
+├── feature/change-management
 │
-├── feature/cmdb
+├── feature/cmdb-management
 │
 ├── feature/dashboard
-├── feature/report
+├── feature/report-excel
+├── feature/report-pdf
 │
 └── feature/spring-ai
+    ├── feature/ai-risk-analysis
+    └── feature/ai-report-summary
 ```
 
 ### Branch Policy
@@ -642,33 +731,35 @@ develop
 
 # Commit Convention
 
-| Prefix   | Description   |
-| -------- | ------------- |
-| feat     | Feature       |
-| fix      | Bug Fix       |
-| refactor | Refactoring   |
-| docs     | Documentation |
-| style    | Code Style    |
-| test     | Test          |
-| build    | Build         |
-| chore    | Maintenance   |
-| perf     | Performance   |
-| security | Security      |
+| Prefix | Description |
+| -------- | ----------- |
+| feat | Feature |
+| fix | Bug Fix |
+| refactor | Refactoring |
+| docs | Documentation |
+| style | Code Style |
+| test | Test |
+| build | Build |
+| chore | Maintenance |
+| perf | Performance |
+| security | Security |
 
 Example:
 
 ```text
 feat: implement JWT authentication
 feat: implement project CRUD
-feat: implement project dashboard
-feat: implement project detail api
+feat: implement project search
+feat: implement project dashboard api
+feat: separate project detail api
 feat(frontend): implement React router
 feat(frontend): add sidebar component
 feat(frontend): add common UI components
+feat(frontend): add dashboard reference layout
+feat(frontend): add dashboard widgets
 fix: resolve JWT validation issue
 docs: update roadmap
 refactor: improve exception handling
-refactor: separate project detail api
 build: upgrade Spring Boot
 ```
 
@@ -680,6 +771,7 @@ build: upgrade Spring Boot
 
 ```markdown
 ## vX.Y.Z (YYYY-MM-DD)
+
 ### Module Name
 
 #### Added
@@ -702,13 +794,13 @@ build: upgrade Spring Boot
 
 # Target Releases
 
-| Version | Goal                  |
+| Version | Goal |
 | ------- | --------------------- |
-| v0.6.x  | WBS & Schedule        |
-| v0.7.x  | Issue / Risk / Change |
-| v0.8.x  | CMDB                  |
-| v0.9.x  | Dashboard & Reporting |
-| v1.0.0  | AI Powered PMIS       |
+| v0.6.x | WBS & Schedule |
+| v0.7.x | Issue / Risk / Change |
+| v0.8.x | CMDB |
+| v0.9.x | Dashboard & Reporting |
+| v1.0.0 | AI Powered PMIS |
 
 ---
 
@@ -765,14 +857,35 @@ build: upgrade Spring Boot
 * EmptyState Component
 * Frontend Path Alias
 * Layout Component Separation
+* Dashboard Reference Layout
+* ProjectOverview Component
+* KpiCard Component
+* WbsProgress Component
+* ScheduleSummary Component
+* IssueSummary Component
+* RecentActivity Component
+* Dashboard Component Separation
+* Dashboard Production Build Verification
 
-### In Progress
+### Current
 
-* Dashboard UI
+* Dashboard UI Reference Implementation
 * Project Module
 * Theme
 * API Integration
 * Form Components
+
+### Next
+
+* Project List
+* Project Search
+* Project Detail
+* Project Dashboard API Integration
+* Project API Integration
+* WBS UI
+* Schedule UI
+* Calendar UI
+* Gantt UI
 
 ---
 
@@ -801,7 +914,37 @@ Code Review
 ↓
 Merge to develop
 ↓
+Integration Test
+↓
 Release
+```
+
+Frontend Dashboard와 같이 Backend API가 아직 준비되지 않은 기능은 다음과 같이 진행한다.
+
+```text
+Reference / Requirement
+↓
+UI Structure Design
+↓
+Component Design
+↓
+Static Data Implementation
+↓
+Browser Verification
+↓
+Production Build
+↓
+Documentation
+↓
+Commit
+↓
+Push
+↓
+Merge to develop
+↓
+Backend API Integration
+↓
+E2E Verification
 ```
 
 ---
@@ -813,11 +956,11 @@ main
     │
 develop
     │
-feature/*
+    ├── feature/*
     │
-release/*
+    ├── release/*
     │
-hotfix/*
+    └── hotfix/*
 ```
 
 Release는 반드시 `develop` 브랜치에서 충분히 검증한 후 `main`으로 병합한다.
@@ -828,10 +971,20 @@ Release는 반드시 `develop` 브랜치에서 충분히 검증한 후 `main`으
 
 다음 문서는 항상 최신 상태를 유지한다.
 
-* CHANGELOG.md
-* DEVELOPMENT_ROADMAP.md
-* PROJECT_OVERVIEW.md
-* ARCHITECTURE.md
+* `CHANGELOG.md`
+* `DEVELOPMENT_ROADMAP.md`
+* `PROJECT_OVERVIEW.md`
+* `ARCHITECTURE.md`
+
+Design 문서:
+
+* `docs/design/project/PROJECT_DESIGN.md`
+* `docs/design/project/PROJECT_DASHBOARD_DESIGN.md`
+* `docs/design/wbs/WBS_DESIGN.md`
+* `docs/design/schedule/SCHEDULE_DESIGN.md`
+* `docs/design/issue/ISSUE_DESIGN.md`
+* `docs/design/report/REPORT_DESIGN.md`
+* `docs/design/server/SERVER_CONFIGURATION_DESIGN.md`
 
 Frontend 문서:
 
@@ -842,30 +995,37 @@ Frontend 문서:
 * `005_frontend_component_architecture.md`
 * `006_frontend_development_history.md`
 
+Dashboard Component 변경 시 관련 Frontend Architecture / Component / Development History 문서를 함께 현행화한다.
+
 ---
 
 # Maintenance Policy
 
 * 모든 기능은 Feature Branch에서 개발한다.
 * 모든 변경 사항을 CHANGELOG에 기록한다.
+* Backend와 Frontend의 개발 상태를 Roadmap에 반영한다.
 * 문서와 소스코드는 항상 동일한 상태를 유지한다.
 * Pull Request 검토 후 Develop 브랜치에 병합한다.
 * Main 브랜치에는 검증된 코드만 Release한다.
 * Semantic Versioning을 준수한다.
 * Release마다 Git Tag를 생성한다.
+* UI Reference 구현과 실제 API Integration 단계를 구분하여 기록한다.
 
 ---
 
 # Current Information
 
-| Item              | Value                                                    |
+| Item | Value |
 | ----------------- | -------------------------------------------------------- |
-| Last Updated      | 2026-08-10                                               |
-| Current Version   | **v0.5.2**                                               |
-| Current Branch    | **develop**                                              |
-| Current Sprint    | **Sprint 3 - Project Management & Frontend Integration** |
-| Development Stage | **Project Detail API Completed**                         |
-| Maintainer        | **Seo Seokhyeon**                                        |
+| Last Updated | **2026-08-11** |
+| Current Version | **v0.5.3** |
+| Current Branch | **develop** |
+| Current Sprint | **Sprint 3 - Project Management & Frontend Integration** |
+| Development Stage | **Dashboard Reference UI Complete / Backend WBS & Schedule In Progress** |
+| Last Completed Feature Branch | **feature/frontend-dashboard-hmc-reference** |
+| Current Integration Branch | **develop** |
+| Frontend Build Status | **Production Build Success** |
+| Maintainer | **Seo Seokhyeon** |
 
 ---
 
@@ -875,42 +1035,94 @@ Frontend 문서:
 
 ### Frontend
 
-* Dashboard UI
-* Dashboard Widgets
 * Project List
 * Project Search
 * Project Detail
-* API Integration
+* Project Dashboard UI
+* Project API Integration
+* Project Dashboard API Integration
 * Form Components
+* WBS UI
+* Schedule UI
+* Calendar UI
+* Gantt UI
 
 ### Backend
 
 * WBS CRUD
+* WBS Tree Structure
+* WBS Progress Calculation
 * Schedule CRUD
-* Progress Calculation
 * Calendar API
+* Gantt Data
+* Milestone
+
+### Integration
+
+* Project API Integration
+* Project Dashboard API Integration
+* Project Detail API Integration
+* WBS API Integration
+* Schedule API Integration
+* Loading / Empty / Error State
+* API Error Handling
+* Browser Verification
+* E2E Verification
 
 ---
 
 # Release Summary
 
-| Version | Description                                |
+| Version | Description |
 | ------- | ------------------------------------------ |
-| v0.1.0  | Project Initialization                     |
-| v0.2.0  | Common Infrastructure                      |
-| v0.3.0  | Security Foundation                        |
-| v0.3.1  | Authentication & Authorization             |
-| v0.3.2  | Swagger / OpenAPI                          |
-| v0.4.0  | Project Management                         |
-| v0.5.0  | Frontend Foundation                        |
-| v0.5.1  | Frontend Layout & Common UI Components     |
-| v0.5.2  | Project Detail API & Controller Separation |
-| v0.6.x  | WBS & Schedule                             |
-| v0.7.x  | Issue / Risk / Change                      |
-| v0.8.x  | CMDB                                       |
-| v0.9.x  | Dashboard & Reporting                      |
-| v1.0.0  | AI Powered PMIS                            |
+| v0.1.0 | Project Initialization |
+| v0.2.0 | Common Infrastructure |
+| v0.3.0 | Security Foundation |
+| v0.3.1 | Authentication & Authorization |
+| v0.3.2 | Swagger / OpenAPI |
+| v0.4.0 | Project Management |
+| v0.5.0 | Frontend Foundation |
+| v0.5.1 | Frontend Layout & Common UI Components |
+| v0.5.2 | Project Detail API & Controller Separation |
+| v0.5.3 | Frontend Dashboard HMC Reference |
+| v0.6.x | WBS & Schedule |
+| v0.7.x | Issue / Risk / Change |
+| v0.8.x | CMDB |
+| v0.9.x | Dashboard & Reporting |
+| v1.0.0 | AI Powered PMIS |
 
 ---
 
-**End of Document**
+# Current Development Snapshot
+
+```text
+Backend
+ ├─ Common Infrastructure       ✓
+ ├─ Security / JWT              ✓
+ ├─ Project CRUD                ✓
+ ├─ Project Search              ✓
+ ├─ Project Dashboard API       ✓
+ ├─ Project Detail API          ✓
+ ├─ WBS                         🚧
+ └─ Schedule                    🚧
+
+Frontend
+ ├─ React / Vite / TypeScript   ✓
+ ├─ Router / Layout             ✓
+ ├─ Common UI Components        ✓
+ ├─ Dashboard Reference UI      ✓
+ ├─ Dashboard Components        ✓
+ ├─ Project UI                  🚧
+ ├─ WBS UI                      🚧
+ └─ Schedule UI                 🚧
+
+Integration
+ ├─ Project API Integration     → Next
+ ├─ Dashboard API Integration   → Next
+ ├─ WBS API Integration         → Planned
+ └─ Schedule API Integration    → Planned
+```
+
+---
+
+# End of Document

@@ -1,10 +1,10 @@
 # PMIS Portfolio
 
-> **Version:** 1.2
-> **Last Updated:** 2026-08-10
-> **Project:** Project Management Information System (PMIS)
-> **Repository:** `project-delivery-reference`
-> **Development Stage:** Backend Core + Frontend Foundation
+> **Version:** 1.3  
+> **Last Updated:** 2026-08-11  
+> **Project:** Project Management Information System (PMIS)  
+> **Repository:** `project-delivery-reference`  
+> **Development Stage:** Backend Core + Frontend Foundation + Project Management Core  
 > **Current Integration Branch:** `develop`
 
 ---
@@ -59,7 +59,9 @@ Spring Boot 기반 Enterprise Backend와 React 기반 Web Frontend를 구축한�
 * Report
 * 파일 및 산출물 관리
 
-현재 Backend Core는 공통 인프라와 Security/JWT를 기반으로 Project Management 영역까지 구현되었으며, Frontend는 공통 Layout 및 UI Foundation을 구축한 상태이다.
+현재 Backend는 Enterprise 공통 인프라, Security/JWT, 인증/인가 및 Project Management Core까지 구현되었다.
+
+Frontend는 React + TypeScript + Vite 기반 Foundation과 Application Layout 및 Common UI Component를 구축한 상태이며, 이후 실제 Domain 화면과 API Integration을 단계적으로 확장한다.
 
 ---
 
@@ -140,21 +142,21 @@ PMIS는 실제 SI 프로젝트에서 수행되는 PMO 업무 프로세스를 기
 
 ```text
 Project
-   │
-   ├── WBS
-   │    └── Schedule
-   │
-   ├── Progress
-   │
-   ├── Issue
-   │
-   ├── Risk
-   │
-   ├── Change
-   │
-   ├── CMDB
-   │
-   └── Report
+  │
+  ├── WBS
+  │    └── Schedule
+  │
+  ├── Progress
+  │
+  ├── Issue
+  │
+  ├── Risk
+  │
+  ├── Change
+  │
+  ├── CMDB
+  │
+  └── Report
 ```
 
 각 Domain의 데이터는 Dashboard와 Report에서 프로젝트 전체 상태를 표현하는 기반 데이터로 활용한다.
@@ -286,20 +288,20 @@ PMO 관점에서는:
 
 ## 4.1 Backend
 
-| Category        | Technology         |
-| --------------- | ------------------ |
-| Language        | Java 21            |
-| Framework       | Spring Boot 4.1.0  |
-| Build           | Gradle Kotlin DSL  |
-| ORM             | Spring Data JPA    |
-| Database        | MariaDB            |
-| Security        | Spring Security    |
-| Authentication  | JWT                |
-| Validation      | Jakarta Validation |
-| API             | RESTful API        |
-| Documentation   | Swagger / OpenAPI  |
-| Utility         | Lombok             |
-| Version Control | Git / GitHub       |
+| Category | Technology |
+| --- | --- |
+| Language | Java 21 |
+| Framework | Spring Boot 4.1.0 |
+| Build | Gradle Kotlin DSL |
+| ORM | Spring Data JPA |
+| Database | MariaDB |
+| Security | Spring Security |
+| Authentication | JWT |
+| Validation | Jakarta Validation |
+| API | RESTful API |
+| Documentation | Swagger / OpenAPI |
+| Utility | Lombok |
+| Version Control | Git / GitHub |
 
 Backend는 Enterprise Layered Architecture를 기반으로 구성하며 공통 응답, 예외 처리, Security, JWT 등을 공통 인프라로 관리한다.
 
@@ -307,18 +309,20 @@ Backend는 Enterprise Layered Architecture를 기반으로 구성하며 공통 �
 
 ## 4.2 Frontend
 
-| Category        | Technology                      |
-| --------------- | ------------------------------- |
-| Framework       | React                           |
-| Language        | TypeScript                      |
-| Build Tool      | Vite                            |
-| Package Manager | npm                             |
-| Router          | React Router DOM                |
-| Runtime         | Node.js                         |
-| Architecture    | Component-based / Feature-based |
-| API             | REST API                        |
+| Category | Technology |
+| --- | --- |
+| Framework | React |
+| Language | TypeScript |
+| Build Tool | Vite |
+| Package Manager | npm |
+| Router | React Router DOM |
+| Runtime | Node.js |
+| Architecture | Component-based / Feature-based |
+| API | REST API |
 
-현재 Frontend는 Foundation 단계로 다음 영역이 구축되어 있다.
+현재 Frontend는 Foundation 단계에서 Application Layout과 Common UI Component까지 구축되었다.
+
+구축 영역:
 
 * App
 * AppRouter
@@ -326,6 +330,9 @@ Backend는 Enterprise Layered Architecture를 기반으로 구성하며 공통 �
 * Header
 * Sidebar
 * Breadcrumb
+* Content Area
+* Outlet
+* Dashboard Page Skeleton
 * Common UI Components
 * Feature Directory Structure
 * TypeScript Alias
@@ -450,7 +457,7 @@ AI 기술은 PMIS Core가 충분히 안정화된 이후 단계적으로 적용�
 * Validation
 * Project Dashboard API
 
-현재 Project Domain은 향후 WBS, Schedule, Issue, Risk, Change 등의 상위 Root Domain으로 활용할 수 있도록 설계한다.
+Project Domain은 향후 WBS, Schedule, Issue, Risk, Change 등의 상위 Root Domain으로 활용할 수 있도록 설계한다.
 
 ---
 
@@ -501,7 +508,7 @@ MainLayout
       ├── Breadcrumb
       └── Outlet
            ↓
-       DashboardPage
+      DashboardPage
 ```
 
 ---
@@ -600,6 +607,7 @@ Feature별 화면과 API Integration은 Foundation 구축 이후 Domain 개발 �
 │            Browser            │
 │                               │
 │      React + TypeScript       │
+│              ↓                │
 │             Vite              │
 └───────────────┬───────────────┘
                 │
@@ -608,13 +616,13 @@ Feature별 화면과 API Integration은 Foundation 구축 이후 Domain 개발 �
 ┌───────────────────────────────┐
 │       Spring Boot API         │
 │                               │
-│ Security / JWT                │
-│        ↓                      │
-│ Controller                    │
-│        ↓                      │
-│ Service                       │
-│        ↓                      │
-│ Repository                    │
+│      Security / JWT           │
+│              ↓                │
+│         Controller            │
+│              ↓                │
+│           Service             │
+│              ↓                │
+│         Repository            │
 └───────────────┬───────────────┘
                 │
                 ▼
@@ -719,15 +727,15 @@ develop
 
 주요 Branch 역할:
 
-| Branch       | Role                |
-| ------------ | ------------------- |
-| `main`       | 안정적인 Release        |
-| `develop`    | 통합 개발               |
-| `feature/*`  | 기능 개발               |
-| `bugfix/*`   | Bug Fix             |
-| `refactor/*` | 구조 개선               |
-| `release/*`  | Release Preparation |
-| `hotfix/*`   | Production Hot Fix  |
+| Branch | Role |
+| --- | --- |
+| `main` | 안정적인 Release |
+| `develop` | 통합 개발 |
+| `feature/*` | 기능 개발 |
+| `bugfix/*` | Bug Fix |
+| `refactor/*` | 구조 개선 |
+| `release/*` | Release Preparation |
+| `hotfix/*` | Production Hot Fix |
 
 ---
 
@@ -763,18 +771,18 @@ Release
 
 # 12. Commit Convention
 
-| Prefix     | Meaning       |
-| ---------- | ------------- |
-| `feat`     | Feature       |
-| `fix`      | Bug Fix       |
-| `refactor` | Refactoring   |
-| `docs`     | Documentation |
-| `style`    | Code Style    |
-| `test`     | Test          |
-| `build`    | Build         |
-| `chore`    | Maintenance   |
-| `perf`     | Performance   |
-| `security` | Security      |
+| Prefix | Meaning |
+| --- | --- |
+| `feat` | Feature |
+| `fix` | Bug Fix |
+| `refactor` | Refactoring |
+| `docs` | Documentation |
+| `style` | Code Style |
+| `test` | Test |
+| `build` | Build |
+| `chore` | Maintenance |
+| `perf` | Performance |
+| `security` | Security |
 
 예:
 
@@ -831,50 +839,50 @@ docs
 
 # 14. 개발 진행 현황
 
-| Area                               | Status      |
-| ---------------------------------- | ----------- |
-| Spring Boot Foundation             | ✅ Completed |
-| Java 21                            | ✅ Completed |
-| Gradle Kotlin DSL                  | ✅ Completed |
-| MariaDB                            | ✅ Completed |
-| Common Infrastructure              | ✅ Completed |
-| Security / JWT                     | ✅ Completed |
-| Authentication                     | ✅ Completed |
-| Authorization / Role               | ✅ Completed |
-| Swagger / OpenAPI                  | ✅ Completed |
-| Project CRUD                       | ✅ Completed |
-| Project Search                     | ✅ Completed |
-| Project Dashboard API              | ✅ Completed |
-| React Foundation                   | ✅ Completed |
-| Vite                               | ✅ Completed |
-| TypeScript                         | ✅ Completed |
-| React Router                       | ✅ Completed |
-| Feature Directory                  | ✅ Completed |
-| Main Layout                        | ✅ Completed |
-| Header                             | ✅ Completed |
-| Sidebar                            | ✅ Completed |
-| Breadcrumb                         | ✅ Completed |
-| Common UI Components               | ✅ Completed |
-| Dashboard UI                       | 🚧 Skeleton |
-| Backend / Frontend API Integration | ⏳ Planned   |
-| Authentication UI                  | ⏳ Planned   |
-| Project UI                         | ⏳ Planned   |
-| WBS                                | ⏳ Planned   |
-| Schedule                           | ⏳ Planned   |
-| Issue                              | ⏳ Planned   |
-| Risk                               | ⏳ Planned   |
-| Change                             | ⏳ Planned   |
-| CMDB                               | ⏳ Planned   |
-| Report                             | ⏳ Planned   |
-| AI Assistant                       | ⏳ Planned   |
+| Area | Status |
+| --- | --- |
+| Spring Boot Foundation | ✅ Completed |
+| Java 21 | ✅ Completed |
+| Gradle Kotlin DSL | ✅ Completed |
+| MariaDB | ✅ Completed |
+| Common Infrastructure | ✅ Completed |
+| Security / JWT | ✅ Completed |
+| Authentication | ✅ Completed |
+| Authorization / Role | ✅ Completed |
+| Swagger / OpenAPI | ✅ Completed |
+| Project CRUD | ✅ Completed |
+| Project Search | ✅ Completed |
+| Project Dashboard API | ✅ Completed |
+| React Foundation | ✅ Completed |
+| Vite | ✅ Completed |
+| TypeScript | ✅ Completed |
+| React Router | ✅ Completed |
+| Feature Directory | ✅ Completed |
+| Main Layout | ✅ Completed |
+| Header | ✅ Completed |
+| Sidebar | ✅ Completed |
+| Breadcrumb | ✅ Completed |
+| Common UI Components | ✅ Completed |
+| Dashboard UI | 🚧 Skeleton |
+| Backend / Frontend API Integration | ⏳ Planned |
+| Authentication UI | ⏳ Planned |
+| Project UI | ⏳ Planned |
+| WBS | ⏳ Planned |
+| Schedule | ⏳ Planned |
+| Issue | ⏳ Planned |
+| Risk | ⏳ Planned |
+| Change | ⏳ Planned |
+| CMDB | ⏳ Planned |
+| Report | ⏳ Planned |
+| AI Assistant | ⏳ Planned |
 
 ---
 
 # 15. 향후 개발 계획
 
-## Phase 1 — Frontend Foundation
+## Phase 1 — Frontend Foundation / Integration
 
-현재 Foundation을 기반으로 실제 업무 화면 개발에 필요한 공통 UI를 확장한다.
+현재 구축된 Frontend Foundation을 실제 Backend API와 연결할 수 있는 기반으로 확장한다.
 
 예정:
 
@@ -887,6 +895,11 @@ docs
 * API Error Handling
 * Loading / Empty / Error State
 * Authentication UI
+* Project API Integration
+* Project List UI
+* Project Detail UI
+
+Phase 1의 핵심 목표는 단순 UI 제작이 아니라 **Backend Project Management API와 React Frontend를 실제로 연결하는 것**이다.
 
 ---
 
@@ -1180,35 +1193,35 @@ PMIS의 최종 목표는 다음 세 가지 역량을 하나의 프로젝트에�
                      │
         ┌────────────┼────────────┐
         ▼            ▼            ▼
-   PMO Domain    Software       AI
-   Knowledge     Engineering    Engineering
+   PMO Domain    Software        AI
+   Knowledge     Engineering     Engineering
         │            │            │
         ▼            ▼            ▼
-   Project/WBS    Spring Boot   Spring AI
-   Schedule       React         LLM
-   Issue/Risk     REST API      RAG
-   Change/CMDB    Security      Analysis
-   Report         Database      Assistant
+   Project/WBS    Spring Boot    Spring AI
+   Schedule       React          LLM
+   Issue/Risk     REST API       RAG
+   Change/CMDB    Security       Analysis
+   Report         Database       Assistant
 ```
 
 최종적으로 다음과 같은 Enterprise PMIS를 목표로 한다.
 
 ```text
 ┌──────────────────────────────────────┐
-│              PMIS                    │
+│               PMIS                   │
 │                                      │
 │ Project Management                   │
 │ WBS / Schedule / Progress            │
 │ Issue / Risk / Change                │
 │ CMDB / Dashboard / Report            │
-│ Document / File / Closure            │
+│ Document / File / Closure             │
 │                                      │
-│              ↓                       │
-│       PMO Data Platform              │
-│              ↓                       │
-│          Spring AI                   │
-│              ↓                       │
-│       AI PM Assistant                │
+│                ↓                     │
+│          PMO Data Platform           │
+│                ↓                     │
+│            Spring AI                 │
+│                ↓                     │
+│         AI PM Assistant              │
 └──────────────────────────────────────┘
 ```
 
@@ -1222,11 +1235,12 @@ PMIS의 최종 목표는 다음 세 가지 역량을 하나의 프로젝트에�
 
 # 21. Document History
 
-| Version | Date       | Author        | Description                                                                                                                                                |
-| ------- | ---------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1.0     | 2026-08-03 | Seo Seokhyeon | Initial Portfolio Document                                                                                                                                 |
-| 1.1     | 2026-08-08 | Seo Seokhyeon | Updated portfolio to reflect Backend + Frontend implementation status                                                                                      |
-| 1.2     | 2026-08-10 | Seo Seokhyeon | Updated current implementation status, Frontend Foundation, Project Management Core, development roadmap, demonstration scenario and portfolio positioning |
+| Version | Date | Author | Description |
+| --- | --- | --- | --- |
+| 1.0 | 2026-08-03 | Seo Seokhyeon | Initial Portfolio Document |
+| 1.1 | 2026-08-08 | Seo Seokhyeon | Updated portfolio to reflect Backend + Frontend implementation status |
+| 1.2 | 2026-08-10 | Seo Seokhyeon | Updated current implementation status, Frontend Foundation, Project Management Core, development roadmap, demonstration scenario and portfolio positioning |
+| 1.3 | 2026-08-11 | Seo Seokhyeon | Updated current implementation stage, Frontend Foundation status, Project Management Core status, Frontend integration roadmap and portfolio positioning |
 
 ---
 

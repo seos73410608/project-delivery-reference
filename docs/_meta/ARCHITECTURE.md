@@ -1,15 +1,15 @@
 # PMIS Architecture
 
-> **Version:** 1.2
-> **Project:** **Project Management Information System (PMIS)**
-> **Backend Framework:** **Spring Boot 4.1.0**
-> **Backend Language:** **Java 21**
-> **Frontend Framework:** **React + TypeScript**
-> **Frontend Build Tool:** **Vite**
-> **Database:** **MariaDB**
-> **Authentication:** **Spring Security + JWT**
-> **AI:** **Spring AI (Planned)**
-> **Last Updated:** **2026-08-10**
+> **Version:** 1.3  
+> **Project:** **Project Management Information System (PMIS)**  
+> **Backend Framework:** **Spring Boot 4.1.0**  
+> **Backend Language:** **Java 21**  
+> **Frontend Framework:** **React + TypeScript**  
+> **Frontend Build Tool:** **Vite**  
+> **Database:** **MariaDB**  
+> **Authentication:** **Spring Security + JWT**  
+> **AI:** **Spring AI (Planned)**  
+> **Last Updated:** **2026-08-11**
 
 ---
 
@@ -36,39 +36,39 @@ PMIS는 **Backend와 Frontend를 분리한 Enterprise Web Application Architectu
                          PMIS Web Client
                                │
                                ▼
-                ┌────────────────────────────┐
-                │ React + TypeScript         │
-                │ Vite                       │
-                ├────────────────────────────┤
-                │ App / Router               │
-                │ Layout                     │
-                │ Pages                      │
-                │ Features                   │
-                │ Components                 │
-                │ API / Services             │
-                │ Hooks / Store / Types      │
-                └─────────────┬──────────────┘
-                              │
-                         HTTPS / REST
-                              │
-                              ▼
-                ┌────────────────────────────┐
-                │ Spring Boot 4.1.0 API      │
-                ├────────────────────────────┤
-                │ Security / JWT             │
-                │ Controller                 │
-                │ Service                    │
-                │ Repository                 │
-                │ Domain Modules             │
-                │ Common Infrastructure      │
-                │ Batch / File               │
-                └─────────────┬──────────────┘
-                              │
-                              ▼
-                         ┌─────────┐
-                         │ MariaDB │
-                         └─────────┘
-
+              ┌────────────────────────────┐
+              │ React + TypeScript         │
+              │ Vite                       │
+              ├────────────────────────────┤
+              │ App / Router               │
+              │ Layout                     │
+              │ Pages                      │
+              │ Features                   │
+              │ Components                 │
+              │ API / Services             │
+              │ Hooks / Store / Types      │
+              └─────────────┬──────────────┘
+                            │
+                       HTTPS / REST
+                            │
+                            ▼
+              ┌────────────────────────────┐
+              │ Spring Boot 4.1.0 API      │
+              ├────────────────────────────┤
+              │ Security / JWT             │
+              │ Controller                 │
+              │ Service                    │
+              │ Repository                 │
+              │ Domain Modules              │
+              │ Common Infrastructure      │
+              │ Batch / File               │
+              └─────────────┬──────────────┘
+                            │
+                            ▼
+                       ┌─────────┐
+                       │ MariaDB │
+                       └─────────┘
+                            │
                          Future
                             │
                             ▼
@@ -92,21 +92,21 @@ PMIS는 **Backend와 Frontend를 분리한 Enterprise Web Application Architectu
 │  ┌────────────────────────────────────────────────────────┐  │
 │  │                 React + TypeScript                     │  │
 │  │                                                        │  │
-│  │  App                                                    │  │
-│  │   ↓                                                     │  │
-│  │  AppRouter                                               │  │
-│  │   ↓                                                     │  │
-│  │  MainLayout                                              │  │
-│  │   ├── Header                                             │  │
-│  │   ├── Sidebar                                            │  │
-│  │   ├── Breadcrumb                                         │  │
-│  │   └── Outlet                                             │  │
-│  │        ↓                                                 │  │
-│  │      Page                                                 │  │
-│  │        ↓                                                 │  │
+│  │  App                                                   │  │
+│  │   ↓                                                    │  │
+│  │  AppRouter                                              │  │
+│  │   ↓                                                    │  │
+│  │  MainLayout                                             │  │
+│  │   ├── Header                                            │  │
+│  │   ├── Sidebar                                           │  │
+│  │   ├── Breadcrumb                                        │  │
+│  │   └── Outlet                                            │  │
+│  │        ↓                                                │  │
+│  │      Page                                                │  │
+│  │        ↓                                                │  │
 │  │      Feature / Component                                │  │
 │  │                                                        │  │
-│  │  API / Services / Hooks / Store / Types                 │  │
+│  │  API / Services / Hooks / Store / Types                │  │
 │  └────────────────────────┬───────────────────────────────┘  │
 └───────────────────────────┼──────────────────────────────────┘
                             │
@@ -141,40 +141,40 @@ PMIS는 **Backend와 Frontend를 분리한 Enterprise Web Application Architectu
 
 ## 3.1 Backend
 
-| Category        | Technology               |
-| --------------- | ------------------------ |
-| Language        | Java 21                  |
-| Framework       | Spring Boot 4.1.0        |
-| Build           | Gradle Kotlin DSL        |
-| ORM             | Spring Data JPA          |
-| Database        | MariaDB                  |
-| Security        | Spring Security          |
-| Authentication  | JWT                      |
-| Password        | BCrypt                   |
-| Validation      | Jakarta Validation       |
-| API             | RESTful API              |
-| Documentation   | Swagger / OpenAPI        |
-| Utility         | Lombok                   |
-| Version Control | Git                      |
-| CI/CD           | Planned - GitHub Actions |
-| Container       | Planned - Docker         |
+| Category | Technology |
+| --- | --- |
+| Language | Java 21 |
+| Framework | Spring Boot 4.1.0 |
+| Build | Gradle Kotlin DSL |
+| ORM | Spring Data JPA |
+| Database | MariaDB |
+| Security | Spring Security |
+| Authentication | JWT |
+| Password | BCrypt |
+| Validation | Jakarta Validation |
+| API | RESTful API |
+| Documentation | Swagger / OpenAPI |
+| Utility | Lombok |
+| Version Control | Git |
+| CI/CD | Planned - GitHub Actions |
+| Container | Planned - Docker |
 
 ---
 
 ## 3.2 Frontend
 
-| Category          | Technology                      |
-| ----------------- | ------------------------------- |
-| Framework         | React                           |
-| Language          | TypeScript                      |
-| Build Tool        | Vite                            |
-| Package Manager   | npm                             |
-| Router            | React Router DOM                |
-| API Communication | REST API                        |
-| Architecture      | Component-based + Feature-based |
-| Styling           | CSS 기반                          |
-| State Management  | 확장 예정                           |
-| Testing           | 확장 예정                           |
+| Category | Technology |
+| --- | --- |
+| Framework | React |
+| Language | TypeScript |
+| Build Tool | Vite |
+| Package Manager | npm |
+| Router | React Router DOM |
+| API Communication | REST API |
+| Architecture | Component-based + Feature-based |
+| Styling | CSS 기반 |
+| State Management | 확장 예정 |
+| Testing | 확장 예정 |
 
 Frontend는 Backend와 별도 프로젝트로 관리하며 REST API를 통해 연계한다.
 
@@ -217,11 +217,11 @@ project-delivery-reference
 
 Repository 역할:
 
-| Directory       | Responsibility                                    |
-| --------------- | ------------------------------------------------- |
-| `pmis-backend`  | Spring Boot REST API                              |
-| `pmis-frontend` | React Web Application                             |
-| `docs`          | Architecture / Design / Development Documentation |
+| Directory | Responsibility |
+| --- | --- |
+| `pmis-backend` | Spring Boot REST API |
+| `pmis-frontend` | React Web Application |
+| `docs` | Architecture / Design / Development Documentation |
 
 Backend와 Frontend는 동일 Repository에서 관리하지만 **빌드, 실행, 배포 및 책임 영역은 독립적으로 관리**한다.
 
@@ -395,12 +395,12 @@ MainLayout
       ├── Breadcrumb
       │
       └── Outlet
-             │
-             ▼
-           Page
-             │
-             ▼
-       Feature / Component
+            │
+            ▼
+          Page
+            │
+            ▼
+      Feature / Component
 ```
 
 Frontend의 주요 책임은 다음과 같이 분리한다.
@@ -474,6 +474,20 @@ components/common
 └── EmptyState.tsx
 ```
 
+현재 Dashboard Component:
+
+```text
+features/dashboard
+├── KpiCard
+├── ProjectOverview
+├── WbsProgress
+├── ScheduleSummary
+├── IssueSummary
+└── RecentActivity
+```
+
+Dashboard는 Power HMC(Hardware Management Console) 스타일을 참고한 운영 현황 중심의 Reference UI로 구성되어 있으며, 현재 정적 데이터를 기반으로 화면 구조를 구현한다.
+
 ---
 
 # 9. Frontend Component Architecture
@@ -535,6 +549,32 @@ components/common
 * 여러 Feature에서 재사용할 수 있어야 한다.
 * Domain 전용 Component는 해당 Feature 내부에 둔다.
 * Common Component의 과도한 비대화를 방지한다.
+
+---
+
+## 9.3 Dashboard Components
+
+Dashboard는 PMIS 운영 현황을 한 화면에서 파악할 수 있도록 구성한다.
+
+```text
+DashboardPage
+│
+├── ProjectOverview
+├── KpiCard
+│   ├── Project Status KPI
+│   ├── Progress KPI
+│   ├── Schedule KPI
+│   └── Issues KPI
+│
+├── WbsProgress
+├── ScheduleSummary
+├── IssueSummary
+└── RecentActivity
+```
+
+현재 Dashboard의 역할은 실제 API 연동 이전의 UI Reference 및 Component Architecture 검증이다.
+
+향후 Project / WBS / Schedule / Issue / Risk API와 연계하여 실제 운영 데이터 기반 Dashboard로 확장한다.
 
 ---
 
@@ -615,16 +655,18 @@ Spring Boot REST API
 
 역할:
 
-| Area       | Responsibility                     |
-| ---------- | ---------------------------------- |
-| `api`      | HTTP API Client / Endpoint 호출      |
+| Area | Responsibility |
+| --- | --- |
+| `api` | HTTP API Client / Endpoint 호출 |
 | `services` | Frontend Business-oriented Service |
-| `types`    | Request / Response Type            |
-| `hooks`    | Reusable React Logic               |
-| `store`    | Global State                       |
-| `utils`    | Common Utility                     |
+| `types` | Request / Response Type |
+| `hooks` | Reusable React Logic |
+| `store` | Global State |
+| `utils` | Common Utility |
 
 Frontend에서 Backend의 Domain 구조를 직접 복제하기보다는 **화면 및 Feature 중심으로 API와 UI를 구성**한다.
+
+현재 Backend의 Project API 및 Project Dashboard / Detail API는 구현되어 있으며, Frontend의 Project / Dashboard API Integration은 후속 단계에서 진행한다.
 
 ---
 
@@ -656,18 +698,18 @@ PMIS Backend는 **Spring Security + JWT 기반 Stateless Authentication**을 적
 
 ```text
 Client
-  │
-  │ Authorization: Bearer <JWT>
-  ▼
+ │
+ │ Authorization: Bearer <JWT>
+ ▼
 JWT Authentication Filter
-  │
-  ▼
+ │
+ ▼
 Authentication
-  │
-  ▼
+ │
+ ▼
 Authorization
-  │
-  ▼
+ │
+ ▼
 Controller
 ```
 
@@ -689,16 +731,16 @@ Controller
 
 ```text
 USER
-  │
-  └── 일반 사용자 권한
+ │
+ └── 일반 사용자 권한
 
 PM
-  │
-  └── 프로젝트 관리 권한
+ │
+ └── 프로젝트 관리 권한
 
 ADMIN
-  │
-  └── 시스템 관리 권한
+ │
+ └── 시스템 관리 권한
 ```
 
 향후 프로젝트 단위 권한 및 세부 Permission이 필요한 경우 확장한다.
@@ -737,9 +779,17 @@ Authentication / Authorization
 Protected API
 ```
 
+현재 구현된 인증 기능:
+
+* Login API
+* Refresh Token API
+* Token Reissue
+* Access Token Validation
+* Refresh Token Validation
+* Role-based Authorization
+
 향후 요구사항에 따라 다음 기능을 확장한다.
 
-* Refresh Token
 * Token Rotation
 * Logout / Token Invalidation
 * Session / Device Management
@@ -806,6 +856,16 @@ PMIS Backend는 실제 PMO 업무 영역을 기준으로 Domain Module을 구성
 * 프로젝트 상태
 * 프로젝트 검색
 * 프로젝트 Dashboard
+* 프로젝트 상세 조회
+
+현재 구현:
+
+* Project CRUD
+* Project Search
+* Sorting
+* Sorting Column Validation
+* Project Dashboard API
+* Project Detail API
 
 ## WBS
 
@@ -933,7 +993,7 @@ Project
  │
  ├── WBS
  │    └── Task
- │          └── Schedule
+ │         └── Schedule
  │
  ├── Issue
  │
@@ -1219,11 +1279,11 @@ Docker Image
    │
    ├───────────────┐
    ▼               ▼
-Frontend         Backend
-Container        Container
-   │               │
-   │               ▼
-   │            MariaDB
+Frontend          Backend
+Container         Container
+                    │
+                    ▼
+                 MariaDB
    │
    └────── HTTPS / Reverse Proxy
 ```
@@ -1293,26 +1353,26 @@ Production
 main
  │
  └── release/*
-        │
-        ▼
-     develop
-        │
-        ├── feature/*
-        ├── bugfix/*
-        └── refactor/*
+         │
+         ▼
+      develop
+         │
+         ├── feature/*
+         ├── bugfix/*
+         └── refactor/*
 ```
 
 Branch 역할:
 
-| Branch       | Responsibility      |
-| ------------ | ------------------- |
-| `main`       | 검증된 Release         |
-| `develop`    | Integration Branch  |
-| `feature/*`  | Feature Development |
-| `bugfix/*`   | Bug Fix             |
-| `refactor/*` | Refactoring         |
-| `release/*`  | Release Preparation |
-| `hotfix/*`   | Production Hot Fix  |
+| Branch | Responsibility |
+| --- | --- |
+| `main` | 검증된 Release |
+| `develop` | Integration Branch |
+| `feature/*` | Feature Development |
+| `bugfix/*` | Bug Fix |
+| `refactor/*` | Refactoring |
+| `release/*` | Release Preparation |
+| `hotfix/*` | Production Hot Fix |
 
 개발 기본 흐름:
 
@@ -1327,6 +1387,9 @@ Development
    │
    ▼
 Local Test
+   │
+   ▼
+Documentation
    │
    ▼
 Commit
@@ -1404,8 +1467,8 @@ Current
  ├── React
  ├── TypeScript
  └── JWT
-       │
-       ▼
+        │
+        ▼
 Expansion
  │
  ├── QueryDSL
@@ -1463,12 +1526,22 @@ Expansion
 * Swagger / OpenAPI
 * Project CRUD
 * Project Search
+* Project Search Sorting Validation
 * Project Dashboard API
+* Project Dashboard Controller
+* Project Detail API
+* Project Detail Controller
+* Project Detail Service
+* Project Detail Response DTO
+* Project Controller / Dashboard Controller / Detail Controller 책임 분리
 
-### In Progress / Planned
+### In Progress
 
 * WBS
 * Schedule
+
+### Planned
+
 * Issue
 * Risk
 * Change
@@ -1485,7 +1558,7 @@ Expansion
 
 ---
 
-# 28.2 Frontend
+## 28.2 Frontend
 
 ### Completed
 
@@ -1501,35 +1574,52 @@ Expansion
 * Sidebar
 * Breadcrumb
 * Common UI Components
-
   * Button
   * Card
   * Loading
   * EmptyState
+* Frontend Path Alias
+* Layout Component Separation
+* Dashboard Reference Layout
+* ProjectOverview Component
+* KpiCard Component
+* WbsProgress Component
+* ScheduleSummary Component
+* IssueSummary Component
+* RecentActivity Component
+* Dashboard Component Separation
+* Dashboard Production Build Verification
+
+### Current
+
+* Dashboard UI Reference Implementation
+* Project Module
+* Theme
+* API Integration
+* Form Components
 
 ### In Progress
 
-* Dashboard Skeleton
-* Dashboard Layout
-* Dashboard Widget Architecture
+* Project List
+* Project Search
+* Project Detail UI
+* Project Dashboard UI
+* Project API Integration
+* Project Dashboard API Integration
 
 ### Planned
 
-* API Client
-* API Error Handling
-* Authentication UI
-* Login
-* Protected Route
-* Project UI
-* Project Dashboard UI
 * WBS UI
 * Schedule UI
+* Calendar UI
+* Gantt UI
 * Issue UI
 * Risk UI
 * Change UI
 * CMDB UI
 * Report UI
-* Form Components
+* Authentication UI
+* Protected Route
 * Table Components
 * Modal Components
 * Pagination
@@ -1545,18 +1635,18 @@ Expansion
 ```text
                     PMIS Development
                           │
-             ┌────────────┴────────────┐
-             ▼                         ▼
+            ┌─────────────┴─────────────┐
+            ▼                           ▼
         Backend                     Frontend
-             │                         │
-      Spring Boot API            React + TS
-             │                         │
-             └────────────┬────────────┘
+            │                           │
+      Spring Boot API              React + TS
+            │                           │
+            └─────────────┬─────────────┘
                           ▼
                     REST Integration
                           │
                           ▼
-                     E2E Testing
+                       E2E Testing
 ```
 
 기능 개발 단위는 다음을 기준으로 한다.
@@ -1581,6 +1671,34 @@ Pull Request
 Code Review
    ↓
 Merge to develop
+```
+
+Frontend Reference UI와 같이 Backend API가 아직 준비되지 않은 기능은 다음과 같이 진행한다.
+
+```text
+Reference / Requirement
+        ↓
+UI Structure Design
+        ↓
+Component Design
+        ↓
+Static Data Implementation
+        ↓
+Browser Verification
+        ↓
+Production Build
+        ↓
+Documentation
+        ↓
+Commit
+        ↓
+Push
+        ↓
+Merge to develop
+        ↓
+Backend API Integration
+        ↓
+E2E Verification
 ```
 
 ---
@@ -1629,6 +1747,7 @@ docs
 2. 완료되지 않은 기능을 Completed로 기록하지 않는다.
 3. Architecture와 구현이 달라진 경우 문서를 먼저 또는 동시에 갱신한다.
 4. 주요 Architecture 변경은 Document History에 기록한다.
+5. Frontend Reference UI와 실제 API Integration 단계를 구분하여 기록한다.
 
 ---
 
@@ -1636,39 +1755,57 @@ docs
 
 현재 PMIS Architecture의 핵심 결정사항은 다음과 같다.
 
-| Area                  | Decision                  |
-| --------------------- | ------------------------- |
-| Backend               | Spring Boot 4.1.0         |
-| Backend Language      | Java 21                   |
-| Backend Build         | Gradle Kotlin DSL         |
-| Backend Architecture  | Layered + Domain-Oriented |
-| ORM                   | Spring Data JPA           |
-| Database              | MariaDB                   |
-| Security              | Spring Security           |
-| Authentication        | JWT                       |
-| Frontend              | React                     |
-| Frontend Language     | TypeScript                |
-| Frontend Build        | Vite                      |
+| Area | Decision |
+| --- | --- |
+| Backend | Spring Boot 4.1.0 |
+| Backend Language | Java 21 |
+| Backend Build | Gradle Kotlin DSL |
+| Backend Architecture | Layered + Domain-Oriented |
+| ORM | Spring Data JPA |
+| Database | MariaDB |
+| Security | Spring Security |
+| Authentication | JWT |
+| Frontend | React |
+| Frontend Language | TypeScript |
+| Frontend Build | Vite |
 | Frontend Architecture | Component + Feature-based |
-| Routing               | React Router DOM          |
-| API                   | REST                      |
-| Documentation         | Swagger / OpenAPI         |
-| Version Control       | Git                       |
-| Integration Branch    | develop                   |
-| AI                    | Spring AI - Future        |
-| RAG                   | Future                    |
-| Deployment            | Docker - Future           |
-| CI/CD                 | GitHub Actions - Future   |
+| Routing | React Router DOM |
+| API | REST |
+| Documentation | Swagger / OpenAPI |
+| Version Control | Git |
+| Integration Branch | develop |
+| AI | Spring AI - Future |
+| RAG | Future |
+| Deployment | Docker - Future |
+| CI/CD | GitHub Actions - Future |
 
 ---
 
-# 32. Document History
+# 32. Current Project Snapshot
 
-| Version | Date       | Author        | Description                                                                                                                                                                                  |
-| ------- | ---------- | ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1.0     | 2026-08-03 | Seo Seokhyeon | Initial Backend Architecture Document                                                                                                                                                        |
-| 1.1     | 2026-08-10 | Seo Seokhyeon | Added Frontend Architecture, Security, API, AI, Deployment and Repository Architecture                                                                                                       |
-| 1.2     | 2026-08-10 | Seo Seokhyeon | Updated Spring Boot to 4.1.0, synchronized current Backend/Frontend implementation status, refined Domain Architecture, Security, Repository, Git Flow and future AI/Deployment architecture |
+| Item | Value |
+| --- | --- |
+| Current Version | v0.5.3 |
+| Current Branch | develop |
+| Current Sprint | Sprint 3 - Project Management & Frontend Integration |
+| Backend Stage | Project Management Complete / WBS & Schedule In Progress |
+| Frontend Stage | Dashboard Reference UI Complete / Project Module In Progress |
+| Integration Stage | Project / Dashboard API Integration Next |
+| Frontend Build | Production Build Success |
+| Last Completed Feature Branch | `feature/frontend-dashboard-hmc-reference` |
+| Integration Branch | `develop` |
+| Maintainer | Seo Seokhyeon |
+
+---
+
+# 33. Document History
+
+| Version | Date | Author | Description |
+| --- | --- | --- | --- |
+| 1.0 | 2026-08-03 | Seo Seokhyeon | Initial Backend Architecture Document |
+| 1.1 | 2026-08-10 | Seo Seokhyeon | Added Frontend Architecture, Security, API, AI, Deployment and Repository Architecture |
+| 1.2 | 2026-08-10 | Seo Seokhyeon | Updated Spring Boot to 4.1.0, synchronized current Backend/Frontend implementation status, refined Domain Architecture, Security, Repository, Git Flow and future AI/Deployment architecture |
+| 1.3 | 2026-08-11 | Seo Seokhyeon | Synchronized Project Detail API implementation, Controller/Service responsibility separation, Frontend Dashboard HMC Reference UI, Dashboard Component Architecture, Production Build verification, and current Sprint 3 development status |
 
 ---
 
