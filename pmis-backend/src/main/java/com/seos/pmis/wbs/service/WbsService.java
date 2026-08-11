@@ -8,6 +8,7 @@ import com.seos.pmis.wbs.dto.request.WbsUpdateRequest;
 import com.seos.pmis.wbs.dto.response.WbsResponse;
 import com.seos.pmis.wbs.dto.response.WbsTreeResponse;
 import com.seos.pmis.wbs.entity.Wbs;
+import com.seos.pmis.wbs.entity.WbsStatus;
 import com.seos.pmis.wbs.repository.WbsRepository;
 import com.seos.pmis.wbs.specification.WbsSpecification;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +39,9 @@ import java.util.Map;
  * - WBS CRUD
  * - 동적 검색
  * - WBS Tree 구성
+ * - 부모 WBS 변경
+ * - 하위 WBS Level 재계산
+ * - 순환 참조 검증
  */
 @Service
 @RequiredArgsConstructor
@@ -75,15 +79,10 @@ public class WbsService {
          *
          * WBS Code는 프로젝트 내부에서 유일하다.
          */
-        if (wbsRepository.existsByProjectIdAndWbsCode(
+        validateWbsCodeDuplicate(
                 projectId,
                 request.getWbsCode()
-        )) {
-            throw new IllegalArgumentException(
-                    "이미 존재하는 WBS 코드입니다. wbsCode="
-                            + request.getWbsCode()
-            );
-        }
+        );
 
         /*
          * 부모 WBS 조회
@@ -93,10 +92,7 @@ public class WbsService {
         );
 
         /*
-         * 부모 WBS가 존재하는 경우
-         *
-         * 부모 WBS와 현재 프로젝트가
-         * 동일한 프로젝트인지 검증한다.
+         * 부모 프로젝트 검증
          */
         validateParentProject(
                 parent,
@@ -155,8 +151,6 @@ public class WbsService {
      * WbsSearchRequest의 검색 조건을
      * Specification으로 변환하여 조회한다.
      *
-     * 정렬과 페이징은 Pageable에서 처리한다.
-     *
      * @param request WBS 검색 요청
      * @return WBS 페이지
      */
@@ -184,12 +178,11 @@ public class WbsService {
             Long projectId
     ) {
 
-        List<Wbs> wbsList =
-                wbsRepository.findByProjectIdOrderBySortOrderAsc(
-                        projectId
-                );
+        validateProjectExists(projectId);
 
-        return wbsList.stream()
+        return wbsRepository
+                .findByProjectIdOrderBySortOrderAsc(projectId)
+                .stream()
                 .map(WbsResponse::from)
                 .toList();
     }
@@ -204,13 +197,11 @@ public class WbsService {
             Long projectId
     ) {
 
-        List<Wbs> wbsList =
-                wbsRepository
-                        .findByProjectIdAndParentIsNullOrderBySortOrderAsc(
-                                projectId
-                        );
+        validateProjectExists(projectId);
 
-        return wbsList.stream()
+        return wbsRepository
+                .findByProjectIdAndParentIsNullOrderBySortOrderAsc(projectId)
+                .stream()
                 .map(WbsResponse::from)
                 .toList();
     }
@@ -225,12 +216,11 @@ public class WbsService {
             Long parentId
     ) {
 
-        List<Wbs> wbsList =
-                wbsRepository.findByParentIdOrderBySortOrderAsc(
-                        parentId
-                );
+        findWbs(parentId);
 
-        return wbsList.stream()
+        return wbsRepository
+                .findByParentIdOrderBySortOrderAsc(parentId)
+                .stream()
                 .map(WbsResponse::from)
                 .toList();
     }
@@ -247,6 +237,8 @@ public class WbsService {
     public List<WbsTreeResponse> findTree(
             Long projectId
     ) {
+
+        validateProjectExists(projectId);
 
         List<Wbs> wbsList =
                 wbsRepository.findByProjectIdOrderBySortOrderAsc(
@@ -270,7 +262,8 @@ public class WbsService {
         /*
          * Root Tree
          */
-        List<WbsTreeResponse> roots = new ArrayList<>();
+        List<WbsTreeResponse> roots =
+                new ArrayList<>();
 
         /*
          * Parent → Child 연결
@@ -313,6 +306,19 @@ public class WbsService {
     /**
      * WBS 수정
      *
+     * WBS의 기본 정보뿐만 아니라
+     * 부모 WBS 변경까지 처리한다.
+     *
+     * 부모가 변경되는 경우:
+     *
+     * 1. 부모 프로젝트 검증
+     * 2. 자기 자신 검증
+     * 3. 순환 참조 검증
+     * 4. 새로운 Level 계산
+     * 5. 부모 변경
+     * 6. 현재 WBS Level 변경
+     * 7. 하위 WBS Level 재계산
+     *
      * @param id WBS ID
      * @param request WBS 수정 요청
      * @return 수정된 WBS
@@ -325,41 +331,33 @@ public class WbsService {
 
         Wbs wbs = findWbs(id);
 
-        /*
-         * 현재 WBS의 프로젝트
-         */
         Long projectId =
                 wbs.getProject().getId();
 
         /*
          * WBS Code 중복 검증
          *
-         * 자기 자신은 제외한다.
+         * 자기 자신의 기존 Code와 동일한 경우 허용한다.
          */
-        if (!wbs.getWbsCode().equals(request.getWbsCode())
-                && wbsRepository.existsByProjectIdAndWbsCode(
-                        projectId,
-                        request.getWbsCode()
-                )) {
+        if (!wbs.getWbsCode().equals(request.getWbsCode())) {
 
-            throw new IllegalArgumentException(
-                    "이미 존재하는 WBS 코드입니다. wbsCode="
-                            + request.getWbsCode()
+            validateWbsCodeDuplicate(
+                    projectId,
+                    request.getWbsCode()
             );
         }
 
         /*
-         * 새로운 부모 WBS 조회
+         * 새로운 부모 조회
          */
-        Wbs parent = findParent(
-                request.getParentId()
-        );
+        Wbs newParent =
+                findParent(request.getParentId());
 
         /*
          * 부모 프로젝트 검증
          */
         validateParentProject(
-                parent,
+                newParent,
                 projectId
         );
 
@@ -368,7 +366,7 @@ public class WbsService {
          */
         validateNotSelfParent(
                 wbs,
-                parent
+                newParent
         );
 
         /*
@@ -376,23 +374,41 @@ public class WbsService {
          */
         validateNoCircularReference(
                 wbs,
-                parent
+                newParent
         );
 
         /*
-         * 부모 변경에 따라 Level 재계산
+         * 기존 Level
          */
-        int level = calculateLevel(parent);
+        int oldLevel =
+                wbs.getLevel();
 
         /*
-         * Entity 수정
-         *
-         * 현재 Entity의 update() 메서드는
-         * parent와 level을 받지 않으므로
-         * 여기서는 현재 Entity 구조에 맞게
-         * 수정 메서드를 호출한다.
+         * 새로운 Level
+         */
+        int newLevel =
+                calculateLevel(newParent);
+
+        /*
+         * 부모 변경 여부
+         */
+        boolean parentChanged =
+                !equalsNullable(
+                        getId(wbs.getParent()),
+                        request.getParentId()
+                );
+
+        /*
+         * Level 변경 여부
+         */
+        boolean levelChanged =
+                oldLevel != newLevel;
+
+        /*
+         * 기본 정보 수정
          */
         wbs.update(
+                request.getWbsCode(),
                 request.getWbsName(),
                 request.getDescription(),
                 request.getStatus(),
@@ -400,36 +416,25 @@ public class WbsService {
         );
 
         /*
-         * 현재 Entity에는 parent / level 변경 메서드가
-         * 없기 때문에 부모 변경이나 level 변경은
-         * 아직 Entity API에서 지원하지 않는다.
-         *
-         * 따라서 현재 단계에서는
-         * 부모 변경 요청이 기존 부모와 다른 경우
-         * 명시적으로 예외를 발생시킨다.
+         * 부모 변경
          */
-        Long currentParentId =
-                wbs.getParent() != null
-                        ? wbs.getParent().getId()
-                        : null;
+        if (parentChanged) {
 
-        if (!equalsNullable(
-                currentParentId,
-                request.getParentId()
-        )) {
-
-            throw new IllegalStateException(
-                    "현재 Wbs Entity는 부모 WBS 변경을 지원하지 않습니다."
-            );
+            wbs.changeParent(newParent);
         }
 
         /*
-         * Level 역시 현재 부모 기준으로 유지된다.
+         * Level 변경
          */
-        if (wbs.getLevel() != level) {
+        if (levelChanged) {
 
-            throw new IllegalStateException(
-                    "현재 Wbs Entity는 WBS Level 변경을 지원하지 않습니다."
+            wbs.changeLevel(newLevel);
+
+            /*
+             * 하위 WBS의 Level도 함께 재계산한다.
+             */
+            updateChildrenLevel(
+                    wbs
             );
         }
 
@@ -471,7 +476,7 @@ public class WbsService {
     @Transactional
     public WbsResponse changeStatus(
             Long id,
-            com.seos.pmis.wbs.entity.WbsStatus status
+            WbsStatus status
     ) {
 
         Wbs wbs = findWbs(id);
@@ -515,6 +520,47 @@ public class WbsService {
                                 "존재하지 않는 WBS입니다. wbsId=" + id
                         )
                 );
+    }
+
+    /**
+     * 프로젝트 존재 여부 검증
+     *
+     * @param projectId 프로젝트 ID
+     */
+    private void validateProjectExists(
+            Long projectId
+    ) {
+
+        if (!projectRepository.existsById(projectId)) {
+
+            throw new IllegalArgumentException(
+                    "존재하지 않는 프로젝트입니다. projectId="
+                            + projectId
+            );
+        }
+    }
+
+    /**
+     * WBS Code 중복 검증
+     *
+     * @param projectId 프로젝트 ID
+     * @param wbsCode WBS Code
+     */
+    private void validateWbsCodeDuplicate(
+            Long projectId,
+            String wbsCode
+    ) {
+
+        if (wbsRepository.existsByProjectIdAndWbsCode(
+                projectId,
+                wbsCode
+        )) {
+
+            throw new IllegalArgumentException(
+                    "이미 존재하는 WBS 코드입니다. wbsCode="
+                            + wbsCode
+            );
+        }
     }
 
     /**
@@ -613,8 +659,8 @@ public class WbsService {
     /**
      * WBS 순환 참조 방지
      *
-     * 현재 WBS의 하위 WBS를 새로운 부모로 지정하면
-     * Tree 구조에 순환이 발생한다.
+     * 현재 WBS의 하위 WBS를
+     * 새로운 부모로 지정하면 순환 구조가 발생한다.
      *
      * @param wbs 현재 WBS
      * @param parent 새로운 부모 WBS
@@ -644,10 +690,83 @@ public class WbsService {
     }
 
     /**
-     * Pageable 생성
+     * 하위 WBS Level 재계산
      *
-     * WbsSearchRequest의 정렬 및 페이징 조건을
-     * Spring Data Pageable로 변환한다.
+     * 현재 WBS의 Level이 변경되면
+     * 모든 하위 WBS의 Level도 함께 변경한다.
+     *
+     * 예:
+     *
+     * 기존:
+     *
+     * 1       level 1
+     * └─ 1.1  level 2
+     *    └─ 1.1.1 level 3
+     *
+     * 부모 이동 후:
+     *
+     * 2       level 1
+     * └─ 2.1  level 2
+     *    └─ 2.1.1 level 3
+     *
+     * @param parent 현재 WBS
+     */
+    private void updateChildrenLevel(
+            Wbs parent
+    ) {
+
+        List<Wbs> children =
+                wbsRepository.findByParentIdOrderBySortOrderAsc(
+                        parent.getId()
+                );
+
+        for (Wbs child : children) {
+
+            int childLevel =
+                    parent.getLevel() + 1;
+
+            child.changeLevel(childLevel);
+
+            updateChildrenLevel(child);
+        }
+    }
+
+    /**
+     * WBS ID 조회
+     *
+     * @param wbs WBS
+     * @return WBS ID
+     */
+    private Long getId(Wbs wbs) {
+
+        if (wbs == null) {
+            return null;
+        }
+
+        return wbs.getId();
+    }
+
+    /**
+     * Nullable Long 비교
+     *
+     * @param first 첫 번째 값
+     * @param second 두 번째 값
+     * @return 동일 여부
+     */
+    private boolean equalsNullable(
+            Long first,
+            Long second
+    ) {
+
+        if (first == null) {
+            return second == null;
+        }
+
+        return first.equals(second);
+    }
+
+    /**
+     * Pageable 생성
      *
      * @param request WBS 검색 요청
      * @return Pageable
@@ -739,24 +858,5 @@ public class WbsService {
             default ->
                     "sortOrder";
         };
-    }
-
-    /**
-     * Nullable Long 비교
-     *
-     * @param first 첫 번째 값
-     * @param second 두 번째 값
-     * @return 동일 여부
-     */
-    private boolean equalsNullable(
-            Long first,
-            Long second
-    ) {
-
-        if (first == null) {
-            return second == null;
-        }
-
-        return first.equals(second);
     }
 }
