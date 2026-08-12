@@ -1,9 +1,11 @@
 import { NavLink } from "react-router-dom";
 
+
 interface MenuItem {
   label: string;
   path: string;
 }
+
 
 const menuItems: MenuItem[] = [
   {
@@ -35,6 +37,10 @@ const menuItems: MenuItem[] = [
     path: "/change",
   },
   {
+    label: "Evidence",
+    path: "/evidence",
+  },
+  {
     label: "CMDB",
     path: "/cmdb",
   },
@@ -47,6 +53,7 @@ const menuItems: MenuItem[] = [
     path: "/admin",
   },
 ];
+
 
 function Sidebar() {
   return (
@@ -95,5 +102,6 @@ function Sidebar() {
     </aside>
   );
 }
+
 
 export default Sidebar;
