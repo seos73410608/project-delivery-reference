@@ -4,6 +4,7 @@ import WbsProgress from "@/components/dashboard/WbsProgress";
 import ScheduleSummary from "@/components/dashboard/ScheduleSummary";
 import IssueSummary from "@/components/dashboard/IssueSummary";
 import RecentActivity from "@/components/dashboard/RecentActivity";
+import EvidenceSummary from "@/components/dashboard/EvidenceSummary";
 
 function DashboardPage() {
   return (
@@ -85,11 +86,21 @@ function DashboardPage() {
           display: "grid",
           gridTemplateColumns: "1fr 1fr",
           gap: "16px",
+          marginBottom: "24px",
         }}
       >
         <IssueSummary />
 
         <RecentActivity />
+      </div>
+
+      {/* Evidence */}
+      <div
+        style={{
+          marginBottom: "24px",
+        }}
+      >
+        <EvidenceSummary />
       </div>
     </div>
   );
