@@ -17,6 +17,10 @@ const menuItems: MenuItem[] = [
     path: "/project",
   },
   {
+    label: "WBS",
+    path: "/wbs",
+  },
+  {
     label: "Task",
     path: "/task",
   },
