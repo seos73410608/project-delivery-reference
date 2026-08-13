@@ -5,12 +5,21 @@ import DashboardPage from "../pages/DashboardPage";
 
 import EvidencePage from "../features/evidence/pages/EvidencePage";
 import WbsPage from "../features/wbs/pages/WbsPage";
+import LoginPage from "../features/auth/pages/LoginPage";
 
 
 function AppRouter() {
     return (
         <BrowserRouter>
             <Routes>
+
+                {/* Login */}
+                <Route
+                    path="/login"
+                    element={<LoginPage />}
+                />
+
+                {/* Main Layout */}
                 <Route element={<MainLayout />}>
 
                     {/* Dashboard */}
@@ -32,6 +41,7 @@ function AppRouter() {
                     />
 
                 </Route>
+
             </Routes>
         </BrowserRouter>
     );
