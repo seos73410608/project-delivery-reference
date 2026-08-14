@@ -21,36 +21,67 @@ function WbsPage() {
     const [status, setStatus] =
         useState<WbsStatus | "">("");
 
+
+    /**
+     * Backend에서 조회한 WBS Tree
+     */
     const [wbsTree, setWbsTree] =
         useState<WbsTreeResponse[]>([]);
 
+
+    /**
+     * 현재 선택된 WBS
+     */
     const [selectedWbs, setSelectedWbs] =
         useState<WbsTreeResponse | null>(null);
 
+
+    /**
+     * API Loading 상태
+     */
     const [loading, setLoading] =
         useState(true);
 
+
+    /**
+     * API Error 상태
+     */
     const [error, setError] =
         useState<string | null>(null);
 
 
+    /**
+     * WBS Tree 조회
+     *
+     * GET /api/projects/{projectId}/wbs/tree
+     *
+     * apiClient의 Request Interceptor가
+     * Access Token을 Authorization Header에 자동으로 추가한다.
+     */
     useEffect(() => {
         const loadWbsTree = async () => {
             try {
                 setLoading(true);
                 setError(null);
 
-                const data = await getWbsTree(PROJECT_ID);
+                const data =
+                    await getWbsTree(PROJECT_ID);
 
                 setWbsTree(data);
 
+                /**
+                 * 최초 조회 후 첫 번째 WBS를 선택한다.
+                 */
                 if (data.length > 0) {
                     setSelectedWbs(data[0]);
                 } else {
                     setSelectedWbs(null);
                 }
             } catch (err) {
-                console.error("Failed to load WBS tree:", err);
+                console.error(
+                    "Failed to load WBS tree:",
+                    err,
+                );
 
                 setError(
                     "WBS 정보를 불러오지 못했습니다.",
@@ -67,6 +98,12 @@ function WbsPage() {
     }, []);
 
 
+    /**
+     * WBS 생성
+     *
+     * 현재는 화면 동작만 유지한다.
+     * 다음 단계에서 POST API와 연동한다.
+     */
     const handleCreate = () => {
         window.alert(
             "WBS 생성 기능은 다음 단계에서 Backend API와 연동합니다.",
@@ -74,6 +111,9 @@ function WbsPage() {
     };
 
 
+    /**
+     * WBS 수정
+     */
     const handleEdit = () => {
         if (!selectedWbs) {
             return;
@@ -85,6 +125,9 @@ function WbsPage() {
     };
 
 
+    /**
+     * WBS 상태 변경
+     */
     const handleChangeStatus = () => {
         if (!selectedWbs) {
             return;
@@ -96,6 +139,9 @@ function WbsPage() {
     };
 
 
+    /**
+     * WBS 삭제
+     */
     const handleDelete = () => {
         if (!selectedWbs) {
             return;
@@ -210,7 +256,8 @@ function WbsPage() {
                     <div
                         style={{
                             display: "grid",
-                            gridTemplateColumns: "1.5fr 1fr",
+                            gridTemplateColumns:
+                                "1.5fr 1fr",
                             gap: "16px",
                             alignItems: "start",
                         }}

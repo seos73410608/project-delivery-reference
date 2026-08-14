@@ -37,4 +37,28 @@ apiClient.interceptors.request.use(
 );
 
 
+/**
+ * Response Interceptor
+ *
+ * Backend API 응답을 공통으로 처리한다.
+ *
+ * 현재 단계에서는 응답을 그대로 반환한다.
+ *
+ * 추후 인증 기능 확장 시 다음 처리를 추가한다.
+ *
+ * - 401 Unauthorized
+ * - Access Token 만료
+ * - Refresh Token 재발급
+ * - 로그인 페이지 이동
+ */
+apiClient.interceptors.response.use(
+    (response) => {
+        return response;
+    },
+    (error) => {
+        return Promise.reject(error);
+    },
+);
+
+
 export default apiClient;
