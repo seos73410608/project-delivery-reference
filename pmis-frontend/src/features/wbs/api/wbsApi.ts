@@ -30,20 +30,40 @@ export const getWbsTree = async (
 
 
 /**
- * 프로젝트의 WBS 목록 조회
+ * WBS 검색
  *
- * GET /api/projects/{projectId}/wbs
+ * GET /api/wbs
  *
- * 검색 조건이 필요한 경우 params를 전달한다.
+ * Query Parameter:
+ * - projectId
+ * - keyword
+ * - status
+ * - parentId
+ * - sortBy
+ * - direction
+ * - page
+ * - size
+ *
+ * 예:
+ * GET /api/wbs?projectId=2&keyword=일정
+ *     &status=IN_PROGRESS&page=0&size=20
  */
-export const getWbsList = async (
-    projectId: number,
-    params?: Omit<WbsSearchRequest, "projectId">,
+export const searchWbs = async (
+    request: WbsSearchRequest,
 ): Promise<WbsSearchResponse> => {
     const response = await apiClient.get<WbsSearchResponse>(
-        `/projects/${projectId}/wbs`,
+        "/wbs",
         {
-            params,
+            params: {
+                projectId: request.projectId,
+                keyword: request.keyword,
+                status: request.status,
+                parentId: request.parentId,
+                sortBy: request.sortBy,
+                direction: request.direction,
+                page: request.page,
+                size: request.size,
+            },
         },
     );
 

@@ -4,15 +4,36 @@ import WbsToolbar from "@/features/wbs/components/WbsToolbar";
 import WbsTree from "@/features/wbs/components/WbsTree";
 import WbsDetail from "@/features/wbs/components/WbsDetail";
 
-import { getWbsTree } from "@/features/wbs/api/wbsApi";
+import {
+    getWbsTree,
+    searchWbs,
+} from "@/features/wbs/api/wbsApi";
 
 import type {
+    WbsResponse,
     WbsStatus,
     WbsTreeResponse,
 } from "@/features/wbs/types/wbs";
 
 
 const PROJECT_ID = 2;
+
+
+/**
+ * 검색 결과로 반환된 Flat WBS를
+ * 기존 WbsTree에서 사용할 수 있는 형태로 변환한다.
+ *
+ * 검색 API는 children을 반환하지 않기 때문에
+ * 검색 결과 자체를 각각 독립된 Tree Node로 표현한다.
+ */
+const convertSearchResultsToTree = (
+    wbsList: WbsResponse[],
+): WbsTreeResponse[] => {
+    return wbsList.map((wbs) => ({
+        ...wbs,
+        children: [],
+    }));
+};
 
 
 function WbsPage() {
@@ -23,7 +44,13 @@ function WbsPage() {
 
 
     /**
-     * Backend에서 조회한 WBS Tree
+     * 현재 화면에 표시할 WBS Tree
+     *
+     * 기본 조회:
+     * GET /api/projects/{projectId}/wbs/tree
+     *
+     * 검색 조회:
+     * GET /api/wbs
      */
     const [wbsTree, setWbsTree] =
         useState<WbsTreeResponse[]>([]);
@@ -51,58 +78,115 @@ function WbsPage() {
 
 
     /**
-     * WBS Tree 조회
+     * WBS 조회
+     *
+     * 검색 조건이 없으면 Tree API를 호출한다.
      *
      * GET /api/projects/{projectId}/wbs/tree
      *
-     * apiClient의 Request Interceptor가
-     * Access Token을 Authorization Header에 자동으로 추가한다.
+     * 검색 조건이 있으면 Search API를 호출한다.
+     *
+     * GET /api/wbs
      */
     useEffect(() => {
-        const loadWbsTree = async () => {
-            try {
-                setLoading(true);
-                setError(null);
+        const timer = window.setTimeout(() => {
+            const loadWbs = async () => {
+                try {
+                    setLoading(true);
+                    setError(null);
 
-                const data =
-                    await getWbsTree(PROJECT_ID);
+                    /**
+                     * 검색 조건이 없는 경우
+                     *
+                     * 기존 WBS Tree API 사용
+                     */
+                    if (
+                        keyword.trim() === "" &&
+                        status === ""
+                    ) {
+                        const data =
+                            await getWbsTree(PROJECT_ID);
 
-                setWbsTree(data);
+                        setWbsTree(data);
 
-                /**
-                 * 최초 조회 후 첫 번째 WBS를 선택한다.
-                 */
-                if (data.length > 0) {
-                    setSelectedWbs(data[0]);
-                } else {
+                        if (data.length > 0) {
+                            setSelectedWbs(data[0]);
+                        } else {
+                            setSelectedWbs(null);
+                        }
+
+                        return;
+                    }
+
+
+                    /**
+                     * 검색 조건이 있는 경우
+                     *
+                     * GET /api/wbs
+                     */
+                    const response = await searchWbs({
+                        projectId: PROJECT_ID,
+                        keyword:
+                            keyword.trim() || undefined,
+                        status:
+                            status || undefined,
+                        page: 0,
+                        size: 20,
+                    });
+
+
+                    /**
+                     * 검색 API는 Flat List를 반환하므로
+                     * 기존 WbsTree에서 사용할 수 있도록
+                     * children을 추가한다.
+                     */
+                    const tree =
+                        convertSearchResultsToTree(
+                            response.content,
+                        );
+
+                    setWbsTree(tree);
+
+                    if (tree.length > 0) {
+                        setSelectedWbs(tree[0]);
+                    } else {
+                        setSelectedWbs(null);
+                    }
+                } catch (err) {
+                    console.error(
+                        "Failed to load WBS:",
+                        err,
+                    );
+
+                    setError(
+                        "WBS 정보를 불러오지 못했습니다.",
+                    );
+
+                    setWbsTree([]);
                     setSelectedWbs(null);
+                } finally {
+                    setLoading(false);
                 }
-            } catch (err) {
-                console.error(
-                    "Failed to load WBS tree:",
-                    err,
-                );
+            };
 
-                setError(
-                    "WBS 정보를 불러오지 못했습니다.",
-                );
+            void loadWbs();
+        }, 300);
 
-                setWbsTree([]);
-                setSelectedWbs(null);
-            } finally {
-                setLoading(false);
-            }
+
+        /**
+         * 검색어 입력 시 너무 많은 API 요청이
+         * 발생하지 않도록 debounce 처리한다.
+         */
+        return () => {
+            window.clearTimeout(timer);
         };
-
-        void loadWbsTree();
-    }, []);
+    }, [keyword, status]);
 
 
     /**
      * WBS 생성
      *
-     * 현재는 화면 동작만 유지한다.
-     * 다음 단계에서 POST API와 연동한다.
+     * 아직 Mock 단계
      */
     const handleCreate = () => {
         window.alert(
@@ -113,6 +197,8 @@ function WbsPage() {
 
     /**
      * WBS 수정
+     *
+     * 아직 Mock 단계
      */
     const handleEdit = () => {
         if (!selectedWbs) {
@@ -127,6 +213,8 @@ function WbsPage() {
 
     /**
      * WBS 상태 변경
+     *
+     * 아직 Mock 단계
      */
     const handleChangeStatus = () => {
         if (!selectedWbs) {
@@ -141,6 +229,8 @@ function WbsPage() {
 
     /**
      * WBS 삭제
+     *
+     * 아직 Mock 단계
      */
     const handleDelete = () => {
         if (!selectedWbs) {
@@ -244,7 +334,7 @@ function WbsPage() {
                             color: "#666666",
                         }}
                     >
-                        등록된 WBS가 없습니다.
+                        검색 조건에 해당하는 WBS가 없습니다.
                     </div>
                 )}
 
