@@ -4,6 +4,7 @@ import WbsToolbar from "@/features/wbs/components/WbsToolbar";
 import WbsTree from "@/features/wbs/components/WbsTree";
 import WbsDetail from "@/features/wbs/components/WbsDetail";
 import WbsForm from "@/features/wbs/components/WbsForm";
+import WbsStatusForm from "@/features/wbs/components/WbsStatusForm";
 
 import {
     createWbs,
@@ -39,6 +40,24 @@ type WbsFormMode =
 
 
 /**
+ * WBS Page Form Mode
+ *
+ * create:
+ * 신규 WBS 생성
+ *
+ * edit:
+ * 기존 WBS 수정
+ *
+ * status:
+ * WBS 상태 변경
+ */
+type WbsPageFormMode =
+    | "create"
+    | "edit"
+    | "status";
+
+
+/**
  * 검색 결과로 반환된 Flat WBS를
  * 기존 WbsTree에서 사용할 수 있는 형태로 변환한다.
  *
@@ -48,6 +67,7 @@ type WbsFormMode =
 const convertSearchResultsToTree = (
     wbsList: WbsResponse[],
 ): WbsTreeResponse[] => {
+
     return wbsList.map((wbs) => ({
         ...wbs,
         children: [],
@@ -203,10 +223,26 @@ function WbsPage() {
 
 
     /**
-     * WBS Form Mode
+     * WBS Create / Edit Form Mode
      */
     const [formMode, setFormMode] =
         useState<WbsFormMode>("create");
+
+
+    /**
+     * 현재 Page에서 표시할 Form 종류
+     *
+     * create:
+     * WbsForm - 생성
+     *
+     * edit:
+     * WbsForm - 수정
+     *
+     * status:
+     * WbsStatusForm - 상태 변경
+     */
+    const [pageFormMode, setPageFormMode] =
+        useState<WbsPageFormMode>("create");
 
 
     /**
@@ -251,7 +287,7 @@ function WbsPage() {
                         /**
                          * 검색 조건이 없는 경우
                          *
-                         * 전체 Tree 조회
+                         * 전체 WBS Tree 조회
                          */
                         if (
                             keyword.trim() === "" &&
@@ -279,6 +315,8 @@ function WbsPage() {
 
                         /**
                          * 검색 조건이 있는 경우
+                         *
+                         * GET /api/wbs
                          */
                         const response =
                             await searchWbs({
@@ -301,7 +339,9 @@ function WbsPage() {
 
                         /**
                          * Flat Search Result
+                         *
                          * →
+                         *
                          * Tree Node
                          */
                         const tree =
@@ -369,6 +409,8 @@ function WbsPage() {
     const handleCreate = () => {
 
         setFormMode("create");
+
+        setPageFormMode("create");
 
 
         /**
@@ -539,6 +581,8 @@ function WbsPage() {
          */
         setFormMode("edit");
 
+        setPageFormMode("edit");
+
 
         /**
          * Form 표시
@@ -652,20 +696,12 @@ function WbsPage() {
 
 
     /**
-     * WBS Form 취소
-     */
-    const handleFormCancel = () => {
-
-        setShowForm(false);
-
-        setFormParentWbs(null);
-    };
-
-
-    /**
-     * WBS 상태 변경
+     * WBS 상태 변경 버튼
      *
-     * 아직 Backend API 연동 전
+     * WbsDetail의 Change Status 버튼에서 호출된다.
+     *
+     * 별도의 Status API를 사용하지 않고
+     * 기존 WBS Update API를 사용한다.
      */
     const handleChangeStatus = () => {
 
@@ -674,9 +710,165 @@ function WbsPage() {
         }
 
 
-        window.alert(
-            `${selectedWbs.wbsCode} 상태 변경 기능은 다음 단계에서 Backend API와 연동합니다.`,
-        );
+        /**
+         * Status Form Mode
+         */
+        setPageFormMode("status");
+
+
+        /**
+         * 상태 변경 Form 표시
+         */
+        setShowForm(true);
+    };
+
+
+    /**
+     * WBS 상태 변경 Submit
+     *
+     * PUT /api/wbs/{id}
+     *
+     * 기존 WBS의 모든 값을 유지하고
+     * status만 변경한다.
+     */
+    const handleStatusSubmit = async (
+        id: number,
+        newStatus: WbsStatus,
+    ): Promise<void> => {
+
+        if (!selectedWbs) {
+            return;
+        }
+
+
+        try {
+
+            setLoading(true);
+            setError(null);
+
+
+            /**
+             * 기존 WBS 데이터를 유지하면서
+             * status만 변경한다.
+             *
+             * Backend Update API가
+             * 전체 WBS 데이터를 요구하기 때문에
+             * 기존 값을 그대로 전달한다.
+             */
+            const request: WbsUpdateRequest = {
+
+                parentId:
+                    selectedWbs.parentId,
+
+                wbsCode:
+                    selectedWbs.wbsCode,
+
+                wbsName:
+                    selectedWbs.wbsName,
+
+                description:
+                    selectedWbs.description ??
+                    null,
+
+                status:
+                    newStatus,
+
+                sortOrder:
+                    selectedWbs.sortOrder,
+            };
+
+
+            /**
+             * 기존 Update API 호출
+             */
+            const updatedWbs =
+                await updateWbs(
+                    id,
+                    request,
+                );
+
+
+            console.log(
+                "Changed WBS status:",
+                updatedWbs,
+            );
+
+
+            /**
+             * Status Form 닫기
+             */
+            setShowForm(false);
+
+
+            /**
+             * 최신 Tree 조회
+             */
+            const data =
+                await getWbsTree(
+                    PROJECT_ID,
+                );
+
+
+            setWbsTree(data);
+
+
+            /**
+             * 상태가 변경된 WBS를
+             * 다시 선택한다.
+             */
+            const updatedNode =
+                findWbsById(
+                    data,
+                    updatedWbs.id,
+                );
+
+
+            if (updatedNode) {
+
+                setSelectedWbs(
+                    updatedNode,
+                );
+
+            } else {
+
+                setSelectedWbs(null);
+            }
+
+        } catch (err) {
+
+            console.error(
+                "Failed to change WBS status:",
+                err,
+            );
+
+
+            setError(
+                "WBS 상태 변경에 실패했습니다.",
+            );
+
+
+            /**
+             * WbsStatusForm에서
+             * 자체 Error 처리 가능하도록
+             * 다시 throw
+             */
+            throw err;
+
+        } finally {
+
+            setLoading(false);
+        }
+    };
+
+
+    /**
+     * WBS Form 취소
+     */
+    const handleFormCancel = () => {
+
+        setShowForm(false);
+
+        setFormParentWbs(null);
     };
 
 
@@ -734,49 +926,84 @@ function WbsPage() {
             </div>
 
 
-            {/* WBS Form */}
-            {showForm && (
-                <div
-                    style={{
-                        marginBottom:
-                            "16px",
-                    }}
-                >
+            {/* WBS Create / Edit Form */}
+            {showForm &&
+                (
+                    pageFormMode === "create" ||
+                    pageFormMode === "edit"
+                ) && (
 
-                    <WbsForm
-                        mode={
-                            formMode
-                        }
+                    <div
+                        style={{
+                            marginBottom:
+                                "16px",
+                        }}
+                    >
 
-                        projectId={
-                            PROJECT_ID
-                        }
+                        <WbsForm
+                            mode={
+                                formMode
+                            }
 
-                        wbs={
-                            formMode === "edit"
-                                ? selectedWbs
-                                : null
-                        }
+                            projectId={
+                                PROJECT_ID
+                            }
 
-                        parentWbs={
-                            formParentWbs
-                        }
+                            wbs={
+                                formMode === "edit"
+                                    ? selectedWbs
+                                    : null
+                            }
 
-                        onCreate={
-                            handleCreateSubmit
-                        }
+                            parentWbs={
+                                formParentWbs
+                            }
 
-                        onUpdate={
-                            handleUpdateSubmit
-                        }
+                            onCreate={
+                                handleCreateSubmit
+                            }
 
-                        onCancel={
-                            handleFormCancel
-                        }
-                    />
+                            onUpdate={
+                                handleUpdateSubmit
+                            }
 
-                </div>
-            )}
+                            onCancel={
+                                handleFormCancel
+                            }
+                        />
+
+                    </div>
+                )}
+
+
+            {/* WBS Status Form */}
+            {showForm &&
+                pageFormMode === "status" &&
+                selectedWbs && (
+
+                    <div
+                        style={{
+                            marginBottom:
+                                "16px",
+                        }}
+                    >
+
+                        <WbsStatusForm
+                            wbs={
+                                selectedWbs
+                            }
+
+                            onSubmit={
+                                handleStatusSubmit
+                            }
+
+                            onCancel={
+                                handleFormCancel
+                            }
+                        />
+
+                    </div>
+                )}
 
 
             {/* Toolbar */}

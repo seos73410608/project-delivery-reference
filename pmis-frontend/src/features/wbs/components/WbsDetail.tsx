@@ -16,6 +16,9 @@ interface WbsDetailProps {
 
     /**
      * WBS 수정
+     *
+     * 실제 수정 처리는
+     * 부모 컴포넌트(WbsPage)에서 수행한다.
      */
     onEdit?: (
         wbs: WbsTreeResponse,
@@ -24,7 +27,11 @@ interface WbsDetailProps {
     /**
      * WBS 상태 변경
      *
-     * 현재는 다음 단계에서 구현한다.
+     * 실제 상태 변경 처리는
+     * 부모 컴포넌트(WbsPage)에서 수행한다.
+     *
+     * 현재는 WbsStatusForm을 표시하도록
+     * WbsPage의 handleChangeStatus()가 처리한다.
      */
     onChangeStatus?: (
         wbs: WbsTreeResponse,
@@ -33,7 +40,10 @@ interface WbsDetailProps {
     /**
      * WBS 삭제
      *
-     * 현재는 다음 단계에서 구현한다.
+     * 실제 삭제 처리는
+     * 부모 컴포넌트(WbsPage)에서 수행한다.
+     *
+     * 현재는 Backend API 연동 전이다.
      */
     onDelete?: (
         wbs: WbsTreeResponse,
@@ -52,6 +62,7 @@ function WbsDetail({
      * WBS가 선택되지 않은 경우
      */
     if (!wbs) {
+
         return (
             <section
                 style={{
@@ -274,8 +285,7 @@ function WbsDetail({
                 <DetailRow
                     label="Parent ID"
                     value={
-                        wbs.parentId ===
-                        null
+                        wbs.parentId === null
                             ? "-"
                             : String(
                                   wbs.parentId,
