@@ -1,4 +1,5 @@
 # CHANGELOG
+
 > PMIS (Project Management Information System) 변경 이력 관리 문서
 >
 > 프로젝트 진행 과정에서 발생한 주요 변경 사항과 릴리즈 이력을 기록한다.
@@ -10,6 +11,7 @@
 본 문서는 PMIS 프로젝트의 주요 변경 사항을 관리한다.
 
 기록 대상:
+
 * Feature
 * Improvement
 * Bug Fix
@@ -511,7 +513,9 @@ Build Result:
 
 ```text
 vite v8.2.1 building client environment for production...
+
 ✓ 36 modules transformed.
+
 ✓ built in 1.73s
 ```
 
@@ -535,6 +539,107 @@ vite v8.2.1 building client environment for production...
 
 ---
 
+## v0.6.0 (2026-08-21)
+
+### WBS & Frontend API Integration
+
+#### Added
+
+WBS API:
+
+* WBS Tree 조회 API 연동
+* WBS 검색 API 연동
+* WBS 단건 조회 API 연동
+* WBS 생성 API 연동
+* WBS 수정 API 연동
+* WBS 삭제 API 연동
+
+Frontend API Client:
+
+* `apiClient`
+* `getWbsTree`
+* `searchWbs`
+* `getWbs`
+* `createWbs`
+* `updateWbs`
+* `deleteWbs`
+
+WBS Components:
+
+* `WbsTree`
+* `WbsTreeNode`
+* `WbsDetail`
+* `WbsForm`
+* `WbsStatusForm`
+
+WBS Page:
+
+* WBS Tree 화면
+* WBS 검색
+* WBS 생성
+* WBS 수정
+* WBS 상태 변경
+* WBS 삭제
+
+#### Changed
+
+* 기존 WBS UI를 실제 Backend API 기반 화면으로 전환
+* WBS Tree 조회와 검색 결과를 Frontend Tree 구조로 연결
+* WBS 생성 후 최신 Tree 재조회 및 생성 WBS 선택
+* WBS 수정 후 최신 Tree 재조회 및 수정 WBS 선택
+* WBS 상태 변경을 기존 WBS Update API 기반으로 처리
+* 상태 변경 시 기존 WBS 데이터를 유지하고 `status`만 변경
+* WBS 삭제 후 최신 Tree 재조회 및 선택 상태 초기화
+* WBS 수정 시 실제 Parent WBS를 Tree에서 탐색하여 Form에 전달
+* WBS 검색 결과는 Flat Result를 Tree Node 형태로 변환하여 화면에 표시
+
+#### Validation
+
+* WBS 상태 변경 시 현재 상태와 동일한 상태 선택 방지
+* WBS 삭제 시 하위 WBS 존재 여부를 Frontend에서 검증
+* 하위 WBS가 존재하는 경우 삭제를 차단하고 사용자에게 안내
+* 하위 WBS가 없는 경우에만 DELETE API 호출
+
+#### UX
+
+* WBS 생성 / 수정 / 상태 변경 Form 제공
+* API Loading 상태 표시
+* API Error 상태 표시
+* 검색 결과 Empty State 표시
+* 삭제 확인 절차 적용
+* 삭제 성공 후 Tree 재조회
+* 삭제 성공 후 선택된 WBS 해제
+
+#### Build
+
+* Frontend Production Build 검증
+* WBS API Integration 관련 TypeScript Build 오류 수정 및 검증
+* Browser 기반 WBS CRUD / Status / Delete 동작 확인
+
+#### Git
+
+* Feature Branch: `feature/frontend-api-integration`
+* WBS Status Change Commit: `75e9d5b`
+  * `feat(frontend): implement WBS status change`
+* WBS Delete Commit: `d468f70`
+  * `feat(frontend): implement WBS delete`
+* `feature/frontend-api-integration` → `develop` Fast-forward Merge 완료
+* `develop` Push 완료
+
+#### Documentation
+
+* WBS Frontend API Integration 개발 상태 반영
+* WBS CRUD / Status / Delete 개발 이력 반영
+* Frontend Integration 상태 현행화
+
+#### Note
+
+* WBS Delete의 업무 제약은 현재 Frontend에서 우선 검증한다.
+* Backend DELETE API는 실제 삭제 작업을 수행하고, Frontend는 하위 WBS 존재 여부를 확인한 후 API를 호출한다.
+* 포트폴리오 단계에서는 Frontend와 Backend의 책임을 분리하여 업무 규칙 및 API Integration 흐름을 명확하게 보여주는 것을 우선한다.
+
+---
+
 # Planned Releases
 
 ---
@@ -543,13 +648,18 @@ vite v8.2.1 building client environment for production...
 
 ### WBS & Schedule
 
-#### Planned
+#### Completed
 
 WBS:
 
 * WBS CRUD
-* Tree Structure
-* Progress Calculation
+* WBS Tree Structure
+* WBS Search
+* WBS Status Change
+* WBS Delete
+* WBS Frontend API Integration
+
+#### Planned
 
 Schedule:
 
@@ -701,6 +811,7 @@ develop
 ├── feature/frontend-layout
 ├── feature/frontend-components
 ├── feature/frontend-dashboard-hmc-reference
+├── feature/frontend-api-integration
 │
 ├── feature/wbs-management
 ├── feature/schedule-management
@@ -748,18 +859,37 @@ Example:
 
 ```text
 feat: implement JWT authentication
+
 feat: implement project CRUD
+
 feat: implement project search
+
 feat: implement project dashboard api
+
 feat: separate project detail api
+
 feat(frontend): implement React router
+
 feat(frontend): add sidebar component
+
 feat(frontend): add common UI components
+
 feat(frontend): add dashboard reference layout
+
 feat(frontend): add dashboard widgets
+
+feat(frontend): implement WBS API integration
+
+feat(frontend): implement WBS status change
+
+feat(frontend): implement WBS delete
+
 fix: resolve JWT validation issue
+
 docs: update roadmap
+
 refactor: improve exception handling
+
 build: upgrade Spring Boot
 ```
 
@@ -775,18 +905,23 @@ build: upgrade Spring Boot
 ### Module Name
 
 #### Added
+
 -
 
 #### Changed
+
 -
 
 #### Fixed
+
 -
 
 #### Removed
+
 -
 
 #### Documentation
+
 -
 ```
 
@@ -829,10 +964,14 @@ build: upgrade Spring Boot
 * Project Detail Service
 * Project Detail Response DTO
 * Project Controller / Dashboard Controller / Detail Controller 책임 분리
+* WBS CRUD
+* WBS Tree Structure
+* WBS Search API
+* WBS Delete API
 
 ### In Progress
 
-* WBS
+* WBS Progress Calculation
 * Schedule
 
 ---
@@ -866,11 +1005,23 @@ build: upgrade Spring Boot
 * RecentActivity Component
 * Dashboard Component Separation
 * Dashboard Production Build Verification
+* WBS Tree UI
+* WBS Search UI
+* WBS Create Form
+* WBS Edit Form
+* WBS Status Form
+* WBS Delete UI
+* WBS API Client
+* WBS API Integration
+* WBS CRUD Integration
+* WBS Status Change Integration
+* WBS Delete Integration
 
 ### Current
 
 * Dashboard UI Reference Implementation
 * Project Module
+* WBS Module
 * Theme
 * API Integration
 * Form Components
@@ -882,7 +1033,6 @@ build: upgrade Spring Boot
 * Project Detail
 * Project Dashboard API Integration
 * Project API Integration
-* WBS UI
 * Schedule UI
 * Calendar UI
 * Gantt UI
@@ -947,6 +1097,38 @@ Backend API Integration
 E2E Verification
 ```
 
+Frontend API Integration 기능은 다음 흐름을 적용한다.
+
+```text
+Backend API 확인
+↓
+Frontend API Client 구현
+↓
+Type 정의
+↓
+Component / Page 구현
+↓
+API Integration
+↓
+Loading / Error / Empty State 처리
+↓
+Browser Verification
+↓
+Production Build
+↓
+Documentation
+↓
+Commit
+↓
+Push
+↓
+Merge to develop
+↓
+Integration Test
+↓
+E2E Verification
+```
+
 ---
 
 # Git Branch Strategy
@@ -997,6 +1179,8 @@ Frontend 문서:
 
 Dashboard Component 변경 시 관련 Frontend Architecture / Component / Development History 문서를 함께 현행화한다.
 
+WBS Frontend API Integration 변경 시 관련 Frontend Architecture / Component / Development History 문서를 함께 현행화한다.
+
 ---
 
 # Maintenance Policy
@@ -1010,6 +1194,7 @@ Dashboard Component 변경 시 관련 Frontend Architecture / Component / Develo
 * Semantic Versioning을 준수한다.
 * Release마다 Git Tag를 생성한다.
 * UI Reference 구현과 실제 API Integration 단계를 구분하여 기록한다.
+* Frontend 업무 제약은 필요한 경우 UI / API Integration 단계에서 명시적으로 검증한다.
 
 ---
 
@@ -1017,12 +1202,13 @@ Dashboard Component 변경 시 관련 Frontend Architecture / Component / Develo
 
 | Item | Value |
 | ----------------- | -------------------------------------------------------- |
-| Last Updated | **2026-08-11** |
-| Current Version | **v0.5.3** |
+| Last Updated | **2026-08-13** |
+| Current Version | **v0.6.0** |
 | Current Branch | **develop** |
 | Current Sprint | **Sprint 3 - Project Management & Frontend Integration** |
-| Development Stage | **Dashboard Reference UI Complete / Backend WBS & Schedule In Progress** |
-| Last Completed Feature Branch | **feature/frontend-dashboard-hmc-reference** |
+| Development Stage | **WBS API Integration Complete / Schedule Development In Progress** |
+| Last Completed Feature Branch | **feature/frontend-api-integration** |
+| Last Completed Commit | **d468f70 - feat(frontend): implement WBS delete** |
 | Current Integration Branch | **develop** |
 | Frontend Build Status | **Production Build Success** |
 | Maintainer | **Seo Seokhyeon** |
@@ -1041,16 +1227,12 @@ Dashboard Component 변경 시 관련 Frontend Architecture / Component / Develo
 * Project Dashboard UI
 * Project API Integration
 * Project Dashboard API Integration
-* Form Components
-* WBS UI
 * Schedule UI
 * Calendar UI
 * Gantt UI
 
 ### Backend
 
-* WBS CRUD
-* WBS Tree Structure
 * WBS Progress Calculation
 * Schedule CRUD
 * Calendar API
@@ -1062,7 +1244,7 @@ Dashboard Component 변경 시 관련 Frontend Architecture / Component / Develo
 * Project API Integration
 * Project Dashboard API Integration
 * Project Detail API Integration
-* WBS API Integration
+* WBS Progress Integration
 * Schedule API Integration
 * Loading / Empty / Error State
 * API Error Handling
@@ -1085,7 +1267,7 @@ Dashboard Component 변경 시 관련 Frontend Architecture / Component / Develo
 | v0.5.1 | Frontend Layout & Common UI Components |
 | v0.5.2 | Project Detail API & Controller Separation |
 | v0.5.3 | Frontend Dashboard HMC Reference |
-| v0.6.x | WBS & Schedule |
+| v0.6.0 | WBS & Frontend API Integration |
 | v0.7.x | Issue / Risk / Change |
 | v0.8.x | CMDB |
 | v0.9.x | Dashboard & Reporting |
@@ -1097,30 +1279,41 @@ Dashboard Component 변경 시 관련 Frontend Architecture / Component / Develo
 
 ```text
 Backend
- ├─ Common Infrastructure       ✓
- ├─ Security / JWT              ✓
- ├─ Project CRUD                ✓
- ├─ Project Search              ✓
- ├─ Project Dashboard API       ✓
- ├─ Project Detail API          ✓
- ├─ WBS                         🚧
- └─ Schedule                    🚧
+
+ ├─ Common Infrastructure        ✓
+ ├─ Security / JWT               ✓
+ ├─ Project CRUD                 ✓
+ ├─ Project Search               ✓
+ ├─ Project Dashboard API        ✓
+ ├─ Project Detail API           ✓
+ ├─ WBS CRUD                     ✓
+ ├─ WBS Tree Structure           ✓
+ ├─ WBS Search API               ✓
+ ├─ WBS Progress Calculation     →
+ └─ Schedule                     🚧
 
 Frontend
- ├─ React / Vite / TypeScript   ✓
- ├─ Router / Layout             ✓
- ├─ Common UI Components        ✓
- ├─ Dashboard Reference UI      ✓
- ├─ Dashboard Components        ✓
- ├─ Project UI                  🚧
- ├─ WBS UI                      🚧
- └─ Schedule UI                 🚧
+
+ ├─ React / Vite / TypeScript    ✓
+ ├─ Router / Layout              ✓
+ ├─ Common UI Components         ✓
+ ├─ Dashboard Reference UI       ✓
+ ├─ Dashboard Components         ✓
+ ├─ Project UI                   🚧
+ ├─ WBS UI                       ✓
+ ├─ WBS API Integration          ✓
+ └─ Schedule UI                  🚧
 
 Integration
- ├─ Project API Integration     → Next
- ├─ Dashboard API Integration   → Next
- ├─ WBS API Integration         → Planned
- └─ Schedule API Integration    → Planned
+
+ ├─ Project API Integration      →
+ ├─ Dashboard API Integration    →
+ ├─ Project Detail Integration   →
+ ├─ WBS API Integration          ✓
+ ├─ WBS CRUD Integration         ✓
+ ├─ WBS Status Integration       ✓
+ ├─ WBS Delete Integration       ✓
+ └─ Schedule API Integration     →
 ```
 
 ---
