@@ -8,6 +8,7 @@ import WbsStatusForm from "@/features/wbs/components/WbsStatusForm";
 
 import {
     createWbs,
+    deleteWbs,
     getWbsTree,
     searchWbs,
     updateWbs,
@@ -862,6 +863,132 @@ function WbsPage() {
 
 
     /**
+     * WBS 삭제
+     *
+     * Delete 정책:
+     *
+     * 1. 선택된 WBS가 없으면 종료
+     *
+     * 2. 하위 WBS가 존재하면
+     *    Front에서 삭제를 차단한다.
+     *
+     * 3. 하위 WBS가 없으면
+     *    사용자 확인 후 DELETE API를 호출한다.
+     *
+     * 4. 삭제 성공 후
+     *    WBS Tree를 다시 조회한다.
+     *
+     * 5. 삭제된 WBS 선택을 해제한다.
+     */
+    const handleDelete = async () => {
+
+        if (!selectedWbs) {
+            return;
+        }
+
+
+        /**
+         * 하위 WBS 존재 여부 확인
+         *
+         * Portfolio 단계에서는
+         * Front에서 삭제 제약사항을
+         * 명확하게 처리한다.
+         */
+        if (
+            selectedWbs.children.length > 0
+        ) {
+
+            window.alert(
+                "하위 WBS가 존재하는 WBS는 삭제할 수 없습니다.\n하위 WBS를 먼저 삭제한 후 다시 시도해주세요.",
+            );
+
+            return;
+        }
+
+
+        /**
+         * 삭제 대상 확인
+         */
+        const confirmed =
+            window.confirm(
+                `${selectedWbs.wbsCode} ${selectedWbs.wbsName}을(를) 삭제하시겠습니까?\n\n삭제된 WBS는 복구할 수 없습니다.`,
+            );
+
+
+        if (!confirmed) {
+            return;
+        }
+
+
+        try {
+
+            setLoading(true);
+            setError(null);
+
+
+            /**
+             * DELETE /api/wbs/{id}
+             */
+            await deleteWbs(
+                selectedWbs.id,
+            );
+
+
+            console.log(
+                "Deleted WBS:",
+                selectedWbs,
+            );
+
+
+            /**
+             * 최신 Tree 조회
+             */
+            const data =
+                await getWbsTree(
+                    PROJECT_ID,
+                );
+
+
+            setWbsTree(data);
+
+
+            /**
+             * 삭제된 WBS 선택 해제
+             */
+            setSelectedWbs(null);
+
+
+            /**
+             * Form Parent 초기화
+             */
+            setFormParentWbs(null);
+
+
+            /**
+             * Form 닫기
+             */
+            setShowForm(false);
+
+        } catch (err) {
+
+            console.error(
+                "Failed to delete WBS:",
+                err,
+            );
+
+
+            setError(
+                "WBS 삭제에 실패했습니다.",
+            );
+
+        } finally {
+
+            setLoading(false);
+        }
+    };
+
+
+    /**
      * WBS Form 취소
      */
     const handleFormCancel = () => {
@@ -869,24 +996,6 @@ function WbsPage() {
         setShowForm(false);
 
         setFormParentWbs(null);
-    };
-
-
-    /**
-     * WBS 삭제
-     *
-     * 아직 Backend API 연동 전
-     */
-    const handleDelete = () => {
-
-        if (!selectedWbs) {
-            return;
-        }
-
-
-        window.alert(
-            `${selectedWbs.wbsCode} ${selectedWbs.wbsName} 삭제 기능은 다음 단계에서 Backend API와 연동합니다.`,
-        );
     };
 
 
