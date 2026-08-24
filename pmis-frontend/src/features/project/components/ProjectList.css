@@ -1,0 +1,436 @@
+.project-list {
+  width: 100%;
+  margin-top: 20px;
+
+  background: #ffffff;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+
+  overflow: hidden;
+}
+
+/* =========================================================
+   Header
+   ========================================================= */
+
+.project-list__header {
+  min-height: 72px;
+  padding: 0 20px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  border-bottom: 1px solid #e5e7eb;
+
+  background: #ffffff;
+}
+
+.project-list__header h2 {
+  margin: 0;
+
+  font-size: 15px;
+  font-weight: 700;
+
+  color: #111827;
+}
+
+.project-list__header span {
+  display: block;
+
+  margin-top: 4px;
+
+  font-size: 12px;
+
+  color: #6b7280;
+}
+
+/* =========================================================
+   Count
+   ========================================================= */
+
+.project-list__count {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.project-list__count span {
+  margin: 0;
+
+  font-size: 11px;
+
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.project-list__count strong {
+  display: inline-flex;
+
+  min-width: 28px;
+  height: 24px;
+
+  align-items: center;
+  justify-content: center;
+
+  padding: 0 8px;
+
+  border-radius: 4px;
+
+  background: #f3f4f6;
+
+  font-size: 12px;
+  color: #374151;
+}
+
+/* =========================================================
+   Table Wrapper
+   ========================================================= */
+
+.project-list__table-wrapper {
+  width: 100%;
+
+  overflow-x: auto;
+}
+
+/* =========================================================
+   Table
+   ========================================================= */
+
+.project-list__table {
+  width: 100%;
+
+  min-width: 1050px;
+
+  border-collapse: collapse;
+
+  table-layout: fixed;
+}
+
+.project-list__table thead {
+  background: #f8fafc;
+}
+
+.project-list__table th {
+  height: 44px;
+
+  padding: 0 16px;
+
+  border-bottom: 1px solid #e5e7eb;
+
+  text-align: left;
+
+  font-size: 11px;
+  font-weight: 700;
+
+  color: #6b7280;
+
+  white-space: nowrap;
+}
+
+.project-list__table td {
+  height: 64px;
+
+  padding: 10px 16px;
+
+  border-bottom: 1px solid #f1f5f9;
+
+  vertical-align: middle;
+
+  font-size: 13px;
+
+  color: #374151;
+}
+
+.project-list__table tbody tr {
+  transition:
+    background-color 0.15s ease;
+}
+
+.project-list__table tbody tr:hover {
+  background: #f8fafc;
+}
+
+.project-list__table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* =========================================================
+   Project Code
+   ========================================================= */
+
+.project-list__code {
+  display: inline-flex;
+
+  padding: 5px 8px;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+
+  background: #f8fafc;
+
+  font-family:
+    'SFMono-Regular',
+    Consolas,
+    'Liberation Mono',
+    monospace;
+
+  font-size: 11px;
+  font-weight: 600;
+
+  color: #475569;
+}
+
+/* =========================================================
+   Project Name
+   ========================================================= */
+
+.project-list__name {
+  max-width: 260px;
+
+  padding: 0;
+
+  border: none;
+
+  background: transparent;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+
+  cursor: pointer;
+
+  font-family: inherit;
+
+  font-size: 13px;
+  font-weight: 700;
+
+  color: #2563eb;
+
+  text-align: left;
+}
+
+.project-list__name:hover {
+  text-decoration: underline;
+}
+
+/* =========================================================
+   Customer / Manager
+   ========================================================= */
+
+.project-list__customer {
+  font-weight: 500;
+
+  color: #374151;
+}
+
+.project-list__manager {
+  color: #4b5563;
+}
+
+/* =========================================================
+   Date
+   ========================================================= */
+
+.project-list__date {
+  font-family:
+    'SFMono-Regular',
+    Consolas,
+    'Liberation Mono',
+    monospace;
+
+  font-size: 11px;
+
+  color: #64748b;
+
+  white-space: nowrap;
+}
+
+/* =========================================================
+   Badge
+   ========================================================= */
+
+.project-list__badge {
+  display: inline-flex;
+
+  align-items: center;
+  gap: 6px;
+
+  min-height: 24px;
+
+  padding: 3px 8px;
+
+  border-radius: 4px;
+
+  font-size: 11px;
+  font-weight: 700;
+
+  white-space: nowrap;
+}
+
+.project-list__badge-dot {
+  width: 6px;
+  height: 6px;
+
+  border-radius: 50%;
+
+  background: currentColor;
+}
+
+/* =========================================================
+   Status
+   ========================================================= */
+
+.project-list__badge--planning {
+  color: #64748b;
+
+  background: #f1f5f9;
+}
+
+.project-list__badge--in_progress {
+  color: #2563eb;
+
+  background: #eff6ff;
+}
+
+.project-list__badge--on_hold {
+  color: #d97706;
+
+  background: #fffbeb;
+}
+
+.project-list__badge--completed {
+  color: #16a34a;
+
+  background: #f0fdf4;
+}
+
+.project-list__badge--cancelled {
+  color: #dc2626;
+
+  background: #fef2f2;
+}
+
+/* =========================================================
+   Priority
+   ========================================================= */
+
+.project-list__badge--priority-low {
+  color: #64748b;
+
+  background: #f1f5f9;
+}
+
+.project-list__badge--priority-medium {
+  color: #2563eb;
+
+  background: #eff6ff;
+}
+
+.project-list__badge--priority-high {
+  color: #d97706;
+
+  background: #fffbeb;
+}
+
+.project-list__badge--priority-critical {
+  color: #dc2626;
+
+  background: #fef2f2;
+}
+
+/* =========================================================
+   Loading
+   ========================================================= */
+
+.project-list__loading {
+  min-height: 220px;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 12px;
+
+  color: #6b7280;
+
+  font-size: 12px;
+}
+
+.project-list__spinner {
+  width: 24px;
+  height: 24px;
+
+  border: 2px solid #e5e7eb;
+
+  border-top-color: #64748b;
+
+  border-radius: 50%;
+
+  animation:
+    project-list-spin
+    0.8s linear infinite;
+}
+
+@keyframes project-list-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* =========================================================
+   Empty
+   ========================================================= */
+
+.project-list__empty {
+  min-height: 220px;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 6px;
+}
+
+.project-list__empty-icon {
+  width: 42px;
+  height: 42px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  margin-bottom: 8px;
+
+  border-radius: 6px;
+
+  background: #f1f5f9;
+
+  font-size: 10px;
+  font-weight: 700;
+
+  color: #64748b;
+}
+
+.project-list__empty strong {
+  font-size: 13px;
+
+  color: #374151;
+}
+
+.project-list__empty span {
+  font-size: 11px;
+
+  color: #9ca3af;
+}

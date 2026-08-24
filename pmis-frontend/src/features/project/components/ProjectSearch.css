@@ -1,0 +1,178 @@
+.project-search {
+  padding: 20px;
+}
+
+/* ========================================
+   Search Row
+   ======================================== */
+
+.project-search__row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+
+  margin-bottom: 16px;
+}
+
+.project-search__row:last-child {
+  margin-bottom: 0;
+}
+
+/* ========================================
+   Field
+   ======================================== */
+
+.project-search__field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.project-search__field label {
+  color: #374151;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.project-search__field input,
+.project-search__field select {
+  width: 100%;
+  height: 38px;
+
+  box-sizing: border-box;
+
+  padding: 0 11px;
+
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+
+  background: #ffffff;
+
+  color: #111827;
+
+  font-family: inherit;
+  font-size: 13px;
+
+  outline: none;
+
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.project-search__field input::placeholder {
+  color: #9ca3af;
+}
+
+.project-search__field input:hover,
+.project-search__field select:hover {
+  border-color: #9ca3af;
+}
+
+.project-search__field input:focus,
+.project-search__field select:focus {
+  border-color: #6b7280;
+
+  box-shadow:
+    0 0 0 2px rgba(107, 114, 128, 0.1);
+}
+
+/* ========================================
+   Actions
+   ======================================== */
+
+.project-search__actions {
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+
+  gap: 8px;
+}
+
+.project-search__actions button {
+  height: 38px;
+
+  padding: 0 18px;
+
+  border-radius: 6px;
+
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+/* Search Button */
+
+.project-search__actions button:first-child {
+  border: 1px solid #374151;
+
+  background: #374151;
+
+  color: #ffffff;
+}
+
+.project-search__actions button:first-child:hover {
+  border-color: #111827;
+
+  background: #111827;
+}
+
+/* Reset Button */
+
+.project-search__actions button:last-child {
+  border: 1px solid #d1d5db;
+
+  background: #ffffff;
+
+  color: #4b5563;
+}
+
+.project-search__actions button:last-child:hover {
+  border-color: #9ca3af;
+
+  background: #f9fafb;
+}
+
+/* ========================================
+   Responsive
+   ======================================== */
+
+@media (max-width: 1000px) {
+  .project-search__row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .project-search__actions {
+    grid-column: span 2;
+
+    justify-content: flex-end;
+  }
+}
+
+@media (max-width: 640px) {
+  .project-search {
+    padding: 16px;
+  }
+
+  .project-search__row {
+    grid-template-columns: 1fr;
+
+    gap: 14px;
+  }
+
+  .project-search__actions {
+    grid-column: auto;
+
+    justify-content: stretch;
+  }
+
+  .project-search__actions button {
+    flex: 1;
+  }
+}
