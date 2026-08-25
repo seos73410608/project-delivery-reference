@@ -32,13 +32,13 @@ export const getProjects = async (
 /**
  * 프로젝트 상세 조회
  *
- * GET /api/projects/{id}
+ * GET /api/projects/{id}/detail
  */
 export const getProject = async (
   projectId: number,
 ): Promise<Project> => {
   const response = await client.get<ApiResponse<Project>>(
-    `${PROJECT_API}/${projectId}`,
+    `${PROJECT_API}/${projectId}/detail`,
   );
 
   return response.data.data;

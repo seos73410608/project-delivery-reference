@@ -1,3 +1,5 @@
+import { useNavigate } from 'react-router-dom';
+
 import type { Project } from '../types/project';
 
 import './ProjectList.css';
@@ -11,6 +13,8 @@ function ProjectList({
   projects,
   loading,
 }: ProjectListProps) {
+  const navigate = useNavigate();
+
   if (loading) {
     return (
       <section className="project-list">
@@ -91,9 +95,8 @@ function ProjectList({
                     type="button"
                     className="project-list__name"
                     onClick={() =>
-                      console.log(
-                        '프로젝트 상세:',
-                        project.id,
+                      navigate(
+                        `/project/${project.id}`,
                       )
                     }
                   >

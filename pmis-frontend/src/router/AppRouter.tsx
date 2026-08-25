@@ -5,9 +5,10 @@ import DashboardPage from "../pages/DashboardPage";
 
 import EvidencePage from "../features/evidence/pages/EvidencePage";
 import WbsPage from "../features/wbs/pages/WbsPage";
-import ProjectPage from "../features/project/pages/ProjectPage";
-
 import LoginPage from "../features/auth/pages/LoginPage";
+
+import ProjectPage from "../features/project/pages/ProjectPage";
+import ProjectDetailPage from "../features/project/pages/ProjectDetailPage";
 
 
 function AppRouter() {
@@ -30,10 +31,10 @@ function AppRouter() {
                         element={<DashboardPage />}
                     />
 
-                    {/* Project */}
+                    {/* Evidence */}
                     <Route
-                        path="/project"
-                        element={<ProjectPage />}
+                        path="/evidence"
+                        element={<EvidencePage />}
                     />
 
                     {/* WBS */}
@@ -42,10 +43,16 @@ function AppRouter() {
                         element={<WbsPage />}
                     />
 
-                    {/* Evidence */}
+                    {/* Project */}
                     <Route
-                        path="/evidence"
-                        element={<EvidencePage />}
+                        path="/project"
+                        element={<ProjectPage />}
+                    />
+
+                    {/* Project Detail */}
+                    <Route
+                        path="/project/:projectId"
+                        element={<ProjectDetailPage />}
                     />
 
                 </Route>
