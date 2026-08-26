@@ -5,6 +5,7 @@
   box-sizing: border-box;
 }
 
+
 /* ========================================
    Page Header
    ======================================== */
@@ -14,12 +15,15 @@
   align-items: flex-end;
   justify-content: space-between;
   gap: 24px;
+
   margin-bottom: 24px;
 }
 
 .project-page__eyebrow {
   margin-bottom: 6px;
+
   color: #6b7280;
+
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.12em;
@@ -27,7 +31,9 @@
 
 .project-page__title {
   margin: 0;
+
   color: #111827;
+
   font-size: 26px;
   font-weight: 700;
   line-height: 1.3;
@@ -35,10 +41,24 @@
 
 .project-page__description {
   margin: 7px 0 0;
+
   color: #6b7280;
+
   font-size: 13px;
   line-height: 1.5;
 }
+
+
+/* ========================================
+   Header Actions
+   ======================================== */
+
+.project-page__header-actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
 
 /* ========================================
    Summary
@@ -61,19 +81,64 @@
 
 .project-page__summary-label {
   color: #6b7280;
+
   font-size: 12px;
 }
 
 .project-page__summary-value {
   color: #111827;
+
   font-size: 22px;
   font-weight: 700;
 }
 
 .project-page__summary-unit {
   color: #6b7280;
+
   font-size: 12px;
 }
+
+
+/* ========================================
+   Create Button
+   ======================================== */
+
+.project-page__create-button {
+  padding: 10px 16px;
+
+  border: none;
+  border-radius: 6px;
+
+  background-color: #1976d2;
+
+  color: #ffffff;
+
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    background-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.project-page__create-button:hover {
+  background-color: #1565c0;
+}
+
+.project-page__create-button:active {
+  background-color: #0d47a1;
+}
+
+.project-page__create-button:focus-visible {
+  outline: none;
+
+  box-shadow:
+    0 0 0 3px rgba(25, 118, 210, 0.2);
+}
+
 
 /* ========================================
    Search
@@ -90,6 +155,7 @@
   box-shadow:
     0 1px 2px rgba(15, 23, 42, 0.03);
 }
+
 
 /* ========================================
    Error
@@ -109,6 +175,7 @@
   background: #fef2f2;
 
   color: #b91c1c;
+
   font-size: 13px;
 }
 
@@ -123,11 +190,13 @@
   border-radius: 50%;
 
   background: #dc2626;
+
   color: #ffffff;
 
   font-size: 12px;
   font-weight: 700;
 }
+
 
 /* ========================================
    Content Card
@@ -174,13 +243,16 @@
 
 .project-page__content-count {
   color: #6b7280;
+
   font-size: 12px;
 }
 
 .project-page__content-count strong {
   color: #111827;
+
   font-weight: 700;
 }
+
 
 /* ========================================
    Pagination
@@ -208,6 +280,7 @@
 
   color: #374151;
 
+  font-family: inherit;
   font-size: 12px;
   font-weight: 500;
 
@@ -221,23 +294,25 @@
 
 .project-page__pagination-button:hover:not(:disabled) {
   border-color: #9ca3af;
+
   background: #f9fafb;
 }
 
 .project-page__pagination-button:disabled {
   color: #d1d5db;
+
   cursor: not-allowed;
+
   background: #f9fafb;
 }
 
 .project-page__pagination-info {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 5px;
 
   min-width: 60px;
-
-  justify-content: center;
 
   color: #9ca3af;
 
@@ -246,14 +321,17 @@
 
 .project-page__pagination-info strong {
   color: #111827;
+
   font-size: 13px;
 }
+
 
 /* ========================================
    Responsive
    ======================================== */
 
 @media (max-width: 900px) {
+
   .project-page {
     padding: 24px 20px 32px;
   }
@@ -263,8 +341,14 @@
     flex-direction: column;
   }
 
+  .project-page__header-actions {
+    width: 100%;
+
+    justify-content: flex-end;
+  }
+
   .project-page__summary {
-    align-self: flex-end;
+    align-self: auto;
   }
 
   .project-page__content {
@@ -272,7 +356,9 @@
   }
 }
 
+
 @media (max-width: 640px) {
+
   .project-page {
     padding: 20px 16px 28px;
   }
@@ -281,9 +367,21 @@
     font-size: 22px;
   }
 
+  .project-page__header-actions {
+    align-items: stretch;
+    flex-direction: column;
+
+    gap: 10px;
+  }
+
   .project-page__summary {
     align-self: stretch;
+
     justify-content: center;
+  }
+
+  .project-page__create-button {
+    width: 100%;
   }
 
   .project-page__content-header {

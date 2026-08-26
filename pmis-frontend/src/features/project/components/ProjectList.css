@@ -1,21 +1,17 @@
 .project-list {
   width: 100%;
-  margin-top: 20px;
-
+  box-sizing: border-box;
   background: #ffffff;
-
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-
-  overflow: hidden;
 }
+
 
 /* =========================================================
    Header
    ========================================================= */
 
 .project-list__header {
-  min-height: 72px;
+  min-height: 64px;
+
   padding: 0 20px;
 
   display: flex;
@@ -46,6 +42,7 @@
   color: #6b7280;
 }
 
+
 /* =========================================================
    Count
    ========================================================= */
@@ -53,6 +50,7 @@
 .project-list__count {
   display: flex;
   align-items: center;
+
   gap: 8px;
 }
 
@@ -62,6 +60,7 @@
   font-size: 11px;
 
   color: #9ca3af;
+
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -82,8 +81,10 @@
   background: #f3f4f6;
 
   font-size: 12px;
+
   color: #374151;
 }
+
 
 /* =========================================================
    Table Wrapper
@@ -94,6 +95,7 @@
 
   overflow-x: auto;
 }
+
 
 /* =========================================================
    Table
@@ -108,6 +110,11 @@
 
   table-layout: fixed;
 }
+
+
+/* =========================================================
+   Table Header
+   ========================================================= */
 
 .project-list__table thead {
   background: #f8fafc;
@@ -129,6 +136,11 @@
 
   white-space: nowrap;
 }
+
+
+/* =========================================================
+   Table Body
+   ========================================================= */
 
 .project-list__table td {
   height: 64px;
@@ -157,6 +169,7 @@
   border-bottom: none;
 }
 
+
 /* =========================================================
    Project Code
    ========================================================= */
@@ -181,13 +194,18 @@
   font-weight: 600;
 
   color: #475569;
+
+  white-space: nowrap;
 }
+
 
 /* =========================================================
    Project Name
    ========================================================= */
 
 .project-list__name {
+  display: block;
+
   max-width: 260px;
 
   padding: 0;
@@ -197,9 +215,7 @@
   background: transparent;
 
   overflow: hidden;
-
   text-overflow: ellipsis;
-
   white-space: nowrap;
 
   cursor: pointer;
@@ -218,19 +234,37 @@
   text-decoration: underline;
 }
 
+.project-list__name:focus-visible {
+  outline: 2px solid rgba(37, 99, 235, 0.35);
+  outline-offset: 2px;
+
+  border-radius: 2px;
+}
+
+
 /* =========================================================
-   Customer / Manager
+   Customer
    ========================================================= */
 
 .project-list__customer {
   font-weight: 500;
 
   color: #374151;
+
+  white-space: nowrap;
 }
+
+
+/* =========================================================
+   Project Manager
+   ========================================================= */
 
 .project-list__manager {
   color: #4b5563;
+
+  white-space: nowrap;
 }
+
 
 /* =========================================================
    Date
@@ -250,6 +284,7 @@
   white-space: nowrap;
 }
 
+
 /* =========================================================
    Badge
    ========================================================= */
@@ -258,6 +293,7 @@
   display: inline-flex;
 
   align-items: center;
+
   gap: 6px;
 
   min-height: 24px;
@@ -276,10 +312,13 @@
   width: 6px;
   height: 6px;
 
+  flex-shrink: 0;
+
   border-radius: 50%;
 
   background: currentColor;
 }
+
 
 /* =========================================================
    Status
@@ -315,6 +354,7 @@
   background: #fef2f2;
 }
 
+
 /* =========================================================
    Priority
    ========================================================= */
@@ -342,6 +382,7 @@
 
   background: #fef2f2;
 }
+
 
 /* =========================================================
    Loading
@@ -384,6 +425,7 @@
     transform: rotate(360deg);
   }
 }
+
 
 /* =========================================================
    Empty
@@ -433,4 +475,64 @@
   font-size: 11px;
 
   color: #9ca3af;
+}
+
+
+/* =========================================================
+   Responsive
+   ========================================================= */
+
+@media (max-width: 900px) {
+
+  .project-list__table {
+    min-width: 1050px;
+  }
+
+  .project-list__table th,
+  .project-list__table td {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+}
+
+
+@media (max-width: 640px) {
+
+  .project-list__header {
+    min-height: 60px;
+
+    padding: 0 16px;
+  }
+
+  .project-list__header h2 {
+    font-size: 14px;
+  }
+
+  .project-list__header span {
+    font-size: 11px;
+  }
+
+  .project-list__count span {
+    display: none;
+  }
+
+  .project-list__table {
+    min-width: 1050px;
+  }
+
+  .project-list__table th {
+    height: 40px;
+
+    padding: 0 12px;
+
+    font-size: 10px;
+  }
+
+  .project-list__table td {
+    height: 58px;
+
+    padding: 8px 12px;
+
+    font-size: 12px;
+  }
 }

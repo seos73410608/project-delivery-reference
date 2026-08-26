@@ -1,0 +1,337 @@
+/* =========================================================
+   Project Detail Page
+   ========================================================= */
+
+.project-detail-page {
+  width: 100%;
+  min-height: 100%;
+
+  box-sizing: border-box;
+
+  padding: 24px;
+
+  background: #f8fafc;
+}
+
+
+/* =========================================================
+   Header
+   ========================================================= */
+
+.project-detail-page__header {
+  min-height: 72px;
+
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 24px;
+
+  margin-bottom: 20px;
+}
+
+
+.project-detail-page__eyebrow {
+  margin-bottom: 6px;
+
+  font-size: 10px;
+  font-weight: 700;
+
+  letter-spacing: 0.08em;
+
+  color: #64748b;
+}
+
+
+.project-detail-page__header h1 {
+  margin: 0;
+
+  font-size: 22px;
+  font-weight: 700;
+
+  line-height: 1.3;
+
+  color: #111827;
+}
+
+
+.project-detail-page__header p {
+  margin: 6px 0 0;
+
+  font-size: 12px;
+
+  line-height: 1.5;
+
+  color: #6b7280;
+}
+
+
+/* =========================================================
+   Header Actions
+   ========================================================= */
+
+.project-detail-page__header-actions {
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+
+  gap: 8px;
+}
+
+
+/* =========================================================
+   Edit Button
+   ========================================================= */
+
+.project-detail-page__edit-button {
+  flex-shrink: 0;
+
+  min-height: 36px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0 14px;
+
+  border: 1px solid #2563eb;
+  border-radius: 4px;
+
+  background: #2563eb;
+
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+
+  color: #ffffff;
+
+  cursor: pointer;
+
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+
+.project-detail-page__edit-button:hover {
+  border-color: #1d4ed8;
+
+  background: #1d4ed8;
+}
+
+
+.project-detail-page__edit-button:active {
+  border-color: #1e40af;
+
+  background: #1e40af;
+}
+
+
+.project-detail-page__edit-button:focus-visible {
+  outline: 2px solid rgba(37, 99, 235, 0.35);
+  outline-offset: 2px;
+}
+
+
+/* =========================================================
+   Back Button
+   ========================================================= */
+
+.project-detail-page__back-button {
+  flex-shrink: 0;
+
+  min-height: 36px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0 14px;
+
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+
+  background: #ffffff;
+
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+
+  color: #374151;
+
+  cursor: pointer;
+
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+
+.project-detail-page__back-button:hover {
+  border-color: #9ca3af;
+
+  background: #f9fafb;
+
+  color: #111827;
+}
+
+
+.project-detail-page__back-button:active {
+  background: #f3f4f6;
+}
+
+
+.project-detail-page__back-button:focus-visible {
+  outline: 2px solid rgba(37, 99, 235, 0.35);
+  outline-offset: 2px;
+}
+
+
+/* =========================================================
+   Loading
+   ========================================================= */
+
+.project-detail-page__loading {
+  min-height: 320px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 24px;
+
+  box-sizing: border-box;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+
+  background: #ffffff;
+
+  font-size: 12px;
+
+  color: #6b7280;
+}
+
+
+/* =========================================================
+   Error
+   ========================================================= */
+
+.project-detail-page__error {
+  min-height: 100px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 20px;
+
+  box-sizing: border-box;
+
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+
+  background: #fef2f2;
+
+  font-size: 12px;
+  font-weight: 500;
+
+  line-height: 1.5;
+
+  color: #dc2626;
+
+  text-align: center;
+}
+
+
+/* =========================================================
+   Error + Back Button Layout
+   ========================================================= */
+
+.project-detail-page
+  > .project-detail-page__back-button {
+  margin-top: 12px;
+}
+
+
+/* =========================================================
+   Responsive
+   ========================================================= */
+
+@media (max-width: 900px) {
+
+  .project-detail-page {
+    padding: 20px;
+  }
+
+
+  .project-detail-page__header {
+    gap: 16px;
+  }
+
+}
+
+
+@media (max-width: 640px) {
+
+  .project-detail-page {
+    padding: 16px;
+  }
+
+
+  .project-detail-page__header {
+    flex-direction: column;
+
+    gap: 14px;
+
+    margin-bottom: 16px;
+  }
+
+
+  .project-detail-page__header h1 {
+    font-size: 20px;
+  }
+
+
+  .project-detail-page__header p {
+    font-size: 11px;
+  }
+
+
+  /* Header Action 영역 */
+
+  .project-detail-page__header-actions {
+    width: 100%;
+
+    display: flex;
+
+    gap: 8px;
+  }
+
+
+  .project-detail-page__header-actions
+    .project-detail-page__edit-button,
+  .project-detail-page__header-actions
+    .project-detail-page__back-button {
+    flex: 1;
+
+    width: auto;
+  }
+
+
+  .project-detail-page__loading {
+    min-height: 240px;
+  }
+
+
+  .project-detail-page__error {
+    min-height: 90px;
+
+    font-size: 11px;
+  }
+
+}

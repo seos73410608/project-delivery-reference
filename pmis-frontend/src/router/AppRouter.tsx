@@ -1,4 +1,8 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import {
+    BrowserRouter,
+    Routes,
+    Route,
+} from "react-router-dom";
 
 import MainLayout from "../layouts/MainLayout";
 import DashboardPage from "../pages/DashboardPage";
@@ -9,56 +13,113 @@ import LoginPage from "../features/auth/pages/LoginPage";
 
 import ProjectPage from "../features/project/pages/ProjectPage";
 import ProjectDetailPage from "../features/project/pages/ProjectDetailPage";
+import ProjectFormPage from "../features/project/pages/ProjectFormPage";
 
 
 function AppRouter() {
+
     return (
+
         <BrowserRouter>
+
             <Routes>
 
+
                 {/* Login */}
+
                 <Route
                     path="/login"
-                    element={<LoginPage />}
+                    element={
+                        <LoginPage />
+                    }
                 />
 
+
                 {/* Main Layout */}
-                <Route element={<MainLayout />}>
+
+                <Route
+                    element={
+                        <MainLayout />
+                    }
+                >
+
 
                     {/* Dashboard */}
+
                     <Route
                         path="/"
-                        element={<DashboardPage />}
+                        element={
+                            <DashboardPage />
+                        }
                     />
+
 
                     {/* Evidence */}
+
                     <Route
                         path="/evidence"
-                        element={<EvidencePage />}
+                        element={
+                            <EvidencePage />
+                        }
                     />
+
 
                     {/* WBS */}
+
                     <Route
                         path="/wbs"
-                        element={<WbsPage />}
+                        element={
+                            <WbsPage />
+                        }
                     />
 
-                    {/* Project */}
+
+                    {/* Project List */}
+
                     <Route
                         path="/project"
-                        element={<ProjectPage />}
+                        element={
+                            <ProjectPage />
+                        }
                     />
 
+
+                    {/* Project Create */}
+
+                    <Route
+                        path="/project/create"
+                        element={
+                            <ProjectFormPage />
+                        }
+                    />
+
+
                     {/* Project Detail */}
+
                     <Route
                         path="/project/:projectId"
-                        element={<ProjectDetailPage />}
+                        element={
+                            <ProjectDetailPage />
+                        }
                     />
+
+
+                    {/* Project Edit */}
+
+                    <Route
+                        path="/project/:projectId/edit"
+                        element={
+                            <ProjectFormPage />
+                        }
+                    />
+
 
                 </Route>
 
             </Routes>
+
         </BrowserRouter>
+
     );
 }
 
