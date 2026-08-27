@@ -1,14 +1,14 @@
 # PMIS Development Roadmap
 
-> **Version:** **1.5**  
-> **Last Updated:** **2026-08-21**  
+> **Version:** **1.6**
+> **Last Updated:** **2026-08-27**
 > **Project:** **Project Management Information System (PMIS)**
 
 **Architecture:**
 
-- Backend: Spring Boot 4.1.0, Spring Security, JWT, MariaDB
-- Frontend: React, Vite, TypeScript, React Router DOM
-- AI: Spring AI (planned)
+* Backend: Spring Boot 4.1.0, Spring Security, JWT, MariaDB
+* Frontend: React, Vite, TypeScript, React Router DOM
+* AI: Spring AI (planned)
 
 **Development Methodology:** Agile Scrum + Git Flow
 
@@ -20,22 +20,22 @@
 
 구현 대상:
 
-- 사용자/권한 관리
-- 프로젝트 관리
-- WBS 관리
-- 일정 관리
-- 진척 관리
-- 이슈 관리
-- 리스크 관리
-- 변경 관리
-- 구축 관리
-- 검수 관리
-- 증적 관리
-- CMDB
-- Dashboard
-- Report
-- 운영 인수인계
-- Spring AI Assistant
+* 사용자/권한 관리
+* 프로젝트 관리
+* WBS 관리
+* 일정 관리
+* 진척 관리
+* 이슈 관리
+* 리스크 관리
+* 변경 관리
+* 구축 관리
+* 검수 관리
+* 증적 관리
+* CMDB
+* Dashboard
+* Report
+* 운영 인수인계
+* Spring AI Assistant
 
 Backend API와 Frontend UI를 연계하여 실제 프로젝트 관리 업무를 지원할 수 있는 Full Stack PMIS를 구현한다.
 
@@ -95,10 +95,12 @@ Evidence Registration
 Evidence Verification
    ↓
 Evidence Status
+
    ├── PRESENT
    ├── MISSING
    ├── PENDING
    └── NOT_REQUIRED
+
    ↓
 Inspection / Approval
    ↓
@@ -109,17 +111,17 @@ Report / Dashboard
 
 ## Evidence Checklist
 
-| 항목 | 설명 |
-| --- | --- |
-| Evidence Required | 증적 필수 여부 |
-| Evidence Type | 증적 유형 |
-| Evidence | 실제 증적 파일/문서 |
-| Evidence Status | 존재/누락/검토중/불필요 |
-| Verification Status | 검토 여부 |
-| Reviewer | 검토자 |
-| Verified Date | 검토일 |
-| Remark | 비고 |
-| Due Date | 증적 제출 기한 |
+| 항목                  | 설명            |
+| ------------------- | ------------- |
+| Evidence Required   | 증적 필수 여부      |
+| Evidence Type       | 증적 유형         |
+| Evidence            | 실제 증적 파일/문서   |
+| Evidence Status     | 존재/누락/검토중/불필요 |
+| Verification Status | 검토 여부         |
+| Reviewer            | 검토자           |
+| Verified Date       | 검토일           |
+| Remark              | 비고            |
+| Due Date            | 증적 제출 기한      |
 
 ---
 
@@ -127,17 +129,17 @@ Report / Dashboard
 
 ```text
 ┌─────────────────────────────────────────────┐
-│                PMIS Frontend                │
+│              PMIS Frontend                  │
 │ React + TypeScript + Vite                   │
 │ React Router DOM                            │
 │ Layout / Components / Pages / Features      │
 │ Project / WBS / Schedule / Issue / Risk     │
-│ Change / CMDB / Evidence / Report           │
+│ Change / Evidence / CMDB / Report           │
 └──────────────────────┬──────────────────────┘
                        │ REST API
                        ▼
 ┌─────────────────────────────────────────────┐
-│                PMIS Backend                 │
+│              PMIS Backend                   │
 │ Spring Boot + Spring Security + JWT         │
 │ Controller / Service / Repository            │
 │ DTO / Mapper / Specification                 │
@@ -146,16 +148,18 @@ Report / Dashboard
                        │
                        ▼
 ┌─────────────────────────────────────────────┐
-│                  MariaDB                    │
+│                 MariaDB                     │
 └──────────────────────┬──────────────────────┘
                        │
                        ▼
                 File / Object Storage
-                    Planned
+
+                     Planned
+
                        │
                        ▼
 ┌─────────────────────────────────────────────┐
-│                 Spring AI                   │
+│                Spring AI                    │
 │ AI Assistant / Analysis / RAG               │
 └─────────────────────────────────────────────┘
 ```
@@ -179,7 +183,9 @@ develop
 feature/*
 ```
 
-모든 기능은 Feature Branch에서 개발 후 Develop으로 Merge한다. 검증 완료 후 Main으로 Release 한다.
+모든 기능은 Feature Branch에서 개발 후 Develop으로 Merge한다.
+
+검증 완료 후 Main으로 Release 한다.
 
 ## Branch Strategy
 
@@ -232,7 +238,31 @@ feature/frontend-auth
 feature/frontend-ai
 ```
 
-현재 Frontend API Integration 작업은 `feature/frontend-api-integration`에서 진행되었으며, WBS 관련 API 연동 및 삭제 기능까지 구현 후 `develop`에 Fast-forward Merge되었다.
+현재 Frontend에서는 다음 개발 흐름이 완료되었다.
+
+```text
+feature/frontend-layout
+        ↓
+develop
+        ↓
+feature/frontend-components
+        ↓
+develop
+        ↓
+feature/frontend-dashboard-hmc-reference
+        ↓
+develop
+        ↓
+feature/frontend-api-integration
+        ↓
+develop
+        ↓
+feature/frontend-project
+        ↓
+develop
+```
+
+`feature/frontend-project`에서는 Project 전체 CRUD UI 및 API Integration을 구현했으며 `develop`에 Fast-forward Merge되었다.
 
 ---
 
@@ -244,13 +274,15 @@ PMIS는 Semantic Versioning(SemVer)을 따른다.
 MAJOR.MINOR.PATCH
 ```
 
-- **Major**: 호환되지 않는 변경
-- **Minor**: 새로운 기능 추가
-- **Patch**: 버그 수정 및 개선
+* **Major**: 호환되지 않는 변경
+* **Minor**: 새로운 기능 추가
+* **Patch**: 버그 수정 및 개선
 
 Feature Branch 단위의 개발 완료와 Release Version은 별도로 관리한다.
 
-현재 WBS 관련 개발은 `develop` 통합 단계이며, 아직 별도 Release Tag를 생성하지 않은 변경은 개발 상태로 관리한다.
+현재 Project Frontend CRUD 및 WBS Frontend Integration 등의 변경 사항은 `develop`에 통합되어 있으며, 아직 정식 Release Tag가 생성되지 않은 변경은 다음 Release 후보로 관리한다.
+
+현재 정식 Release는 **v0.5.3**을 기준으로 하며, 이후 `develop`에 통합된 Project Frontend CRUD 및 WBS 관련 변경은 차기 Release 후보로 관리한다.
 
 ---
 
@@ -294,6 +326,8 @@ feat(frontend): implement WBS API integration
 
 feat(frontend): implement WBS delete
 
+feat(frontend): complete project CRUD
+
 fix: resolve JWT validation issue
 
 docs: update architecture documentation
@@ -301,6 +335,12 @@ docs: update architecture documentation
 refactor: improve exception handling
 
 build: upgrade Spring Boot
+```
+
+최근 주요 Frontend Commit:
+
+```text
+8d7df6d feat(frontend): complete project CRUD
 ```
 
 ---
@@ -317,29 +357,29 @@ build: upgrade Spring Boot
 
 ### Backend
 
-- Spring Boot
-- Gradle Kotlin DSL
-- MariaDB
-- Package Structure
-- Base Entity
-- Global Response
-- Exception
-- JPA
-- Build Configuration
+* Spring Boot
+* Gradle Kotlin DSL
+* MariaDB
+* Package Structure
+* Base Entity
+* Global Response
+* Exception
+* JPA
+* Build Configuration
 
 ### Frontend
 
-- Frontend Project Planning
-- React / Vite / TypeScript 선정
-- Backend / Frontend 프로젝트 분리
-- Frontend Directory Architecture 설계
+* Frontend Project Planning
+* React / Vite / TypeScript 선정
+* Backend / Frontend 프로젝트 분리
+* Frontend Directory Architecture 설계
 
 ### Deliverables
 
-- Base Project
-- Backend Build Success
-- Frontend Project Structure
-- Git Repository
+* Base Project
+* Backend Build Success
+* Frontend Project Structure
+* Git Repository
 
 ---
 
@@ -362,36 +402,36 @@ feature/auth-role
 
 ### Backend Tasks
 
-- JWT Provider
-- JWT Filter
-- SecurityConfig
-- UserPrincipal
-- Login
-- Refresh Token
-- Role Authorization
-- Password Encoder
+* JWT Provider
+* JWT Filter
+* SecurityConfig
+* UserPrincipal
+* Login
+* Refresh Token
+* Role Authorization
+* Password Encoder
 
 ### Frontend Planned Tasks
 
-- Login Page
-- Login Form
-- Authentication State
-- Token Handling
-- Protected Route
-- Logout
+* Login Page
+* Login Form
+* Authentication State
+* Token Handling
+* Protected Route
+* Logout
 
 ### Deliverables
 
 Backend:
 
-- JWT Authentication
-- Role Authorization
-- Security Framework
+* JWT Authentication
+* Role Authorization
+* Security Framework
 
 Frontend:
 
-- Authentication UI
-- Protected Route
+* Authentication UI
+* Protected Route
 
 ---
 
@@ -414,23 +454,23 @@ feature/project-detail
 
 ### Backend Completed Tasks
 
-- Project CRUD
-- Customer / PM / Status / Priority
-- Validation
-- Project Search
-- Sorting
-- Project Dashboard API
-- Total Project Count
-- Status Count
-- Priority Count
-- Recent Project KPI
-- Upcoming Deadline KPI
-- Project Detail API
-- Project Detail Response
-- Project Detail Service
-- Project Detail Controller
-- Project Detail Mapper
-- Project Detail API 분리
+* Project CRUD
+* Customer / PM / Status / Priority
+* Validation
+* Project Search
+* Sorting
+* Project Dashboard API
+* Total Project Count
+* Status Count
+* Priority Count
+* Recent Project KPI
+* Upcoming Deadline KPI
+* Project Detail API
+* Project Detail Response
+* Project Detail Service
+* Project Detail Controller
+* Project Detail Mapper
+* Project Detail API 분리
 
 ### Controller Architecture
 
@@ -442,33 +482,25 @@ project/controller
 └── ProjectDetailController
 ```
 
-### Frontend Feature Branch
-
-```text
-feature/frontend-layout
-feature/frontend-components
-feature/frontend-dashboard-hmc-reference
-```
-
 ### Frontend Foundation
 
-- React
-- Vite
-- TypeScript
-- npm
-- React Router DOM
-- Feature-based Directory Structure
-- API / Service / Store 구조 준비
-- AppRouter
-- MainLayout
-- Header
-- Sidebar
-- Breadcrumb
-- Dashboard Page
-- Button
-- Card
-- Loading
-- EmptyState
+* React
+* Vite
+* TypeScript
+* npm
+* React Router DOM
+* Feature-based Directory Structure
+* API / Service / Store 구조 준비
+* AppRouter
+* MainLayout
+* Header
+* Sidebar
+* Breadcrumb
+* Dashboard Page
+* Button
+* Card
+* Loading
+* EmptyState
 
 ### Dashboard Reference & Component Architecture
 
@@ -486,51 +518,19 @@ DashboardPage
 └── RecentActivity
 ```
 
-구현된 Dashboard Component:
+### Frontend Project Management
 
-```text
-pmis-frontend/src/components/dashboard/
-
-├── KpiCard.tsx
-├── ProjectOverview.tsx
-├── WbsProgress.tsx
-├── ScheduleSummary.tsx
-├── IssueSummary.tsx
-└── RecentActivity.tsx
-```
-
-현재 Dashboard는 Reference UI 구현을 완료했으며 실제 Project / WBS / Schedule / Issue / Risk API 연계를 단계적으로 진행한다.
-
-### Deliverables
-
-Backend:
-
-- Project CRUD API
-- Project Search API
-- Project Dashboard API
-- Project Detail API
-- Project Controller 분리
-- Project Dashboard Controller 분리
-- Project Detail Controller 분리
-
-Frontend:
-
-- PMIS Application Layout
-- Dashboard UI Skeleton
-- Dashboard Component Architecture
-- Header / Sidebar / Breadcrumb
-- Common UI Components
-- HMC Reference Dashboard Layout
+Project Management Frontend는 이후 Sprint 3에서 실제 Backend API와 연계하여 전체 CRUD를 구현하였다.
 
 ---
 
 # Sprint 3
 
-## WBS & Schedule
+## WBS / Schedule / Frontend API Integration
 
 ### Goal
 
-프로젝트 일정과 작업 구조를 관리하는 핵심 기능을 Backend와 Frontend에서 구현하고 API Integration 기반의 실제 업무 화면을 구축한다.
+프로젝트 일정과 작업 구조를 관리하는 핵심 기능을 Backend와 Frontend에서 구현하고 실제 REST API Integration 기반의 업무 화면을 구축한다.
 
 ### Backend Feature Branch
 
@@ -552,95 +552,189 @@ feature/frontend-api-integration
 
 WBS:
 
-- WBS CRUD
-- Tree Structure
-- Progress Calculation
-- Task Relationship
-- Validation
-- Delete Handling
+* WBS CRUD
+* Tree Structure
+* Progress Calculation
+* Task Relationship
+* Validation
+* Delete Handling
 
 Schedule:
 
-- Schedule CRUD
-- Calendar API
-- Gantt Data
-- Milestone
+* Schedule CRUD
+* Calendar API
+* Gantt Data
+* Milestone
 
-### Frontend Tasks
+---
 
-Project:
+## Frontend Project Management
 
-- Project List
-- Project Search
-- Project Detail
-- Project Dashboard
-- Project API Integration
+### Project Frontend Completed
 
-WBS:
-
-- WBS Tree
-- WBS Detail
-- WBS Form
-- WBS Status Form
-- Progress Display
-- WBS API Integration
-- WBS Delete
-- WBS Loading / Empty / Error State
-
-Schedule:
-
-- Calendar UI
-- Gantt UI
-- Milestone UI
-- Schedule Detail
-- Schedule API Integration
-
-### Current WBS Integration Status
-
-Frontend WBS API Integration은 `feature/frontend-api-integration`에서 구현되었다.
-
-주요 구현 영역:
+Project Management Frontend는 `feature/frontend-project`에서 전체 CRUD를 구현하였다.
 
 ```text
-pmis-frontend/src/api/client.ts
-
-pmis-frontend/src/features/wbs/api/wbsApi.ts
-
-pmis-frontend/src/features/wbs/components/WbsDetail.tsx
-
-pmis-frontend/src/features/wbs/components/WbsForm.tsx
-
-pmis-frontend/src/features/wbs/components/WbsStatusForm.tsx
-
-pmis-frontend/src/features/wbs/components/WbsTree.tsx
-
-pmis-frontend/src/features/wbs/components/WbsTreeNode.tsx
-
-pmis-frontend/src/features/wbs/pages/WbsPage.tsx
+Project
+│
+├── Project List
+├── Project Search
+├── Project Detail
+├── Project Registration
+├── Project Edit
+└── Project Delete
 ```
 
-WBS 삭제 기능은 다음 Commit으로 구현되었다.
+### 주요 구현 영역
 
 ```text
-d468f70 feat(frontend): implement WBS delete
+pmis-frontend/src/features/project/
+
+├── api/
+│   └── projectApi.ts
+│
+├── components/
+│   ├── ProjectDetail.tsx
+│   ├── ProjectDetail.css
+│   ├── ProjectForm.tsx
+│   ├── ProjectForm.css
+│   ├── ProjectList.tsx
+│   ├── ProjectList.css
+│   ├── ProjectSearch.tsx
+│   └── ProjectSearch.css
+│
+├── pages/
+│   ├── ProjectPage.tsx
+│   ├── ProjectPage.css
+│   ├── ProjectDetailPage.tsx
+│   ├── ProjectDetailPage.css
+│   ├── ProjectFormPage.tsx
+│   └── ProjectFormPage.css
+│
+└── types/
+    └── project.ts
 ```
 
-해당 Feature Branch는 `develop`에 Fast-forward Merge되었으며 `origin/develop`까지 Push 완료되었다.
+### Project CRUD Flow
 
-### Deliverables
+```text
+Project List
+    ↓
+Search
+    ↓
+Project Detail
+    ↓
+Edit
+    ↓
+Save
+    ↓
+Detail
 
-- WBS API
-- WBS Tree UI
-- WBS Detail UI
-- WBS Form UI
-- WBS Status UI
-- WBS Delete
-- WBS API Integration
-- Project Management UI
-- Project Detail UI
-- Project Dashboard UI
-- Schedule API
-- Schedule UI
+Project List
+    ↓
+Create
+    ↓
+Save
+    ↓
+Detail
+
+Project Detail
+    ↓
+Delete
+    ↓
+Project List
+```
+
+### Project Frontend Integration
+
+* Project API Client
+* Project List API Integration
+* Project Search API Integration
+* Project Detail API Integration
+* Project Create API Integration
+* Project Update API Integration
+* Project Delete API Integration
+* Loading State
+* Empty State
+* Error State
+* Delete Confirmation
+* Delete Processing State
+* React Router Project Routes
+
+### Project Frontend Git Integration
+
+```text
+feature/frontend-project
+        ↓
+Commit 8d7df6d
+        ↓
+origin/feature/frontend-project
+        ↓
+develop
+        ↓
+origin/develop
+```
+
+Commit:
+
+```text
+8d7df6d feat(frontend): complete project CRUD
+```
+
+`feature/frontend-project`은 `develop`에 Fast-forward Merge되었으며 `origin/develop`까지 Push 완료되었다.
+
+---
+
+## WBS Frontend
+
+### WBS UI
+
+* WBS Tree
+* WBS Detail
+* WBS Form
+* WBS Status Form
+* Progress Display
+* WBS Delete
+* Loading / Empty / Error State
+
+### WBS API Integration
+
+```text
+pmis-frontend/src/features/wbs/
+
+├── api/
+│   └── wbsApi.ts
+│
+├── components/
+│   ├── WbsDetail.tsx
+│   ├── WbsForm.tsx
+│   ├── WbsStatusForm.tsx
+│   ├── WbsTree.tsx
+│   └── WbsTreeNode.tsx
+│
+└── pages/
+    └── WbsPage.tsx
+```
+
+### WBS Current Integration Flow
+
+```text
+WBS Backend API
+       ↓
+Frontend API Client
+       ↓
+WBS Tree / Detail / Form
+       ↓
+WBS Delete
+       ↓
+Browser Verification
+       ↓
+Production Build
+       ↓
+develop Integration
+       ↓
+Integration Test
+```
 
 ---
 
@@ -672,57 +766,57 @@ feature/frontend-change
 
 Issue:
 
-- Issue CRUD
-- Assignment
-- Status Workflow
-- Priority
-- Attachment
+* Issue CRUD
+* Assignment
+* Status Workflow
+* Priority
+* Attachment
 
 Risk:
 
-- Risk CRUD
-- Risk Assessment
-- Probability / Impact
-- Response Strategy
-- Risk Monitoring
+* Risk CRUD
+* Risk Assessment
+* Probability / Impact
+* Response Strategy
+* Risk Monitoring
 
 Change:
 
-- Change Request
-- Approval
-- History
-- Impact Analysis
+* Change Request
+* Approval
+* History
+* Impact Analysis
 
 ### Frontend Tasks
 
 Issue:
 
-- Issue List
-- Issue Detail
-- Issue Registration
-- Assignment
-- Status Management
+* Issue List
+* Issue Detail
+* Issue Registration
+* Assignment
+* Status Management
 
 Risk:
 
-- Risk List
-- Risk Detail
-- Risk Matrix
-- Response Strategy
+* Risk List
+* Risk Detail
+* Risk Matrix
+* Response Strategy
 
 Change:
 
-- Change Request
-- Approval UI
-- Change History
-- Impact Analysis
+* Change Request
+* Approval UI
+* Change History
+* Impact Analysis
 
 ### Deliverables
 
-- Issue Module
-- Risk Module
-- Change Module
-- Integrated PMIS UI
+* Issue Module
+* Risk Module
+* Change Module
+* Integrated PMIS UI
 
 ---
 
@@ -770,140 +864,59 @@ Inspection
 
 ```text
 Evidence Item
-     ↓
+      ↓
 Required?
- ┌───┴────┐
+
+ ┌────┴────┐
  YES       NO
-  │         └── NOT_REQUIRED
-  ▼
+ │          └── NOT_REQUIRED
+ ▼
 Evidence Exists?
- ┌───┴────┐
+
+ ┌────┴────┐
  YES       NO
-  │         └── MISSING
-  ▼
+ │          └── MISSING
+ ▼
 PRESENT
-  │
-  ▼
+ │
+ ▼
 Verification
-  ├── PENDING
-  ├── VERIFIED
-  └── REJECTED
+
+ ├── PENDING
+ ├── VERIFIED
+ └── REJECTED
 ```
 
 ## Evidence Checklist
 
-| Field | Description |
-| --- | --- |
-| Requirement ID | 증적 요구사항 ID |
-| Project | 프로젝트 |
-| WBS | 관련 WBS |
-| Activity | 관련 업무 |
-| Deliverable | 관련 산출물 |
-| Evidence Required | 증적 필수 여부 |
-| Evidence Type | 파일/문서/화면/로그/결과서 등 |
-| Evidence Status | PRESENT / MISSING / PENDING / NOT_REQUIRED |
-| Verification Status | PENDING / VERIFIED / REJECTED |
-| Evidence File | 실제 증적 |
-| Reviewer | 검토자 |
-| Verified Date | 검토일 |
-| Due Date | 제출 기한 |
-| Remark | 비고 |
+| Field               | Description                                |
+| ------------------- | ------------------------------------------ |
+| Requirement ID      | 증적 요구사항 ID                                 |
+| Project             | 프로젝트                                       |
+| WBS                 | 관련 WBS                                     |
+| Activity            | 관련 업무                                      |
+| Deliverable         | 관련 산출물                                     |
+| Evidence Required   | 증적 필수 여부                                   |
+| Evidence Type       | 파일/문서/화면/로그/결과서 등                          |
+| Evidence Status     | PRESENT / MISSING / PENDING / NOT_REQUIRED |
+| Verification Status | PENDING / VERIFIED / REJECTED              |
+| Evidence File       | 실제 증적                                      |
+| Reviewer            | 검토자                                        |
+| Verified Date       | 검토일                                        |
+| Due Date            | 제출 기한                                      |
+| Remark              | 비고                                         |
 
 ## Evidence Dashboard
 
-- 전체 증적 대상 수
-- 증적 확보 수
-- 증적 누락 수
-- 검토 대기 수
-- 검토 완료 수
-- 증적 확보율
-- 증적 검수 완료율
-- 기한 초과 증적
-- Critical / Mandatory 증적 누락
-
-## Evidence Management UI
-
-```text
-Evidence Management
-│
-├── Evidence Dashboard
-│   ├── Total
-│   ├── Present
-│   ├── Missing
-│   ├── Pending
-│   ├── Verification Rate
-│   └── Evidence Completion Rate
-│
-├── Evidence Checklist
-│   ├── Filter
-│   ├── Search
-│   ├── Status
-│   ├── Due Date
-│   └── Missing Only
-│
-├── Evidence Detail
-│   ├── Requirement
-│   ├── Related WBS
-│   ├── Related Activity
-│   ├── Evidence File
-│   ├── Verification History
-│   └── Comment
-│
-└── Evidence Registration
-    ├── File Upload
-    ├── Evidence Type
-    ├── Description
-    └── Submit Verification
-```
-
-## Evidence Verification Workflow
-
-```text
-Evidence Requirement
-        ↓
-Evidence Registration
-        ↓
-Submitted
-        ↓
-Reviewer Check
-        ↓
- ┌──────┴──────┐
- │             │
-Approved     Rejected
- │             │
- ▼             ▼
-VERIFIED     Re-registration
-```
-
-## Evidence Data Model Direction
-
-```text
-EvidenceRequirement
-Evidence
-EvidenceVerification
-EvidenceHistory
-File
-```
-
-### Deliverables
-
-Backend:
-
-- Evidence Requirement API
-- Evidence CRUD API
-- Evidence File API
-- Evidence Verification API
-- Evidence History API
-- Evidence Completion Statistics API
-
-Frontend:
-
-- Evidence Dashboard
-- Evidence Checklist
-- Missing Evidence Filter
-- Evidence Detail
-- Evidence Registration
-- Evidence Verification UI
+* 전체 증적 대상 수
+* 증적 확보 수
+* 증적 누락 수
+* 검토 대기 수
+* 검토 완료 수
+* 증적 확보율
+* 증적 검수 완료율
+* 기한 초과 증적
+* Critical / Mandatory 증적 누락
 
 ---
 
@@ -929,27 +942,27 @@ feature/frontend-cmdb
 
 ### Backend Tasks
 
-- Server CI
-- Software CI
-- Database CI
-- Relationship
-- Version History
-- Change Tracking
+* Server CI
+* Software CI
+* Database CI
+* Relationship
+* Version History
+* Change Tracking
 
 ### Frontend Tasks
 
-- CI List
-- CI Detail
-- CI Registration
-- Relationship View
-- Configuration History
-- Change History
+* CI List
+* CI Detail
+* CI Registration
+* Relationship View
+* Configuration History
+* Change History
 
 ### Deliverables
 
-- CMDB API
-- CMDB UI
-- Configuration Management
+* CMDB API
+* CMDB UI
+* Configuration Management
 
 ---
 
@@ -980,50 +993,50 @@ feature/frontend-report
 
 Dashboard:
 
-- Project Dashboard
-- WBS Dashboard
-- Schedule Dashboard
-- Issue Dashboard
-- Risk Dashboard
-- Change Dashboard
-- Evidence Dashboard
-- CMDB Dashboard
+* Project Dashboard
+* WBS Dashboard
+* Schedule Dashboard
+* Issue Dashboard
+* Risk Dashboard
+* Change Dashboard
+* Evidence Dashboard
+* CMDB Dashboard
 
 Report:
 
-- Weekly Report
-- Monthly Report
-- Executive Report
-- Evidence Status Report
-- Evidence Missing Report
-- Excel Export
-- PDF Export
-- Statistics API
+* Weekly Report
+* Monthly Report
+* Executive Report
+* Evidence Status Report
+* Evidence Missing Report
+* Excel Export
+* PDF Export
+* Statistics API
 
 ### Frontend Tasks
 
 Dashboard:
 
-- Executive Dashboard
-- Project Dashboard
-- Schedule Dashboard
-- Issue Dashboard
-- Risk Dashboard
-- Change Dashboard
-- Evidence Dashboard
-- CMDB Dashboard
-- Dashboard Widgets
-- Dashboard API Integration
+* Executive Dashboard
+* Project Dashboard
+* Schedule Dashboard
+* Issue Dashboard
+* Risk Dashboard
+* Change Dashboard
+* Evidence Dashboard
+* CMDB Dashboard
+* Dashboard Widgets
+* Dashboard API Integration
 
 Report:
 
-- Weekly Report UI
-- Monthly Report UI
-- Executive Report UI
-- Evidence Status Report
-- Excel Download
-- PDF Download
-- Statistics Visualization
+* Weekly Report UI
+* Monthly Report UI
+* Executive Report UI
+* Evidence Status Report
+* Excel Download
+* PDF Download
+* Statistics Visualization
 
 > **Current Note:** HMC Reference 기반 Dashboard UI는 Sprint 2에서 선행 구현되었다. Sprint 7에서는 실제 Project/WBS/Schedule/Issue/Risk/Change/Evidence/CMDB API 기반 통합 Dashboard로 확장한다.
 
@@ -1053,35 +1066,35 @@ feature/frontend-ai
 
 ### Backend Tasks
 
-- OpenAI Integration
-- Prompt Management
-- AI Chat API
-- Schedule Analysis
-- Risk Analysis
-- Project Analysis
-- Evidence Gap Analysis
-- Report Summary
-- Meeting Summary
-- Action Item Generation
-- Change Impact Analysis
+* OpenAI Integration
+* Prompt Management
+* AI Chat API
+* Schedule Analysis
+* Risk Analysis
+* Project Analysis
+* Evidence Gap Analysis
+* Report Summary
+* Meeting Summary
+* Action Item Generation
+* Change Impact Analysis
 
 ### Frontend Tasks
 
-- AI Assistant UI
-- Chat Interface
-- AI Project Summary
-- AI Risk Analysis
-- AI Evidence Gap Analysis
-- AI Report Summary
-- AI Schedule Analysis
-- AI Meeting Summary
-- AI Recommendation Display
+* AI Assistant UI
+* Chat Interface
+* AI Project Summary
+* AI Risk Analysis
+* AI Evidence Gap Analysis
+* AI Report Summary
+* AI Schedule Analysis
+* AI Meeting Summary
+* AI Recommendation Display
 
 ### Deliverables
 
-- AI Chat API
-- AI Assistant UI
-- PMIS AI Assistant
+* AI Chat API
+* AI Assistant UI
+* PMIS AI Assistant
 
 ---
 
@@ -1095,77 +1108,78 @@ Backend와 Frontend를 통합하여 포트폴리오 수준의 완성도를 확�
 
 ### Backend
 
-- Refactoring
-- Unit Test
-- Integration Test
-- Swagger
-- Docker
-- Docker Compose
-- GitHub Actions
-- Security Hardening
-- Audit Log
-- Evidence Integrity Validation
+* Refactoring
+* Unit Test
+* Integration Test
+* Swagger
+* Docker
+* Docker Compose
+* GitHub Actions
+* Security Hardening
+* Audit Log
+* Evidence Integrity Validation
 
 ### Frontend
 
-- Component Refactoring
-- Responsive UI
-- Frontend Test
-- Error Handling
-- Loading / Empty / Error State
-- Accessibility
-- Build Optimization
+* Component Refactoring
+* Responsive UI
+* Frontend Test
+* Error Handling
+* Loading / Empty / Error State
+* Accessibility
+* Build Optimization
 
 ### Common
 
-- API Integration Test
-- E2E Test
-- Evidence E2E Test
-- README
-- Architecture Documentation
-- Portfolio Documentation
+* API Integration Test
+* E2E Test
+* Evidence E2E Test
+* README
+* Architecture Documentation
+* Portfolio Documentation
 
 ### Deliverables
 
-- Production Ready PMIS
-- Full Stack PMIS
-- Portfolio Repository
+* Production Ready PMIS
+* Full Stack PMIS
+* Portfolio Repository
 
 ---
 
 # 8. Milestones
 
-| Milestone | Description |
-| --- | --- |
-| M1 | Base Project Complete |
-| M2 | Authentication Complete |
-| M3 | Project Management Complete |
-| M4 | Frontend Foundation Complete |
-| M5 | WBS & Schedule Complete |
-| M6 | Issue/Risk/Change Complete |
-| M7 | Evidence & Inspection Complete |
-| M8 | CMDB Complete |
-| M9 | Dashboard & Report Complete |
-| M10 | Spring AI Complete |
-| M11 | Production Ready |
-| M12 | Portfolio Release |
+| Milestone | Description                         |
+| --------- | ----------------------------------- |
+| M1        | Base Project Complete               |
+| M2        | Authentication Complete             |
+| M3        | Project Management Backend Complete |
+| M4        | Frontend Foundation Complete        |
+| M5        | Project Frontend CRUD Complete      |
+| M6        | WBS & Schedule Complete             |
+| M7        | Issue/Risk/Change Complete          |
+| M8        | Evidence & Inspection Complete      |
+| M9        | CMDB Complete                       |
+| M10       | Dashboard & Report Complete         |
+| M11       | Spring AI Complete                  |
+| M12       | Production Ready                    |
+| M13       | Portfolio Release                   |
 
 ---
 
 # 9. Estimated Schedule
 
-| Sprint | Duration |
-| --- | ---: |
-| Sprint 0 | 1 Week |
-| Sprint 1 | 2 Weeks |
-| Sprint 2 | 2 Weeks |
-| Sprint 3 | 2 Weeks |
-| Sprint 4 | 2 Weeks |
-| Sprint 5 | 2 Weeks |
-| Sprint 6 | 2 Weeks |
-| Sprint 7 | 2 Weeks |
-| Sprint 8 | 2 Weeks |
-| Sprint 9 | 1 Week |
+| Sprint   | Duration |
+| -------- | -------: |
+| Sprint 0 |   1 Week |
+| Sprint 1 |  2 Weeks |
+| Sprint 2 |  2 Weeks |
+| Sprint 3 |  2 Weeks |
+| Sprint 4 |  2 Weeks |
+| Sprint 5 |  2 Weeks |
+| Sprint 6 |  2 Weeks |
+| Sprint 7 |  2 Weeks |
+| Sprint 8 |  2 Weeks |
+| Sprint 9 |   1 Week |
 
 **Estimated Total: 약 18~20주**
 
@@ -1177,51 +1191,51 @@ Frontend와 Backend는 동일 Sprint에서 병렬 개발할 수 있으며, API�
 
 ## Backend Architecture
 
-- Layered Architecture
-- Clean Architecture
-- SOLID Principles
-- RESTful API
-- DTO Pattern
-- Mapper Pattern
-- Specification Pattern
-- Feature-based Controller Separation
-- Service Layer Separation
-- Audit / History Management
-- Evidence Traceability
+* Layered Architecture
+* Clean Architecture
+* SOLID Principles
+* RESTful API
+* DTO Pattern
+* Mapper Pattern
+* Specification Pattern
+* Feature-based Controller Separation
+* Service Layer Separation
+* Audit / History Management
+* Evidence Traceability
 
 ## Frontend Architecture
 
-- Component-based Architecture
-- Feature-based Directory Structure
-- Layout Architecture
-- Reusable Common Components
-- API / Service Separation
-- State Management
-- TypeScript Type Safety
-- Responsive UI
-- Evidence Checklist UX
+* Component-based Architecture
+* Feature-based Directory Structure
+* Layout Architecture
+* Reusable Common Components
+* API / Service Separation
+* State Management
+* TypeScript Type Safety
+* Responsive UI
+* Evidence Checklist UX
 
 ## Integration
 
-- REST API Contract
-- API Error Handling
-- Authentication Integration
-- Loading State
-- Empty State
-- Error State
-- E2E Verification
-- Evidence Workflow Verification
+* REST API Contract
+* API Error Handling
+* Authentication Integration
+* Loading State
+* Empty State
+* Error State
+* E2E Verification
+* Evidence Workflow Verification
 
 ## Development Standards
 
-- Git Flow
-- Semantic Versioning
-- Conventional Commit
-- Pull Request
-- Code Review
-- Unit Test
-- Integration Test
-- E2E Test
+* Git Flow
+* Semantic Versioning
+* Conventional Commit
+* Pull Request
+* Code Review
+* Unit Test
+* Integration Test
+* E2E Test
 
 ---
 
@@ -1229,11 +1243,11 @@ Frontend와 Backend는 동일 Sprint에서 병렬 개발할 수 있으며, API�
 
 ## Project Documentation
 
-- PROJECT_OVERVIEW.md
-- DEVELOPMENT_ROADMAP.md
-- ARCHITECTURE.md
-- CHANGELOG.md
-- PORTFOLIO.md
+* PROJECT_OVERVIEW.md
+* DEVELOPMENT_ROADMAP.md
+* ARCHITECTURE.md
+* CHANGELOG.md
+* PORTFOLIO.md
 
 ## Design Documentation
 
@@ -1242,31 +1256,45 @@ docs/design/
 
 ├── issue/
 │   └── ISSUE_DESIGN.md
+│
 ├── project/
 │   ├── PROJECT_DESIGN.md
 │   └── PROJECT_DASHBOARD_DESIGN.md
+│
 ├── report/
 │   └── REPORT_DESIGN.md
+│
 ├── schedule/
 │   └── SCHEDULE_DESIGN.md
+│
 ├── server/
 │   └── SERVER_CONFIGURATION_DESIGN.md
+│
 ├── wbs/
 │   └── WBS_DESIGN.md
+│
 └── evidence/
     └── EVIDENCE_DESIGN.md
 ```
 
 ## Frontend Documentation
 
-- 001_frontend_architecture.md
-- 002_frontend_folder_structure.md
-- 003_frontend_coding_convention.md
-- 004_frontend_ui_design.md
-- 005_frontend_component_architecture.md
-- 006_frontend_development_history.md
+* 001_frontend_architecture.md
+* 002_frontend_folder_structure.md
+* 003_frontend_coding_convention.md
+* 004_frontend_ui_design.md
+* 005_frontend_component_architecture.md
+* 006_frontend_development_history.md
 
 문서와 소스코드는 항상 동일한 상태를 유지한다.
+
+Frontend API Integration 변경 시 다음 문서를 함께 검토한다.
+
+* Frontend Architecture
+* Frontend Component Architecture
+* Frontend Development History
+* CHANGELOG
+* DEVELOPMENT_ROADMAP
 
 ---
 
@@ -1274,60 +1302,65 @@ docs/design/
 
 ## Backend
 
-- PMIS Backend
-- Spring Boot REST API
-- JWT Authentication
-- MariaDB Schema
-- Project Management
-- Project Search
-- Project Dashboard
-- Project Detail
-- WBS Management
-- Schedule Management
-- Issue Management
-- Risk Management
-- Change Management
-- Evidence Management
-- Evidence Verification
-- Inspection Management
-- CMDB
-- Dashboard API
-- Report System
-- Spring AI Assistant
-- Swagger API
+* PMIS Backend
+* Spring Boot REST API
+* JWT Authentication
+* MariaDB Schema
+* Project Management
+* Project Search
+* Project Dashboard
+* Project Detail
+* WBS Management
+* Schedule Management
+* Issue Management
+* Risk Management
+* Change Management
+* Evidence Management
+* Evidence Verification
+* Inspection Management
+* CMDB
+* Dashboard API
+* Report System
+* Spring AI Assistant
+* Swagger API
 
 ## Frontend
 
-- PMIS Frontend
-- React
-- TypeScript
-- Vite
-- React Router
-- Application Layout
-- Dashboard
-- Project Management UI
-- Project Detail UI
-- WBS UI
-- Schedule UI
-- Issue UI
-- Risk UI
-- Change UI
-- Evidence Dashboard UI
-- Evidence Checklist UI
-- Evidence Detail UI
-- Evidence Verification UI
-- CMDB UI
-- Dashboard UI
-- Report UI
-- AI Assistant UI
+* PMIS Frontend
+* React
+* TypeScript
+* Vite
+* React Router
+* Application Layout
+* Dashboard
+* Project Management UI
+* Project List UI
+* Project Search UI
+* Project Detail UI
+* Project Registration UI
+* Project Edit UI
+* Project Delete UI
+* WBS UI
+* Schedule UI
+* Issue UI
+* Risk UI
+* Change UI
+* Evidence Dashboard UI
+* Evidence Checklist UI
+* Evidence Detail UI
+* Evidence Verification UI
+* CMDB UI
+* Dashboard UI
+* Report UI
+* AI Assistant UI
 
 ## Infrastructure / Delivery
 
-- Docker
-- Docker Compose
-- GitHub Actions
-- GitHub Repository
-- Portfolio Documentation
+* Docker
+* Docker Compose
+* GitHub Actions
+* GitHub Repository
+* Portfolio Documentation
 
 ---
 
@@ -1335,20 +1368,20 @@ docs/design/
 
 프로젝트 완료 시 다음 목표를 만족한다.
 
-- 실제 SI 프로젝트 수준의 PMIS 구현
-- Spring Boot 기반 엔터프라이즈 Backend 구현
-- React 기반 PMIS Frontend 구현
-- Backend / Frontend REST API Integration
-- JWT 기반 인증/인가 구현
-- 프로젝트 수행 데이터 통합
-- 산출물 및 증적 추적 관리
-- 증적 누락 자동 식별
-- 증적 검수 및 승인 이력 관리
-- Spring AI 기반 AI Assistant 제공
-- Docker 기반 배포 환경 구축
-- Git Flow 기반 개발 프로세스 적용
-- 운영 가능한 Full Stack PMIS 완성
-- 포트폴리오 및 기술 시연 가능한 수준의 결과물 확보
+* 실제 SI 프로젝트 수준의 PMIS 구현
+* Spring Boot 기반 엔터프라이즈 Backend 구현
+* React 기반 PMIS Frontend 구현
+* Backend / Frontend REST API Integration
+* JWT 기반 인증/인가 구현
+* 프로젝트 수행 데이터 통합
+* 산출물 및 증적 추적 관리
+* 증적 누락 자동 식별
+* 증적 검수 및 승인 이력 관리
+* Spring AI 기반 AI Assistant 제공
+* Docker 기반 배포 환경 구축
+* Git Flow 기반 개발 프로세스 적용
+* 운영 가능한 Full Stack PMIS 완성
+* 포트폴리오 및 기술 시연 가능한 수준의 결과물 확보
 
 ---
 
@@ -1358,120 +1391,209 @@ docs/design/
 
 ### Completed
 
-- Spring Boot
-- Gradle Kotlin DSL
-- Common Infrastructure
-- Security
-- JWT Authentication
-- Login
-- Refresh Token
-- Role Hierarchy
-- Swagger / OpenAPI
-- Project CRUD
-- Project Search
-- Project Dashboard API
-- Project Dashboard KPI
-- Project Detail API
-- Project Controller Separation
-- Project Dashboard Controller Separation
-- Project Detail Controller Separation
+* Spring Boot
+* Gradle Kotlin DSL
+* Common Infrastructure
+* Security
+* JWT Authentication
+* Login
+* Refresh Token
+* Role Hierarchy
+* Swagger / OpenAPI
+* Project CRUD
+* Project Search
+* Project Dashboard API
+* Project Dashboard KPI
+* Project Detail API
+* Project Controller Separation
+* Project Dashboard Controller Separation
+* Project Detail Controller Separation
 
 ### In Progress
 
-- WBS
-- Schedule
+* WBS
+* Schedule
 
 ### Planned
 
-- Issue
-- Risk
-- Change
-- Evidence
-- Inspection
-- CMDB
-- Report
-- Spring AI
+* Issue
+* Risk
+* Change
+* Evidence
+* Inspection
+* CMDB
+* Report
+* Spring AI
+
+---
 
 ## Frontend
 
 ### Completed
 
-- React
-- Vite
-- TypeScript
-- React Router DOM
-- Feature-based Directory Structure
-- Main Layout
-- Header
-- Sidebar
-- Breadcrumb
-- Dashboard Skeleton
-- Button
-- Card
-- Loading
-- EmptyState
-- Vite Sample Removal
-- TypeScript / Vite Alias Configuration
-- HMC Reference 기반 Dashboard UI
-- Dashboard Component 분리
-- Dashboard Production Build Verification
-- WBS API Client
-- WBS API Integration
-- WBS Tree UI
-- WBS Detail UI
-- WBS Form UI
-- WBS Status Form UI
-- WBS Delete 기능
+* React
+* Vite
+* TypeScript
+* React Router DOM
+* Feature-based Directory Structure
+* Main Layout
+* Header
+* Sidebar
+* Breadcrumb
+* Dashboard Skeleton
+* Button
+* Card
+* Loading
+* EmptyState
+* Vite Sample Removal
+* TypeScript / Vite Alias Configuration
+* HMC Reference 기반 Dashboard UI
+* Dashboard Component 분리
+* Dashboard Production Build Verification
+* Frontend API Client
+* WBS API Client
+* WBS API Integration
+* WBS Tree UI
+* WBS Detail UI
+* WBS Form UI
+* WBS Status Form UI
+* WBS Delete
+* Project API Client
+* Project List UI
+* Project Search UI
+* Project Detail UI
+* Project Registration UI
+* Project Edit UI
+* Project Delete UI
+* Project CRUD API Integration
+* Project Loading / Empty / Error State
 
 ### Current
 
-- Project API Integration
-- WBS API Integration
-- WBS UI Integration
-- Schedule UI Preparation
-- Frontend API Client 구조
-- Form Components
-- Loading / Empty / Error State 확장
+* WBS Integration Test
+* WBS Browser Verification
+* Schedule UI Preparation
+* Schedule API Integration Preparation
+* Dashboard API Integration Preparation
+* Frontend API Error Handling 확장
+* Loading / Empty / Error State 확장
 
 ### Next
 
-- Project List / Search UI
-- Project Detail UI
-- Project Dashboard API Integration
-- Schedule API Integration
-- Schedule UI
-- Calendar UI
-- Gantt UI
-- Dashboard API Integration
-- Authentication UI
-
-## WBS Current State
-
-```text
-WBS Backend
-    │
-    ├── WBS API                         🚧
-    └── WBS Tree / CRUD                 🚧
-              │
-              ▼
-WBS Frontend
-    ├── API Client                      ✓
-    ├── API Integration                 ✓
-    ├── Tree                            ✓
-    ├── Detail                          ✓
-    ├── Form                            ✓
-    ├── Status Form                     ✓
-    └── Delete                          ✓
-              │
-              ▼
-        Integration Test                → Next
-```
-
-현재 WBS Frontend는 실제 Backend API와 연계되는 단계까지 진입했으며, 삭제 기능까지 구현되어 `develop`에 통합되었다.
+* WBS Integration Test 완료
+* Schedule Backend API
+* Schedule API Integration
+* Schedule UI
+* Calendar UI
+* Gantt UI
+* Project Dashboard API Integration
+* Dashboard API Integration
+* Authentication UI
 
 ---
 
-# 15. Current Git Development State
+# 15. Current WBS State
+
+```text
+WBS Backend
+
+    │
+    ├── WBS API                     🚧
+    └── WBS Tree / CRUD             🚧
+                 │
+                 ▼
+WBS Frontend
+
+    ├── API Client                  ✓
+    ├── API Integration             ✓
+    ├── Tree                        ✓
+    ├── Detail                      ✓
+    ├── Form                        ✓
+    ├── Status Form                 ✓
+    └── Delete                      ✓
+
+                 │
+                 ▼
+
+        Integration Test            → Current
+```
+
+현재 WBS Frontend는 Backend API와 연계되는 단계까지 구현되었으며 삭제 기능까지 구현되어 `develop`에 통합된 상태이다.
+
+다음 단계는 WBS Backend와 Frontend의 실제 Integration Test 및 Browser Verification을 완료하는 것이다.
+
+---
+
+# 16. Current Project Frontend State
+
+Project Management Frontend는 현재 CRUD 전체 기능이 구현되어 `develop`에 통합된 상태이다.
+
+```text
+Project Backend
+      │
+      ▼
+Project API Client
+      │
+      ▼
+Project List / Search
+      │
+      ├── Detail
+      │
+      ├── Create
+      │
+      ├── Edit
+      │
+      └── Delete
+      │
+      ▼
+Browser Verification
+      │
+      ▼
+Production Build
+      │
+      ▼
+Commit / Push
+      │
+      ▼
+Merge to develop
+      │
+      ▼
+Integration Test
+```
+
+### Project Frontend Completion
+
+```text
+Project List                  ✓
+Project Search                ✓
+Project Detail                ✓
+Project Registration          ✓
+Project Edit                  ✓
+Project Delete                ✓
+Project API Integration       ✓
+Loading State                 ✓
+Empty State                   ✓
+Error State                   ✓
+Router Integration            ✓
+```
+
+### Git Status
+
+```text
+feature/frontend-project
+        ↓
+8d7df6d feat(frontend): complete project CRUD
+        ↓
+develop
+        ↓
+origin/develop
+```
+
+Project Frontend CRUD는 Feature Branch 개발 및 Develop Integration까지 완료되었다.
+
+---
+
+# 17. Current Git Development State
 
 ## Backend
 
@@ -1493,7 +1615,7 @@ feature/project-detail
 develop
 ```
 
-Project Detail API 개발까지 완료되어 관련 변경 사항은 `develop`에 Merge된 상태를 기준으로 한다.
+Project Backend 개발은 CRUD, Search, Dashboard, Detail API까지 완료되어 `develop`에 통합된 상태이다.
 
 ## Frontend
 
@@ -1513,26 +1635,36 @@ develop
 feature/frontend-api-integration
         ↓
 develop
+        ↓
+feature/frontend-project
+        ↓
+develop
 ```
 
-현재 `feature/frontend-api-integration`에서 WBS API Integration 및 WBS 삭제 기능을 구현했으며, 다음 Commit이 `develop`에 통합되었다.
+### Last Integrated Frontend Feature
 
 ```text
-d468f70 feat(frontend): implement WBS delete
+feature/frontend-project
 ```
 
-Push 상태:
+### Last Integrated Frontend Commit
 
 ```text
-feature/frontend-api-integration → origin/feature/frontend-api-integration
+8d7df6d feat(frontend): complete project CRUD
+```
+
+### Push Status
+
+```text
+feature/frontend-project → origin/feature/frontend-project
 develop → origin/develop
 ```
 
-현재 Integration Branch는 `develop`이다.
+현재 통합 기준 브랜치는 `develop`이다.
 
 ---
 
-# 16. Development Process
+# 18. Development Process
 
 ```text
 Planning
@@ -1576,7 +1708,33 @@ Browser Test
 E2E Verification
 ```
 
-현재 WBS Integration:
+### Project CRUD Integration
+
+```text
+Project API
+    ↓
+Project API Client
+    ↓
+Project List / Search
+    ↓
+Project Detail
+    ↓
+Project Create / Edit
+    ↓
+Project Delete
+    ↓
+Browser Verification
+    ↓
+Production Build
+    ↓
+Commit / Push
+    ↓
+Merge to develop
+    ↓
+Integration Test
+```
+
+### WBS Integration
 
 ```text
 WBS API
@@ -1598,7 +1756,7 @@ Merge to develop
 Integration Test
 ```
 
-Evidence 기능:
+### Evidence 기능
 
 ```text
 Evidence Requirement
@@ -1620,7 +1778,7 @@ Dashboard / Report
 
 ---
 
-# 17. Git Branch Strategy
+# 19. Git Branch Strategy
 
 ```text
 main
@@ -1638,148 +1796,156 @@ Frontend와 Backend는 동일한 Git Repository에서 관리하되, 기능 단�
 
 ---
 
-# 18. Documentation Policy
+# 20. Documentation Policy
 
 다음 문서는 항상 최신 상태를 유지한다.
 
-- CHANGELOG.md
-- DEVELOPMENT_ROADMAP.md
-- PROJECT_OVERVIEW.md
-- ARCHITECTURE.md
-- PORTFOLIO.md
+* CHANGELOG.md
+* DEVELOPMENT_ROADMAP.md
+* PROJECT_OVERVIEW.md
+* ARCHITECTURE.md
+* PORTFOLIO.md
 
 Design 문서:
 
-- `docs/design/project/PROJECT_DESIGN.md`
-- `docs/design/project/PROJECT_DASHBOARD_DESIGN.md`
-- `docs/design/wbs/WBS_DESIGN.md`
-- `docs/design/schedule/SCHEDULE_DESIGN.md`
-- `docs/design/issue/ISSUE_DESIGN.md`
-- `docs/design/report/REPORT_DESIGN.md`
-- `docs/design/server/SERVER_CONFIGURATION_DESIGN.md`
-- `docs/design/evidence/EVIDENCE_DESIGN.md`
+* `docs/design/project/PROJECT_DESIGN.md`
+* `docs/design/project/PROJECT_DASHBOARD_DESIGN.md`
+* `docs/design/wbs/WBS_DESIGN.md`
+* `docs/design/schedule/SCHEDULE_DESIGN.md`
+* `docs/design/issue/ISSUE_DESIGN.md`
+* `docs/design/report/REPORT_DESIGN.md`
+* `docs/design/server/SERVER_CONFIGURATION_DESIGN.md`
+* `docs/design/evidence/EVIDENCE_DESIGN.md`
 
 Frontend 문서:
 
-- 001_frontend_architecture.md
-- 002_frontend_folder_structure.md
-- 003_frontend_coding_convention.md
-- 004_frontend_ui_design.md
-- 005_frontend_component_architecture.md
-- 006_frontend_development_history.md
+* 001_frontend_architecture.md
+* 002_frontend_folder_structure.md
+* 003_frontend_coding_convention.md
+* 004_frontend_ui_design.md
+* 005_frontend_component_architecture.md
+* 006_frontend_development_history.md
 
 소스코드 변경이 발생하면 관련 문서를 함께 현행화한다.
 
-특히 Frontend API Integration 변경 시 다음 문서를 함께 검토한다.
+특히 Frontend Project CRUD 변경 시 다음 문서를 함께 검토한다.
 
-- Frontend Architecture
-- Frontend Component Architecture
-- Frontend Development History
-- CHANGELOG
-- DEVELOPMENT_ROADMAP
-
----
-
-# 19. Maintenance Policy
-
-- 모든 기능은 Feature Branch에서 개발한다.
-- 모든 주요 변경 사항은 CHANGELOG에 기록한다.
-- Backend와 Frontend의 개발 상태를 Roadmap에 반영한다.
-- 문서와 소스코드는 항상 동일한 상태를 유지한다.
-- Pull Request 검토 후 Develop 브랜치에 병합한다.
-- Main 브랜치에는 검증된 코드만 Release한다.
-- Semantic Versioning을 준수한다.
-- Release마다 Git Tag를 생성한다.
-- 증적 관련 변경은 Evidence History에 기록한다.
-- 필수 증적의 누락 상태를 프로젝트 Dashboard에서 추적한다.
-- 검수 결과와 증적 상태를 Report에 반영한다.
-- API Integration 기능은 API Verification과 Browser Verification을 모두 수행한다.
-- Feature Branch Merge 후 `develop` Integration Test를 수행한다.
+* Frontend Architecture
+* Frontend Component Architecture
+* Frontend Development History
+* CHANGELOG
+* DEVELOPMENT_ROADMAP
 
 ---
 
-# 20. Current Information
+# 21. Maintenance Policy
 
-| Item | Value |
-| --- | --- |
-| Last Updated | **2026-08-21** |
-| Roadmap Version | **v1.5** |
-| Current Release | **v0.5.3** |
-| Current Integration Branch | **develop** |
-| Current Sprint | **Sprint 3 - WBS & Schedule / Frontend API Integration** |
-| Last Completed Backend Feature Branch | **feature/project-detail** |
-| Last Completed Frontend Feature Branch | **feature/frontend-api-integration** |
-| Last Integrated Frontend Commit | **d468f70** |
-| Development Stage | **WBS Frontend API Integration / WBS Delete 완료 / Develop Integration 진행** |
-| Next Domain | **Schedule** |
-| Evidence Domain | **Planned - Sprint 5** |
-| Maintainer | **Seo Seokhyeon** |
-
-> **Version Note:** `v0.5.3`은 마지막 정식 Release 기준이며, 현재 WBS API Integration 및 Frontend 변경 사항은 `develop`의 다음 Release 후보로 관리한다. Feature Merge와 Release Version은 별도로 관리한다.
+* 모든 기능은 Feature Branch에서 개발한다.
+* 모든 주요 변경 사항은 CHANGELOG에 기록한다.
+* Backend와 Frontend의 개발 상태를 Roadmap에 반영한다.
+* 문서와 소스코드는 항상 동일한 상태를 유지한다.
+* Pull Request 검토 후 Develop 브랜치에 병합한다.
+* Main 브랜치에는 검증된 코드만 Release한다.
+* Semantic Versioning을 준수한다.
+* Release마다 Git Tag를 생성한다.
+* 증적 관련 변경은 Evidence History에 기록한다.
+* 필수 증적의 누락 상태를 프로젝트 Dashboard에서 추적한다.
+* 검수 결과와 증적 상태를 Report에 반영한다.
+* API Integration 기능은 API Verification과 Browser Verification을 모두 수행한다.
+* Feature Branch Merge 후 `develop` Integration Test를 수행한다.
+* Project CRUD Integration 완료 상태를 Roadmap과 Development History에 반영한다.
 
 ---
 
-# 21. Next Milestone
+# 22. Current Information
+
+| Item                                   | Value                                                    |
+| -------------------------------------- | -------------------------------------------------------- |
+| Last Updated                           | **2026-08-27**                                           |
+| Roadmap Version                        | **v1.6**                                                 |
+| Current Release                        | **v0.5.3**                                               |
+| Current Integration Branch             | **develop**                                              |
+| Current Sprint                         | **Sprint 3 - WBS / Schedule / Frontend API Integration** |
+| Last Completed Backend Feature Branch  | **feature/project-detail**                               |
+| Last Completed Frontend Feature Branch | **feature/frontend-project**                             |
+| Last Integrated Frontend Commit        | **8d7df6d**                                              |
+| Development Stage                      | **Project Frontend CRUD 완료 / WBS Integration Test 진행**   |
+| Next Domain                            | **Schedule**                                             |
+| Evidence Domain                        | **Planned - Sprint 5**                                   |
+| Maintainer                             | **Seo Seokhyeon**                                        |
+
+> **Version Note:** `v0.5.3`은 마지막 정식 Release 기준이다. 현재 `develop`에는 WBS Frontend Integration 및 Project Frontend CRUD 등의 변경 사항이 추가되어 있으며, 다음 Release 후보로 관리한다.
+
+---
+
+# 23. Next Milestone
 
 ## Sprint 3
 
 ### Backend
 
-- WBS CRUD
-- WBS Tree Structure
-- Progress Calculation
-- Schedule CRUD
-- Calendar API
-- Gantt Data
-- Milestone
+* WBS CRUD
+* WBS Tree Structure
+* Progress Calculation
+* Schedule CRUD
+* Calendar API
+* Gantt Data
+* Milestone
 
 ### Frontend
 
-- Project List
-- Project Search
-- Project Detail
-- Project Dashboard UI
-- Project API Integration
-- WBS UI
-- WBS API Integration
-- WBS Delete
-- Schedule UI
-- Calendar UI
-- Gantt UI
+* Project List
+* Project Search
+* Project Detail
+* Project Registration
+* Project Edit
+* Project Delete
+* Project CRUD API Integration
+* WBS UI
+* WBS API Integration
+* WBS Delete
+* Schedule UI
+* Calendar UI
+* Gantt UI
 
 ### Integration
 
-- Project API Integration
-- Project Dashboard API Integration
-- Project Detail API Integration
-- WBS API Integration
-- WBS Browser Verification
-- Schedule API Integration
-- Loading / Empty / Error State
-- API Error Handling
-- Integration Test
-- E2E Verification
+* Project API Integration ✓
+* Project CRUD Browser Verification ✓
+* Project Detail Browser Verification ✓
+* Project Delete Verification ✓
+* WBS API Integration ✓
+* WBS Browser Verification
+* WBS Integration Test
+* Schedule API Integration
+* Loading / Empty / Error State
+* API Error Handling
+* Integration Test
+* E2E Verification
 
 ### Recommended Development Order
 
 ```text
-Project API Verification
-        ↓
-Project List / Search UI
-        ↓
-Project Detail UI
-        ↓
-Project Dashboard API Integration
+Project Frontend CRUD
+        ✓
         ↓
 WBS API Verification
         ↓
-WBS UI / API Integration
-        ↓
 WBS Browser Verification
         ↓
-Schedule API
+WBS Integration Test
+        ↓
+Schedule Backend API
+        ↓
+Schedule API Integration
         ↓
 Schedule UI
+        ↓
+Calendar UI
+        ↓
+Gantt UI
+        ↓
+Project Dashboard API Integration
         ↓
 Dashboard Data Integration
         ↓
@@ -1790,60 +1956,60 @@ Evidence 기능은 Sprint 5에서 별도 Domain으로 구현하되, Sprint 3~4�
 
 ---
 
-# 22. Release Summary
+# 24. Release Summary
 
-| Version | Description |
-| --- | --- |
-| v0.1.0 | Project Initialization |
-| v0.2.0 | Common Infrastructure |
-| v0.3.0 | Security Foundation |
-| v0.3.1 | Authentication & Authorization |
-| v0.3.2 | Swagger / OpenAPI |
-| v0.4.0 | Project Management |
-| v0.5.0 | Frontend Foundation |
-| v0.5.1 | Frontend Layout & Common Components |
-| v0.5.2 | Project Detail API & Controller Separation |
-| v0.5.3 | Frontend Dashboard HMC Reference |
-| Next Release | WBS / Frontend API Integration |
-| v0.7.x | Issue / Risk / Change |
-| v0.8.x | Evidence & Inspection |
-| v0.9.x | CMDB |
-| v0.10.x | Dashboard & Reporting |
-| v1.0.0 | AI Powered PMIS |
+| Version      | Description                                |
+| ------------ | ------------------------------------------ |
+| v0.1.0       | Project Initialization                     |
+| v0.2.0       | Common Infrastructure                      |
+| v0.3.0       | Security Foundation                        |
+| v0.3.1       | Authentication & Authorization             |
+| v0.3.2       | Swagger / OpenAPI                          |
+| v0.4.0       | Project Management                         |
+| v0.5.0       | Frontend Foundation                        |
+| v0.5.1       | Frontend Layout & Common Components        |
+| v0.5.2       | Project Detail API & Controller Separation |
+| v0.5.3       | Frontend Dashboard HMC Reference           |
+| Next Release | Project Frontend CRUD / WBS Integration    |
+| v0.7.x       | Issue / Risk / Change                      |
+| v0.8.x       | Evidence & Inspection                      |
+| v0.9.x       | CMDB                                       |
+| v0.10.x      | Dashboard & Reporting                      |
+| v1.0.0       | AI Powered PMIS                            |
 
-> **Note:** HMC Reference 기반 Dashboard UI는 `v0.5.3`에서 선행 구현되었으며, 실제 WBS/API Integration은 이후 개발 계열에서 진행한다.
-
----
-
-# 23. Long-term Roadmap
-
-| Version | Goal |
-| --- | --- |
-| 1.x | PMIS Core Platform |
-| 2.x | Enterprise PMIS |
-| 3.x | AI Native PMIS Platform |
+> **Note:** HMC Reference 기반 Dashboard UI는 `v0.5.3`에서 선행 구현되었으며, Project Frontend CRUD 및 WBS API Integration은 이후 `develop` 개발 계열에서 진행되고 있다.
 
 ---
 
-# 24. Evidence Management Long-term Direction
+# 25. Long-term Roadmap
+
+| Version | Goal                    |
+| ------- | ----------------------- |
+| 1.x     | PMIS Core Platform      |
+| 2.x     | Enterprise PMIS         |
+| 3.x     | AI Native PMIS Platform |
+
+---
+
+# 26. Evidence Management Long-term Direction
 
 증적 관리 기능은 단순 파일 관리에서 시작하여 프로젝트 품질 및 감사 추적 체계로 확장한다.
 
 ## Phase 1 - Evidence Checklist
 
-- 증적 요구사항 정의
-- 필수/선택 증적 구분
-- 증적 존재 여부 확인
-- 누락 증적 조회
-- 증적 확보율 Dashboard
+* 증적 요구사항 정의
+* 필수/선택 증적 구분
+* 증적 존재 여부 확인
+* 누락 증적 조회
+* 증적 확보율 Dashboard
 
 ## Phase 2 - Evidence Verification
 
-- 검수자 지정
-- 검수 상태 관리
-- 승인/반려
-- 검수 의견
-- 검수 이력
+* 검수자 지정
+* 검수 상태 관리
+* 승인/반려
+* 검수 의견
+* 검수 이력
 
 ## Phase 3 - Evidence Traceability
 
@@ -1875,21 +2041,22 @@ Report
 
 향후 Spring AI를 적용하여 다음 기능을 제공한다.
 
-- 필수 증적 누락 탐지
-- WBS 대비 증적 미등록 탐지
-- 일정 대비 증적 지연 탐지
-- 검수 반려 증적 분석
-- 반복적인 증적 누락 패턴 분석
-- 증적 제출 우선순위 추천
-- 주간 증적 상태 요약
-- 증적 관련 질의응답
+* 필수 증적 누락 탐지
+* WBS 대비 증적 미등록 탐지
+* 일정 대비 증적 지연 탐지
+* 검수 반려 증적 분석
+* 반복적인 증적 누락 패턴 분석
+* 증적 제출 우선순위 추천
+* 주간 증적 상태 요약
+* 증적 관련 질의응답
 
 ---
 
-# 25. Current Development Snapshot
+# 27. Current Development Snapshot
 
 ```text
 Backend
+
  ├─ Common Infrastructure       ✓
  ├─ Security / JWT              ✓
  ├─ Project CRUD                ✓
@@ -1899,25 +2066,66 @@ Backend
  ├─ WBS                         🚧
  └─ Schedule                    🚧
 
+
 Frontend
+
  ├─ React / Vite / TypeScript   ✓
  ├─ Router / Layout             ✓
  ├─ Common UI Components        ✓
  ├─ Dashboard Reference UI      ✓
  ├─ Dashboard Components        ✓
- ├─ Project UI                  🚧
+ ├─ Project List                ✓
+ ├─ Project Search              ✓
+ ├─ Project Detail              ✓
+ ├─ Project Create              ✓
+ ├─ Project Edit                ✓
+ ├─ Project Delete              ✓
+ ├─ Project CRUD Integration    ✓
  ├─ WBS API Integration         ✓
- ├─ WBS UI                      ✓
- ├─ WBS Delete                  ✓
+ ├─ WBS UI                     ✓
+ ├─ WBS Delete                 ✓
  └─ Schedule UI                 🚧
 
+
 Integration
- ├─ Project API Integration     🚧
+
+ ├─ Project API Integration     ✓
+ ├─ Project CRUD Verification   ✓
  ├─ Dashboard API Integration   → Next
  ├─ WBS API Integration         ✓
- ├─ WBS Integration Test        → Next
+ ├─ WBS Integration Test        → Current
  └─ Schedule API Integration    → Planned
 ```
+
+---
+
+# 28. Current Development Priority
+
+현재 PMIS 개발의 우선순위는 다음과 같다.
+
+```text
+1. WBS Integration Test
+        ↓
+2. WBS Browser Verification
+        ↓
+3. Schedule Backend API
+        ↓
+4. Schedule Frontend Integration
+        ↓
+5. Calendar UI
+        ↓
+6. Gantt UI
+        ↓
+7. Dashboard API Integration
+        ↓
+8. E2E Verification
+        ↓
+9. Issue / Risk / Change
+        ↓
+10. Evidence Management
+```
+
+현재 Project Management Frontend는 CRUD 전체가 완료되었으므로 Project 영역은 신규 기능 개발보다는 Integration Test 및 이후 Dashboard 연계 단계에서 활용한다.
 
 ---
 
