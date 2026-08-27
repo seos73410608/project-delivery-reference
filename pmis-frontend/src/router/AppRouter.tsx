@@ -97,7 +97,7 @@ function AppRouter() {
                     {/* Project Detail */}
 
                     <Route
-                        path="/project/:projectId"
+                        path="/project/:projectId/detail"
                         element={
                             <ProjectDetailPage />
                         }

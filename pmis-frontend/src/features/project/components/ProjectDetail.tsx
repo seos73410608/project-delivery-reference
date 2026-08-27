@@ -1,10 +1,37 @@
+/* =========================================================
+   Project Detail Component
+   ========================================================= */
+
 import type { Project } from '../types/project';
 
 import './ProjectDetail.css';
 
+
+/* =========================================================
+   Props
+   ========================================================= */
+
 interface ProjectDetailProps {
   project: Project;
+
+  /**
+   * 프로젝트 삭제
+   *
+   * 실제 DELETE API 호출은
+   * ProjectDetailPage에서 처리한다.
+   */
+  onDelete: () => void;
+
+  /**
+   * 삭제 처리 중 여부
+   */
+  deleting?: boolean;
 }
+
+
+/* =========================================================
+   Labels
+   ========================================================= */
 
 const STATUS_LABELS: Record<string, string> = {
   PLANNING: '계획',
@@ -14,6 +41,7 @@ const STATUS_LABELS: Record<string, string> = {
   CANCELLED: '취소',
 };
 
+
 const PRIORITY_LABELS: Record<string, string> = {
   LOW: '낮음',
   MEDIUM: '보통',
@@ -21,162 +49,375 @@ const PRIORITY_LABELS: Record<string, string> = {
   CRITICAL: '긴급',
 };
 
+
+/* =========================================================
+   Component
+   ========================================================= */
+
 function ProjectDetail({
   project,
+  onDelete,
+  deleting = false,
 }: ProjectDetailProps) {
+
   const statusLabel =
     STATUS_LABELS[project.status] ??
     project.status;
+
 
   const priorityLabel =
     PRIORITY_LABELS[project.priority] ??
     project.priority;
 
+
   return (
-    <section className="project-detail">
+
+    <section
+      className="project-detail"
+    >
+
+
       {/* ========================================
           Project Summary
           ======================================== */}
 
-      <div className="project-detail__summary">
-        <div className="project-detail__summary-main">
-          <div className="project-detail__code">
+      <div
+        className="project-detail__summary"
+      >
+
+        <div
+          className="project-detail__summary-main"
+        >
+
+          <div
+            className="project-detail__code"
+          >
             {project.projectCode}
           </div>
 
-          <h2>{project.projectName}</h2>
+
+          <h2>
+            {project.projectName}
+          </h2>
+
 
           <p>
             {project.description ||
               '프로젝트 설명이 없습니다.'}
           </p>
+
         </div>
 
-        <div className="project-detail__summary-status">
+
+        <div
+          className="project-detail__summary-status"
+        >
+
           <span
-            className={`project-status project-status--${project.status.toLowerCase()}`}
+            className={
+              `project-status ` +
+              `project-status--${project.status.toLowerCase()}`
+            }
           >
             {statusLabel}
           </span>
 
+
           <span
-            className={`project-priority project-priority--${project.priority.toLowerCase()}`}
+            className={
+              `project-priority ` +
+              `project-priority--${project.priority.toLowerCase()}`
+            }
           >
             {priorityLabel}
           </span>
+
         </div>
+
       </div>
+
 
       {/* ========================================
           Project Information
           ======================================== */}
 
-      <div className="project-detail__card">
-        <div className="project-detail__card-header">
+      <div
+        className="project-detail__card"
+      >
+
+        <div
+          className="project-detail__card-header"
+        >
+
           <div>
-            <span className="project-detail__section-label">
+
+            <span
+              className="project-detail__section-label"
+            >
               PROJECT INFORMATION
             </span>
 
-            <h3>프로젝트 정보</h3>
+
+            <h3>
+              프로젝트 정보
+            </h3>
+
           </div>
+
         </div>
 
-        <div className="project-detail__grid">
-          <div className="project-detail__item">
-            <span>프로젝트 코드</span>
-            <strong>{project.projectCode}</strong>
-          </div>
 
-          <div className="project-detail__item">
-            <span>프로젝트명</span>
-            <strong>{project.projectName}</strong>
-          </div>
+        <div
+          className="project-detail__grid"
+        >
 
-          <div className="project-detail__item">
-            <span>고객사</span>
-            <strong>{project.customerName}</strong>
-          </div>
+          <div
+            className="project-detail__item"
+          >
 
-          <div className="project-detail__item">
-            <span>프로젝트 관리자</span>
-            <strong>{project.projectManager}</strong>
-          </div>
-
-          <div className="project-detail__item">
-            <span>시작일</span>
-            <strong>{project.startDate}</strong>
-          </div>
-
-          <div className="project-detail__item">
-            <span>종료 예정일</span>
-            <strong>{project.endDate}</strong>
-          </div>
-
-          <div className="project-detail__item">
-            <span>프로젝트 상태</span>
+            <span>
+              프로젝트 코드
+            </span>
 
             <strong>
+              {project.projectCode}
+            </strong>
+
+          </div>
+
+
+          <div
+            className="project-detail__item"
+          >
+
+            <span>
+              프로젝트명
+            </span>
+
+            <strong>
+              {project.projectName}
+            </strong>
+
+          </div>
+
+
+          <div
+            className="project-detail__item"
+          >
+
+            <span>
+              고객사
+            </span>
+
+            <strong>
+              {project.customerName}
+            </strong>
+
+          </div>
+
+
+          <div
+            className="project-detail__item"
+          >
+
+            <span>
+              프로젝트 관리자
+            </span>
+
+            <strong>
+              {project.projectManager}
+            </strong>
+
+          </div>
+
+
+          <div
+            className="project-detail__item"
+          >
+
+            <span>
+              시작일
+            </span>
+
+            <strong>
+              {project.startDate}
+            </strong>
+
+          </div>
+
+
+          <div
+            className="project-detail__item"
+          >
+
+            <span>
+              종료 예정일
+            </span>
+
+            <strong>
+              {project.endDate}
+            </strong>
+
+          </div>
+
+
+          <div
+            className="project-detail__item"
+          >
+
+            <span>
+              프로젝트 상태
+            </span>
+
+            <strong>
+
               <span
-                className={`project-status project-status--${project.status.toLowerCase()}`}
+                className={
+                  `project-status ` +
+                  `project-status--${project.status.toLowerCase()}`
+                }
               >
                 {statusLabel}
               </span>
+
             </strong>
+
           </div>
 
-          <div className="project-detail__item">
-            <span>우선순위</span>
+
+          <div
+            className="project-detail__item"
+          >
+
+            <span>
+              우선순위
+            </span>
 
             <strong>
+
               <span
-                className={`project-priority project-priority--${project.priority.toLowerCase()}`}
+                className={
+                  `project-priority ` +
+                  `project-priority--${project.priority.toLowerCase()}`
+                }
               >
                 {priorityLabel}
               </span>
+
             </strong>
+
           </div>
+
         </div>
+
       </div>
+
 
       {/* ========================================
           Description
           ======================================== */}
 
-      <div className="project-detail__card">
-        <div className="project-detail__card-header">
+      <div
+        className="project-detail__card"
+      >
+
+        <div
+          className="project-detail__card-header"
+        >
+
           <div>
-            <span className="project-detail__section-label">
+
+            <span
+              className="project-detail__section-label"
+            >
               DESCRIPTION
             </span>
 
-            <h3>프로젝트 설명</h3>
+
+            <h3>
+              프로젝트 설명
+            </h3>
+
           </div>
+
         </div>
 
-        <div className="project-detail__description">
+
+        <div
+          className="project-detail__description"
+        >
+
           {project.description ||
             '등록된 프로젝트 설명이 없습니다.'}
+
         </div>
+
       </div>
+
 
       {/* ========================================
           Metadata
           ======================================== */}
 
-      <div className="project-detail__metadata">
-        <div>
-          <span>생성일</span>
-          <strong>{project.createdAt}</strong>
-        </div>
+      <div
+        className="project-detail__metadata"
+      >
 
         <div>
-          <span>수정일</span>
-          <strong>{project.updatedAt}</strong>
+
+          <span>
+            생성일
+          </span>
+
+          <strong>
+            {project.createdAt}
+          </strong>
+
         </div>
+
+
+        <div>
+
+          <span>
+            수정일
+          </span>
+
+          <strong>
+            {project.updatedAt}
+          </strong>
+
+        </div>
+
       </div>
+
+
+      {/* ========================================
+          Actions
+          ======================================== */}
+
+      <div
+        className="project-detail__actions"
+      >
+
+        <button
+          type="button"
+          className="project-detail__delete-button"
+          onClick={onDelete}
+          disabled={deleting}
+        >
+
+          {deleting
+            ? '삭제 중...'
+            : '프로젝트 삭제'}
+
+        </button>
+
+      </div>
+
     </section>
+
   );
 }
+
 
 export default ProjectDetail;

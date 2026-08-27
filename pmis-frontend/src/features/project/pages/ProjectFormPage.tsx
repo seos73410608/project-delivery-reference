@@ -258,7 +258,7 @@ function ProjectFormPage() {
          */
 
         navigate(
-            `/project/${createdProject.id}`,
+            `/project/${createdProject.id}/detail`,
         );
 
     };
@@ -288,11 +288,11 @@ function ProjectFormPage() {
          *
          * 프로젝트 상세 페이지로 이동
          *
-         * /project/{id}
+         * /project/{id}/detail
          */
 
         navigate(
-            `/project/${id}`,
+            `/project/${id}/detail`,
         );
 
     };

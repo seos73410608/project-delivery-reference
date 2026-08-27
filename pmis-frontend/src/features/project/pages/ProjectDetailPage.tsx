@@ -9,7 +9,11 @@ import {
   useParams,
 } from 'react-router-dom';
 
-import { getProject } from '../api/projectApi';
+import {
+  deleteProject,
+  getProject,
+} from '../api/projectApi';
+
 import ProjectDetail from '../components/ProjectDetail';
 
 import type {
@@ -62,6 +66,20 @@ function ProjectDetailPage() {
     loading,
     setLoading,
   ] = useState(true);
+
+
+  /**
+   * =====================================================
+   * Deleting
+   * =====================================================
+   *
+   * 프로젝트 삭제 처리 중 여부
+   */
+
+  const [
+    deleting,
+    setDeleting,
+  ] = useState(false);
 
 
   /**
@@ -244,6 +262,86 @@ function ProjectDetailPage() {
 
   /**
    * =====================================================
+   * 프로젝트 삭제
+   * =====================================================
+   *
+   * DELETE /api/projects/{id}
+   *
+   * Backend 정책:
+   * ADMIN 권한만 삭제 가능
+   */
+
+  const handleDelete = async () => {
+
+    if (!project) {
+      return;
+    }
+
+
+    /**
+     * 삭제 확인
+     */
+
+    const confirmed =
+      window.confirm(
+        `프로젝트 "${project.projectName}"을(를) 삭제하시겠습니까?\n\n삭제한 프로젝트는 복구할 수 없습니다.`,
+      );
+
+
+    if (!confirmed) {
+      return;
+    }
+
+
+    try {
+
+      setDeleting(true);
+
+      setError(null);
+
+
+      /**
+       * DELETE /api/projects/{id}
+       */
+
+      await deleteProject(
+        project.id,
+      );
+
+
+      /**
+       * 삭제 완료
+       *
+       * 프로젝트 목록으로 이동
+       */
+
+      navigate(
+        '/project',
+      );
+
+    } catch (err) {
+
+      console.error(
+        '프로젝트 삭제 실패:',
+        err,
+      );
+
+
+      setError(
+        '프로젝트 삭제에 실패했습니다. 삭제 권한을 확인해주세요.',
+      );
+
+    } finally {
+
+      setDeleting(false);
+
+    }
+
+  };
+
+
+  /**
+   * =====================================================
    * Loading
    * =====================================================
    */
@@ -285,7 +383,7 @@ function ProjectDetailPage() {
    */
 
   if (
-    error ||
+    error &&
     !project
   ) {
 
@@ -313,10 +411,62 @@ function ProjectDetailPage() {
 
 
           <span>
-            {
-              error ??
-              '프로젝트를 찾을 수 없습니다.'
-            }
+            {error}
+          </span>
+
+        </div>
+
+
+        <button
+          type="button"
+          className="project-detail-page__back-button"
+          onClick={handleBack}
+        >
+
+          프로젝트 목록
+
+        </button>
+
+      </div>
+
+    );
+
+  }
+
+
+  /**
+   * =====================================================
+   * Project 없음
+   * =====================================================
+   */
+
+  if (!project) {
+
+    return (
+
+      <div
+        className="project-detail-page"
+      >
+
+        <div
+          className="project-detail-page__error"
+          role="alert"
+        >
+
+          <div
+            className="project-detail-page__error-icon"
+          >
+            !
+          </div>
+
+
+          <strong>
+            프로젝트를 찾을 수 없습니다.
+          </strong>
+
+
+          <span>
+            요청한 프로젝트 정보가 존재하지 않습니다.
           </span>
 
         </div>
@@ -392,13 +542,13 @@ function ProjectDetailPage() {
           className="project-detail-page__header-actions"
         >
 
-
           {/* Edit */}
 
           <button
             type="button"
             className="project-detail-page__edit-button"
             onClick={handleEdit}
+            disabled={deleting}
           >
 
             수정
@@ -412,6 +562,7 @@ function ProjectDetailPage() {
             type="button"
             className="project-detail-page__back-button"
             onClick={handleBack}
+            disabled={deleting}
           >
 
             ← 목록으로
@@ -424,11 +575,40 @@ function ProjectDetailPage() {
 
 
       {/* ================================================
+          Delete Error
+          ================================================ */}
+
+      {error && (
+
+        <div
+          className="project-detail-page__action-error"
+          role="alert"
+        >
+
+          <span
+            className="project-detail-page__error-icon"
+          >
+            !
+          </span>
+
+
+          <span>
+            {error}
+          </span>
+
+        </div>
+
+      )}
+
+
+      {/* ================================================
           Project Detail
           ================================================ */}
 
       <ProjectDetail
         project={project}
+        onDelete={handleDelete}
+        deleting={deleting}
       />
 
     </div>
