@@ -119,4 +119,22 @@ public interface WbsRepository
     boolean existsByProjectId(
             Long projectId
     );
+
+    /**
+     * 특정 WBS가 프로젝트에 소속되어 있는지 확인
+     *
+     * Schedule 생성 및 수정 시
+     * 전달받은 projectId와 wbsId의 소속 관계를 검증하는 데 사용한다.
+     *
+     * Schedule이 특정 Project에 연결될 때
+     * 해당 WBS가 다른 Project의 WBS인지 확인하기 위한 메서드이다.
+     *
+     * @param projectId 프로젝트 ID
+     * @param id WBS ID
+     * @return 해당 프로젝트에 WBS가 존재하면 true
+     */
+    boolean existsByProjectIdAndId(
+            Long projectId,
+            Long id
+    );
 }

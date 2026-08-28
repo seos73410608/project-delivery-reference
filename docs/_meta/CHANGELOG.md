@@ -8,7 +8,7 @@
 
 # 변경 이력 관리 원칙
 
-본 문서는 PMIS 프로젝트의 주요 변경 사항을 기록한다.
+본 문서는 PMIS 프로젝트의 주요 변경 사항과 Release 이력을 기록한다.
 
 기록 대상:
 
@@ -21,9 +21,9 @@
 * Documentation
 * Build
 
-CHANGELOG에는 실제 개발이 완료되고 해당 Release에 포함된 변경 사항을 기록한다.
+CHANGELOG에는 **실제 개발이 완료되고 해당 Release에 포함된 변경 사항**을 기록한다.
 
-개발 예정 사항은 `DEVELOPMENT_ROADMAP.md`에서 관리하며, CHANGELOG의 Planned Releases에는 Release 방향을 요약해서 기록한다.
+개발 예정 사항은 `DEVELOPMENT_ROADMAP.md`에서 관리하며, CHANGELOG의 `Planned Releases`에는 향후 Release 방향을 요약해서 기록한다.
 
 ---
 
@@ -39,6 +39,7 @@ MAJOR.MINOR.PATCH
 
 ```text
 1.0.0
+
 │ │ └─ Patch
 │ └─── Minor
 └───── Major
@@ -280,7 +281,7 @@ Project Structure:
 
 ```text
 project-delivery-reference
-│
+
 ├── pmis-backend
 ├── pmis-frontend
 └── docs
@@ -290,14 +291,13 @@ Frontend Directory:
 
 ```text
 src
-│
+
 ├── api
 ├── assets
 ├── components
 │   ├── common
 │   ├── form
 │   └── layout
-│
 ├── features
 │   ├── admin
 │   ├── cmdb
@@ -308,7 +308,6 @@ src
 │   ├── risk
 │   ├── schedule
 │   └── task
-│
 ├── hooks
 ├── layouts
 ├── pages
@@ -481,22 +480,6 @@ Dashboard Components:
 * `IssueSummary`
 * `RecentActivity`
 
-Dashboard Layout:
-
-```text
-Project Overview
-       │
-       ├── Project Status KPI
-       ├── Progress KPI
-       ├── Schedule KPI
-       └── Issues KPI
-       │
-       ├── WBS Progress
-       ├── Schedule Summary
-       ├── Issues / Risks
-       └── Recent Activity
-```
-
 #### Changed
 
 * 기존 Dashboard Skeleton을 PMIS 운영 Dashboard 형태로 확장
@@ -529,7 +512,12 @@ vite v8.2.1 building client environment for production...
 
 #### Git
 
-* Feature Branch 생성: `feature/frontend-dashboard-hmc-reference`
+Feature Branch:
+
+```text
+feature/frontend-dashboard-hmc-reference
+```
+
 * Feature Branch Push 완료
 * `develop` Branch Merge 완료
 * `develop` Push 완료
@@ -673,6 +661,7 @@ WBS Delete의 업무 제약은 현재 Frontend에서 우선 검증한다.
 
 ```text
 Frontend
+
    │
    ├─ 하위 WBS 존재 여부 확인
    │
@@ -711,10 +700,12 @@ WBS:
 Schedule:
 
 * Schedule CRUD
+* Schedule 조회 API
 * Calendar
 * Gantt Chart
 * Milestone
 * WBS Progress Calculation
+* WBS Progress API Integration
 * Schedule API Integration
 
 ---
@@ -875,8 +866,8 @@ main
  ├── feature/report-pdf
  │
  └── feature/spring-ai
-      ├── feature/ai-risk-analysis
-      └── feature/ai-report-summary
+     ├── feature/ai-risk-analysis
+     └── feature/ai-report-summary
 ```
 
 ### Branch Policy
@@ -908,29 +899,18 @@ Examples:
 
 ```text
 feat: implement JWT authentication
-
 feat: implement project CRUD
-
 feat: implement project search
-
 feat: implement project dashboard api
-
 feat: separate project detail api
 
 feat(frontend): implement React router
-
 feat(frontend): add sidebar component
-
 feat(frontend): add common UI components
-
 feat(frontend): add dashboard reference layout
-
 feat(frontend): add dashboard widgets
-
 feat(frontend): implement WBS API integration
-
 feat(frontend): implement WBS status change
-
 feat(frontend): implement WBS delete
 
 fix: resolve JWT validation issue
@@ -955,39 +935,39 @@ build: upgrade Spring Boot
 
 #### Added
 
-- 
+-
 
 #### Changed
 
-- 
+-
 
 #### Fixed
 
-- 
+-
 
 #### Removed
 
-- 
+-
 
 #### Refactoring
 
-- 
+-
 
 #### Documentation
 
-- 
+-
 
 #### Build
 
-- 
+-
 
 #### Git
 
-- 
+-
 
 #### Note
 
-- 
+-
 ```
 
 ---
@@ -1048,6 +1028,7 @@ build: upgrade Spring Boot
 ### In Progress
 
 * WBS Progress Calculation
+* Schedule Domain
 * Schedule CRUD
 * Calendar API
 * Gantt Data
@@ -1099,8 +1080,9 @@ build: upgrade Spring Boot
 ### Current
 
 * Dashboard Reference UI
-* Project Module
-* WBS Module
+* Project UI
+* WBS UI
+* WBS API Integration
 * Theme
 * API Integration
 * Form Components
@@ -1134,6 +1116,10 @@ build: upgrade Spring Boot
 * Project Detail API Integration
 * WBS Progress Integration
 * Schedule API Integration
+* Loading / Empty / Error State
+* API Error Handling
+* Browser Verification
+* E2E Verification
 
 ---
 
