@@ -1,7 +1,7 @@
 import {
-    BrowserRouter,
-    Routes,
-    Route,
+BrowserRouter,
+Routes,
+Route,
 } from "react-router-dom";
 
 import MainLayout from "../layouts/MainLayout";
@@ -15,113 +15,126 @@ import ProjectPage from "../features/project/pages/ProjectPage";
 import ProjectDetailPage from "../features/project/pages/ProjectDetailPage";
 import ProjectFormPage from "../features/project/pages/ProjectFormPage";
 
+import SchedulePage from "../features/schedule/SchedulePage";
 
 function AppRouter() {
 
-    return (
 
-        <BrowserRouter>
+return (
 
-            <Routes>
+    <BrowserRouter>
+
+        <Routes>
 
 
-                {/* Login */}
+            {/* Login */}
+
+            <Route
+                path="/login"
+                element={
+                    <LoginPage />
+                }
+            />
+
+
+            {/* Main Layout */}
+
+            <Route
+                element={
+                    <MainLayout />
+                }
+            >
+
+
+                {/* Dashboard */}
 
                 <Route
-                    path="/login"
+                    path="/"
                     element={
-                        <LoginPage />
+                        <DashboardPage />
                     }
                 />
 
 
-                {/* Main Layout */}
+                {/* Evidence */}
 
                 <Route
+                    path="/evidence"
                     element={
-                        <MainLayout />
+                        <EvidencePage />
                     }
-                >
+                />
 
 
-                    {/* Dashboard */}
+                {/* WBS */}
 
-                    <Route
-                        path="/"
-                        element={
-                            <DashboardPage />
-                        }
-                    />
-
-
-                    {/* Evidence */}
-
-                    <Route
-                        path="/evidence"
-                        element={
-                            <EvidencePage />
-                        }
-                    />
+                <Route
+                    path="/wbs"
+                    element={
+                        <WbsPage />
+                    }
+                />
 
 
-                    {/* WBS */}
+                {/* Project List */}
 
-                    <Route
-                        path="/wbs"
-                        element={
-                            <WbsPage />
-                        }
-                    />
-
-
-                    {/* Project List */}
-
-                    <Route
-                        path="/project"
-                        element={
-                            <ProjectPage />
-                        }
-                    />
+                <Route
+                    path="/project"
+                    element={
+                        <ProjectPage />
+                    }
+                />
 
 
-                    {/* Project Create */}
+                {/* Project Create */}
 
-                    <Route
-                        path="/project/create"
-                        element={
-                            <ProjectFormPage />
-                        }
-                    />
-
-
-                    {/* Project Detail */}
-
-                    <Route
-                        path="/project/:projectId/detail"
-                        element={
-                            <ProjectDetailPage />
-                        }
-                    />
+                <Route
+                    path="/project/create"
+                    element={
+                        <ProjectFormPage />
+                    }
+                />
 
 
-                    {/* Project Edit */}
+                {/* Project Detail */}
 
-                    <Route
-                        path="/project/:projectId/edit"
-                        element={
-                            <ProjectFormPage />
-                        }
-                    />
+                <Route
+                    path="/project/:projectId/detail"
+                    element={
+                        <ProjectDetailPage />
+                    }
+                />
 
 
-                </Route>
+                {/* Project Edit */}
 
-            </Routes>
+                <Route
+                    path="/project/:projectId/edit"
+                    element={
+                        <ProjectFormPage />
+                    }
+                />
 
-        </BrowserRouter>
 
-    );
+                {/* Schedule */}
+
+                <Route
+                    path="/schedule"
+                    element={
+                        <SchedulePage />
+                    }
+                />
+
+
+            </Route>
+
+        </Routes>
+
+    </BrowserRouter>
+
+);
+
+
 }
-
 
 export default AppRouter;
