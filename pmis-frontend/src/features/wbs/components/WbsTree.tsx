@@ -286,46 +286,22 @@ function WbsTree({
         onSelect(node);
     };
 
+
     return (
-        <section
-            style={{
-                backgroundColor: "#ffffff",
-                border: "1px solid #dddddd",
-                borderRadius: "6px",
-                overflow: "hidden",
-            }}
-        >
+        <section className="wbs-tree">
 
             {/* Header */}
-            <div
-                style={{
-                    padding: "16px",
-                    borderBottom:
-                        "1px solid #eeeeee",
-                    fontWeight: "bold",
-                    fontSize: "18px",
-                }}
-            >
+            <div className="wbs-tree-header">
                 WBS Structure
             </div>
 
 
             {/* Tree */}
-            <div
-                style={{
-                    padding: "12px",
-                }}
-            >
+            <div className="wbs-tree-content">
 
                 {displayTree.length === 0 ? (
 
-                    <div
-                        style={{
-                            padding: "24px",
-                            textAlign: "center",
-                            color: "#777777",
-                        }}
-                    >
+                    <div className="wbs-tree-empty">
                         No WBS found.
                     </div>
 

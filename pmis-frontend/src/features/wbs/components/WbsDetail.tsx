@@ -65,37 +65,7 @@ function WbsDetail({
 
         return (
             <section
-                style={{
-                    backgroundColor:
-                        "#ffffff",
-
-                    border:
-                        "1px solid #dddddd",
-
-                    borderRadius:
-                        "6px",
-
-                    minHeight:
-                        "300px",
-
-                    display:
-                        "flex",
-
-                    alignItems:
-                        "center",
-
-                    justifyContent:
-                        "center",
-
-                    color:
-                        "#999999",
-
-                    padding:
-                        "24px",
-
-                    boxSizing:
-                        "border-box",
-                }}
+                className="wbs-detail-empty"
             >
                 Select a WBS item to view details.
             </section>
@@ -114,70 +84,25 @@ function WbsDetail({
 
     return (
         <section
-            style={{
-                backgroundColor:
-                    "#ffffff",
-
-                border:
-                    "1px solid #dddddd",
-
-                borderRadius:
-                    "6px",
-
-                overflow:
-                    "hidden",
-            }}
+            className="wbs-detail"
         >
 
             {/* Header */}
             <div
-                style={{
-                    display:
-                        "flex",
-
-                    alignItems:
-                        "center",
-
-                    justifyContent:
-                        "space-between",
-
-                    padding:
-                        "16px",
-
-                    borderBottom:
-                        "1px solid #eeeeee",
-                }}
+                className="wbs-detail-header"
             >
 
                 <div>
 
                     <div
-                        style={{
-                            fontSize:
-                                "12px",
-
-                            color:
-                                "#777777",
-
-                            marginBottom:
-                                "4px",
-                        }}
+                        className="wbs-detail-label"
                     >
                         WBS Detail
                     </div>
 
 
                     <h2
-                        style={{
-                            margin:
-                                0,
-
-                            fontSize:
-                                "20px",
-
-                            color:
-                                "#333333",
-                        }}
+                        className="wbs-detail-title"
                     >
                         {
                             wbs.wbsName
@@ -189,27 +114,13 @@ function WbsDetail({
 
                 {/* Status */}
                 <span
+                    className="wbs-detail-status"
                     style={{
-                        padding:
-                            "6px 10px",
-
-                        borderRadius:
-                            "12px",
-
                         backgroundColor:
                             `${statusColor}15`,
 
                         color:
                             statusColor,
-
-                        fontSize:
-                            "12px",
-
-                        fontWeight:
-                            "bold",
-
-                        whiteSpace:
-                            "nowrap",
                     }}
                 >
                     {
@@ -224,10 +135,7 @@ function WbsDetail({
 
             {/* Detail */}
             <div
-                style={{
-                    padding:
-                        "20px",
-                }}
+                className="wbs-detail-content"
             >
 
                 {/* WBS ID */}
@@ -318,66 +226,18 @@ function WbsDetail({
 
                 {/* Description */}
                 <div
-                    style={{
-                        marginTop:
-                            "20px",
-                    }}
+                    className="wbs-detail-description-section"
                 >
 
                     <div
-                        style={{
-                            fontSize:
-                                "13px",
-
-                            fontWeight:
-                                "bold",
-
-                            color:
-                                "#555555",
-
-                            marginBottom:
-                                "8px",
-                        }}
+                        className="wbs-detail-description-label"
                     >
                         Description
                     </div>
 
 
                     <div
-                        style={{
-                            minHeight:
-                                "80px",
-
-                            padding:
-                                "12px",
-
-                            backgroundColor:
-                                "#f9f9f9",
-
-                            border:
-                                "1px solid #eeeeee",
-
-                            borderRadius:
-                                "4px",
-
-                            fontSize:
-                                "14px",
-
-                            lineHeight:
-                                1.6,
-
-                            color:
-                                "#444444",
-
-                            boxSizing:
-                                "border-box",
-
-                            whiteSpace:
-                                "pre-wrap",
-
-                            wordBreak:
-                                "break-word",
-                        }}
+                        className="wbs-detail-description"
                     >
                         {
                             wbs.description ||
@@ -390,16 +250,7 @@ function WbsDetail({
 
                 {/* Metadata */}
                 <div
-                    style={{
-                        marginTop:
-                            "20px",
-
-                        paddingTop:
-                            "16px",
-
-                        borderTop:
-                            "1px solid #eeeeee",
-                    }}
+                    className="wbs-detail-metadata"
                 >
 
                     <DetailRow
@@ -426,16 +277,7 @@ function WbsDetail({
 
                 {/* Actions */}
                 <div
-                    style={{
-                        display:
-                            "flex",
-
-                        gap:
-                            "8px",
-
-                        marginTop:
-                            "24px",
-                    }}
+                    className="wbs-detail-actions"
                 >
 
                     {/* Edit */}
@@ -446,31 +288,7 @@ function WbsDetail({
                                 wbs,
                             )
                         }
-                        style={{
-                            flex:
-                                1,
-
-                            padding:
-                                "10px 12px",
-
-                            border:
-                                "1px solid #1976d2",
-
-                            borderRadius:
-                                "4px",
-
-                            backgroundColor:
-                                "#ffffff",
-
-                            color:
-                                "#1976d2",
-
-                            fontWeight:
-                                "bold",
-
-                            cursor:
-                                "pointer",
-                        }}
+                        className="wbs-detail-button wbs-detail-button-edit"
                     >
                         Edit
                     </button>
@@ -484,31 +302,7 @@ function WbsDetail({
                                 wbs,
                             )
                         }
-                        style={{
-                            flex:
-                                1,
-
-                            padding:
-                                "10px 12px",
-
-                            border:
-                                "1px solid #757575",
-
-                            borderRadius:
-                                "4px",
-
-                            backgroundColor:
-                                "#ffffff",
-
-                            color:
-                                "#555555",
-
-                            fontWeight:
-                                "bold",
-
-                            cursor:
-                                "pointer",
-                        }}
+                        className="wbs-detail-button wbs-detail-button-status"
                     >
                         Change Status
                     </button>
@@ -522,31 +316,7 @@ function WbsDetail({
                                 wbs,
                             )
                         }
-                        style={{
-                            flex:
-                                1,
-
-                            padding:
-                                "10px 12px",
-
-                            border:
-                                "1px solid #d32f2f",
-
-                            borderRadius:
-                                "4px",
-
-                            backgroundColor:
-                                "#ffffff",
-
-                            color:
-                                "#d32f2f",
-
-                            fontWeight:
-                                "bold",
-
-                            cursor:
-                                "pointer",
-                        }}
+                        className="wbs-detail-button wbs-detail-button-delete"
                     >
                         Delete
                     </button>
@@ -573,35 +343,11 @@ function DetailRow({
 
     return (
         <div
-            style={{
-                display:
-                    "grid",
-
-                gridTemplateColumns:
-                    "120px 1fr",
-
-                gap:
-                    "12px",
-
-                padding:
-                    "8px 0",
-
-                borderBottom:
-                    "1px solid #f0f0f0",
-            }}
+            className="wbs-detail-row"
         >
 
             <span
-                style={{
-                    fontSize:
-                        "13px",
-
-                    color:
-                        "#777777",
-
-                    fontWeight:
-                        "bold",
-                }}
+                className="wbs-detail-row-label"
             >
                 {
                     label
@@ -610,16 +356,7 @@ function DetailRow({
 
 
             <span
-                style={{
-                    fontSize:
-                        "14px",
-
-                    color:
-                        "#333333",
-
-                    wordBreak:
-                        "break-word",
-                }}
+                className="wbs-detail-row-value"
             >
                 {
                     value

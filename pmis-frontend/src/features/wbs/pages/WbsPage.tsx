@@ -60,7 +60,7 @@ type WbsPageFormMode =
 
 /**
  * 검색 결과로 반환된 Flat WBS를
- * 기존 WbsTree에서 사용할 수 있는 형태로 변환한다.
+ * WbsTree에서 사용할 수 있는 형태로 변환한다.
  *
  * 검색 API는 children을 반환하지 않기 때문에
  * 검색 결과 각각을 독립된 Tree Node로 표현한다.
@@ -305,8 +305,8 @@ function WbsPage() {
 
 
                             /**
-                             * 최초 진입 시
-                             * Virtual Root 선택
+                             * 전체 Tree 조회 시
+                             * 선택 상태 초기화
                              */
                             setSelectedWbs(null);
 
@@ -356,7 +356,7 @@ function WbsPage() {
 
                         /**
                          * 검색 결과에서는
-                         * 실제 선택 상태를 초기화
+                         * 선택 상태를 초기화한다.
                          */
                         setSelectedWbs(null);
 
@@ -470,12 +470,6 @@ function WbsPage() {
 
 
             /**
-             * Form 닫기
-             */
-            setShowForm(false);
-
-
-            /**
              * 최신 Tree 조회
              */
             const data =
@@ -513,6 +507,12 @@ function WbsPage() {
 
 
             /**
+             * Form 닫기
+             */
+            setShowForm(false);
+
+
+            /**
              * Form Parent 초기화
              */
             setFormParentWbs(null);
@@ -531,8 +531,8 @@ function WbsPage() {
 
 
             /**
-             * WbsForm에서
-             * 자체 Error 처리 가능하도록
+             * WbsForm에서도
+             * Error를 표시할 수 있도록
              * 다시 throw
              */
             throw err;
@@ -625,12 +625,6 @@ function WbsPage() {
 
 
             /**
-             * Form 닫기
-             */
-            setShowForm(false);
-
-
-            /**
              * 최신 Tree 조회
              */
             const data =
@@ -643,7 +637,7 @@ function WbsPage() {
 
 
             /**
-             * 수정된 WBS 다시 조회
+             * 수정된 WBS를 다시 찾는다.
              */
             const updatedNode =
                 findWbsById(
@@ -662,6 +656,12 @@ function WbsPage() {
 
                 setSelectedWbs(null);
             }
+
+
+            /**
+             * Form 닫기
+             */
+            setShowForm(false);
 
 
             /**
@@ -718,7 +718,7 @@ function WbsPage() {
 
 
         /**
-         * 상태 변경 Form 표시
+         * Status Form 표시
          */
         setShowForm(true);
     };
@@ -796,12 +796,6 @@ function WbsPage() {
 
 
             /**
-             * Status Form 닫기
-             */
-            setShowForm(false);
-
-
-            /**
              * 최신 Tree 조회
              */
             const data =
@@ -834,6 +828,12 @@ function WbsPage() {
 
                 setSelectedWbs(null);
             }
+
+
+            /**
+             * Status Form 닫기
+             */
+            setShowForm(false);
 
         } catch (err) {
 
@@ -889,10 +889,6 @@ function WbsPage() {
 
         /**
          * 하위 WBS 존재 여부 확인
-         *
-         * Portfolio 단계에서는
-         * Front에서 삭제 제약사항을
-         * 명확하게 처리한다.
          */
         if (
             selectedWbs.children.length > 0
@@ -1013,7 +1009,9 @@ function WbsPage() {
                 <h1
                     style={{
                         margin: 0,
-                        fontSize: "28px",
+
+                        fontSize:
+                            "28px",
                     }}
                 >
                     WBS Management

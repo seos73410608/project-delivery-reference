@@ -372,55 +372,17 @@ function WbsForm({
 
 
     return (
-        <div
-            style={{
-                backgroundColor:
-                    "#ffffff",
-
-                border:
-                    "1px solid #dddddd",
-
-                borderRadius:
-                    "6px",
-
-                padding:
-                    "20px",
-            }}
-        >
+        <div className="wbs-form">
 
             {/* Header */}
-            <div
-                style={{
-                    marginBottom:
-                        "20px",
-                }}
-            >
+            <div className="wbs-form-header">
 
-                <h2
-                    style={{
-                        margin: 0,
-                        fontSize: "20px",
-                    }}
-                >
+                <h2 className="wbs-form-title">
                     {formTitle}
                 </h2>
 
 
-                <p
-                    style={{
-                        marginTop:
-                            "8px",
-
-                        marginBottom:
-                            0,
-
-                        color:
-                            "#666666",
-
-                        fontSize:
-                            "14px",
-                    }}
-                >
+                <p className="wbs-form-description">
                     {formDescription}
                 </p>
 
@@ -429,30 +391,7 @@ function WbsForm({
 
             {/* Error */}
             {error && (
-                <div
-                    style={{
-                        marginBottom:
-                            "16px",
-
-                        padding:
-                            "12px",
-
-                        backgroundColor:
-                            "#fff3f3",
-
-                        border:
-                            "1px solid #f0b8b8",
-
-                        borderRadius:
-                            "4px",
-
-                        color:
-                            "#c62828",
-
-                        fontSize:
-                            "14px",
-                    }}
-                >
+                <div className="wbs-form-error">
                     {error}
                 </div>
             )}
@@ -465,25 +404,9 @@ function WbsForm({
             >
 
                 {/* Project ID */}
-                <div
-                    style={{
-                        marginBottom:
-                            "16px",
-                    }}
-                >
+                <div className="wbs-form-field">
 
-                    <label
-                        style={{
-                            display:
-                                "block",
-
-                            marginBottom:
-                                "6px",
-
-                            fontWeight:
-                                "bold",
-                        }}
-                    >
+                    <label className="wbs-form-label">
                         Project ID
                     </label>
 
@@ -494,28 +417,7 @@ function WbsForm({
                             projectId
                         }
                         disabled
-                        style={{
-                            width:
-                                "100%",
-
-                            padding:
-                                "10px",
-
-                            boxSizing:
-                                "border-box",
-
-                            border:
-                                "1px solid #dddddd",
-
-                            borderRadius:
-                                "4px",
-
-                            backgroundColor:
-                                "#f5f5f5",
-
-                            color:
-                                "#666666",
-                        }}
+                        className="wbs-form-input"
                     />
 
                 </div>
@@ -524,25 +426,9 @@ function WbsForm({
                 {/* WBS ID - Edit only */}
                 {isEditMode &&
                     wbs && (
-                        <div
-                            style={{
-                                marginBottom:
-                                    "16px",
-                            }}
-                        >
+                        <div className="wbs-form-field">
 
-                            <label
-                                style={{
-                                    display:
-                                        "block",
-
-                                    marginBottom:
-                                        "6px",
-
-                                    fontWeight:
-                                        "bold",
-                                }}
-                            >
+                            <label className="wbs-form-label">
                                 WBS ID
                             </label>
 
@@ -553,28 +439,7 @@ function WbsForm({
                                     wbs.id
                                 }
                                 disabled
-                                style={{
-                                    width:
-                                        "100%",
-
-                                    padding:
-                                        "10px",
-
-                                    boxSizing:
-                                        "border-box",
-
-                                    border:
-                                        "1px solid #dddddd",
-
-                                    borderRadius:
-                                        "4px",
-
-                                    backgroundColor:
-                                        "#f5f5f5",
-
-                                    color:
-                                        "#666666",
-                                }}
+                                className="wbs-form-input"
                             />
 
                         </div>
@@ -582,25 +447,9 @@ function WbsForm({
 
 
                 {/* Parent WBS */}
-                <div
-                    style={{
-                        marginBottom:
-                            "16px",
-                    }}
-                >
+                <div className="wbs-form-field">
 
-                    <label
-                        style={{
-                            display:
-                                "block",
-
-                            marginBottom:
-                                "6px",
-
-                            fontWeight:
-                                "bold",
-                        }}
-                    >
+                    <label className="wbs-form-label">
                         Parent WBS
                     </label>
 
@@ -613,53 +462,16 @@ function WbsForm({
                                 : "최상위 WBS"
                         }
                         disabled
-                        style={{
-                            width:
-                                "100%",
-
-                            padding:
-                                "10px",
-
-                            boxSizing:
-                                "border-box",
-
-                            border:
-                                "1px solid #dddddd",
-
-                            borderRadius:
-                                "4px",
-
-                            backgroundColor:
-                                "#f5f5f5",
-
-                            color:
-                                "#666666",
-                        }}
+                        className="wbs-form-input"
                     />
 
                 </div>
 
 
                 {/* WBS Code */}
-                <div
-                    style={{
-                        marginBottom:
-                            "16px",
-                    }}
-                >
+                <div className="wbs-form-field">
 
-                    <label
-                        style={{
-                            display:
-                                "block",
-
-                            marginBottom:
-                                "6px",
-
-                            fontWeight:
-                                "bold",
-                        }}
-                    >
+                    <label className="wbs-form-label">
                         WBS Code
                     </label>
 
@@ -681,47 +493,16 @@ function WbsForm({
                         disabled={
                             submitting
                         }
-                        style={{
-                            width:
-                                "100%",
-
-                            padding:
-                                "10px",
-
-                            boxSizing:
-                                "border-box",
-
-                            border:
-                                "1px solid #cccccc",
-
-                            borderRadius:
-                                "4px",
-                        }}
+                        className="wbs-form-input"
                     />
 
                 </div>
 
 
                 {/* WBS Name */}
-                <div
-                    style={{
-                        marginBottom:
-                            "16px",
-                    }}
-                >
+                <div className="wbs-form-field">
 
-                    <label
-                        style={{
-                            display:
-                                "block",
-
-                            marginBottom:
-                                "6px",
-
-                            fontWeight:
-                                "bold",
-                        }}
-                    >
+                    <label className="wbs-form-label">
                         WBS 명
                     </label>
 
@@ -743,47 +524,16 @@ function WbsForm({
                         disabled={
                             submitting
                         }
-                        style={{
-                            width:
-                                "100%",
-
-                            padding:
-                                "10px",
-
-                            boxSizing:
-                                "border-box",
-
-                            border:
-                                "1px solid #cccccc",
-
-                            borderRadius:
-                                "4px",
-                        }}
+                        className="wbs-form-input"
                     />
 
                 </div>
 
 
                 {/* Description */}
-                <div
-                    style={{
-                        marginBottom:
-                            "16px",
-                    }}
-                >
+                <div className="wbs-form-field">
 
-                    <label
-                        style={{
-                            display:
-                                "block",
-
-                            marginBottom:
-                                "6px",
-
-                            fontWeight:
-                                "bold",
-                        }}
-                    >
+                    <label className="wbs-form-label">
                         설명
                     </label>
 
@@ -805,50 +555,16 @@ function WbsForm({
                             submitting
                         }
                         rows={4}
-                        style={{
-                            width:
-                                "100%",
-
-                            padding:
-                                "10px",
-
-                            boxSizing:
-                                "border-box",
-
-                            border:
-                                "1px solid #cccccc",
-
-                            borderRadius:
-                                "4px",
-
-                            resize:
-                                "vertical",
-                        }}
+                        className="wbs-form-textarea"
                     />
 
                 </div>
 
 
                 {/* Status */}
-                <div
-                    style={{
-                        marginBottom:
-                            "16px",
-                    }}
-                >
+                <div className="wbs-form-field">
 
-                    <label
-                        style={{
-                            display:
-                                "block",
-
-                            marginBottom:
-                                "6px",
-
-                            fontWeight:
-                                "bold",
-                        }}
-                    >
+                    <label className="wbs-form-label">
                         상태
                     </label>
 
@@ -868,25 +584,7 @@ function WbsForm({
                         disabled={
                             submitting
                         }
-                        style={{
-                            width:
-                                "100%",
-
-                            padding:
-                                "10px",
-
-                            boxSizing:
-                                "border-box",
-
-                            border:
-                                "1px solid #cccccc",
-
-                            borderRadius:
-                                "4px",
-
-                            backgroundColor:
-                                "#ffffff",
-                        }}
+                        className="wbs-form-select"
                     >
 
                         <option value="PLANNED">
@@ -915,25 +613,9 @@ function WbsForm({
 
 
                 {/* Sort Order */}
-                <div
-                    style={{
-                        marginBottom:
-                            "20px",
-                    }}
-                >
+                <div className="wbs-form-field-last">
 
-                    <label
-                        style={{
-                            display:
-                                "block",
-
-                            marginBottom:
-                                "6px",
-
-                            fontWeight:
-                                "bold",
-                        }}
-                    >
+                    <label className="wbs-form-label">
                         정렬 순서
                     </label>
 
@@ -957,40 +639,14 @@ function WbsForm({
                         disabled={
                             submitting
                         }
-                        style={{
-                            width:
-                                "100%",
-
-                            padding:
-                                "10px",
-
-                            boxSizing:
-                                "border-box",
-
-                            border:
-                                "1px solid #cccccc",
-
-                            borderRadius:
-                                "4px",
-                        }}
+                        className="wbs-form-input"
                     />
 
                 </div>
 
 
                 {/* Buttons */}
-                <div
-                    style={{
-                        display:
-                            "flex",
-
-                        justifyContent:
-                            "flex-end",
-
-                        gap:
-                            "8px",
-                    }}
-                >
+                <div className="wbs-form-buttons">
 
                     {/* Cancel */}
                     <button
@@ -1001,24 +657,7 @@ function WbsForm({
                         disabled={
                             submitting
                         }
-                        style={{
-                            padding:
-                                "10px 16px",
-
-                            border:
-                                "1px solid #cccccc",
-
-                            borderRadius:
-                                "4px",
-
-                            backgroundColor:
-                                "#ffffff",
-
-                            cursor:
-                                submitting
-                                    ? "default"
-                                    : "pointer",
-                        }}
+                        className="wbs-form-button cancel"
                     >
                         취소
                     </button>
@@ -1030,30 +669,7 @@ function WbsForm({
                         disabled={
                             submitting
                         }
-                        style={{
-                            padding:
-                                "10px 16px",
-
-                            border:
-                                "none",
-
-                            borderRadius:
-                                "4px",
-
-                            backgroundColor:
-                                "#1976d2",
-
-                            color:
-                                "#ffffff",
-
-                            cursor:
-                                submitting
-                                    ? "default"
-                                    : "pointer",
-
-                            fontWeight:
-                                "bold",
-                        }}
+                        className="wbs-form-button submit"
                     >
                         {submitting
                             ? isEditMode

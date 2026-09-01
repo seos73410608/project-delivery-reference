@@ -138,44 +138,25 @@ function WbsTreeNode({
 
 
     return (
-        <div>
+        <div className="wbs-tree-node-wrapper">
+
             {/* WBS Node */}
             <div
                 onClick={handleSelect}
+                className={[
+                    "wbs-tree-node",
+                    isSelected
+                        ? "wbs-tree-node-selected"
+                        : "",
+                    isVirtualRoot
+                        ? "wbs-tree-node-root"
+                        : "",
+                ]
+                    .filter(Boolean)
+                    .join(" ")}
                 style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "8px",
-
-                    padding: "8px 12px",
-
                     paddingLeft:
                         `${paddingLeft}px`,
-
-                    borderRadius: "4px",
-
-                    cursor: "pointer",
-
-                    backgroundColor:
-                        isSelected
-                            ? "#e3f2fd"
-                            : isVirtualRoot
-                              ? "#f5f5f5"
-                              : "transparent",
-
-                    border:
-                        isSelected
-                            ? "1px solid #90caf9"
-                            : isVirtualRoot
-                              ? "1px solid #dddddd"
-                              : "1px solid transparent",
-
-                    marginBottom: "2px",
-
-                    fontWeight:
-                        isVirtualRoot
-                            ? "bold"
-                            : "normal",
                 }}
             >
 
@@ -187,20 +168,11 @@ function WbsTreeNode({
                         handleToggle();
                     }}
                     disabled={!hasChildren}
-                    style={{
-                        width: "24px",
-                        height: "24px",
-                        padding: 0,
-                        border: "none",
-                        backgroundColor:
-                            "transparent",
-                        cursor:
-                            hasChildren
-                                ? "pointer"
-                                : "default",
-                        color: "#555555",
-                        fontSize: "14px",
-                    }}
+                    className={`wbs-tree-toggle ${
+                        hasChildren
+                            ? "wbs-tree-toggle-enabled"
+                            : "wbs-tree-toggle-disabled"
+                    }`}
                 >
                     {hasChildren
                         ? expanded
@@ -212,14 +184,11 @@ function WbsTreeNode({
 
                 {/* WBS Code */}
                 <span
-                    style={{
-                        minWidth: "60px",
-                        fontWeight: "bold",
-                        color:
-                            isVirtualRoot
-                                ? "#1976d2"
-                                : "#333333",
-                    }}
+                    className={`wbs-tree-code ${
+                        isVirtualRoot
+                            ? "wbs-tree-code-root"
+                            : ""
+                    }`}
                 >
                     {isVirtualRoot
                         ? "ROOT"
@@ -228,32 +197,14 @@ function WbsTreeNode({
 
 
                 {/* WBS Name */}
-                <span
-                    style={{
-                        flex: 1,
-                        color: "#333333",
-                    }}
-                >
+                <span className="wbs-tree-name">
                     {node.wbsName}
                 </span>
 
 
                 {/* Virtual Root 설명 */}
                 {isVirtualRoot && (
-                    <span
-                        style={{
-                            padding:
-                                "4px 8px",
-                            borderRadius:
-                                "12px",
-                            backgroundColor:
-                                "#e3f2fd",
-                            fontSize: "12px",
-                            color: "#1976d2",
-                            whiteSpace:
-                                "nowrap",
-                        }}
-                    >
+                    <span className="wbs-tree-root-badge">
                         최상위 WBS
                     </span>
                 )}
@@ -261,20 +212,7 @@ function WbsTreeNode({
 
                 {/* Status */}
                 {!isVirtualRoot && (
-                    <span
-                        style={{
-                            padding:
-                                "4px 8px",
-                            borderRadius:
-                                "12px",
-                            backgroundColor:
-                                "#f5f5f5",
-                            fontSize: "12px",
-                            color: "#555555",
-                            whiteSpace:
-                                "nowrap",
-                        }}
-                    >
+                    <span className="wbs-tree-status">
                         {
                             WBS_STATUS_LABEL[
                                 node.status
@@ -286,14 +224,7 @@ function WbsTreeNode({
 
                 {/* Sort Order */}
                 {!isVirtualRoot && (
-                    <span
-                        style={{
-                            width: "40px",
-                            textAlign: "right",
-                            fontSize: "12px",
-                            color: "#999999",
-                        }}
-                    >
+                    <span className="wbs-tree-sort-order">
                         #{node.sortOrder}
                     </span>
                 )}
@@ -303,7 +234,7 @@ function WbsTreeNode({
             {/* Children */}
             {hasChildren &&
                 expanded && (
-                    <div>
+                    <div className="wbs-tree-children">
                         {node.children.map(
                             (child) => (
                                 <WbsTreeNode

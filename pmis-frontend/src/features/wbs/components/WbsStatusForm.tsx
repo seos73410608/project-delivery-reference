@@ -148,57 +148,17 @@ function WbsStatusForm({
 
 
     return (
-        <div
-            style={{
-                backgroundColor:
-                    "#ffffff",
-
-                border:
-                    "1px solid #dddddd",
-
-                borderRadius:
-                    "6px",
-
-                padding:
-                    "20px",
-            }}
-        >
+        <div className="wbs-status-form">
 
             {/* Header */}
-            <div
-                style={{
-                    marginBottom:
-                        "20px",
-                }}
-            >
+            <div className="wbs-status-form-header">
 
-                <h2
-                    style={{
-                        margin: 0,
-
-                        fontSize:
-                            "20px",
-                    }}
-                >
+                <h2 className="wbs-status-form-title">
                     WBS 상태 변경
                 </h2>
 
 
-                <p
-                    style={{
-                        marginTop:
-                            "8px",
-
-                        marginBottom:
-                            0,
-
-                        color:
-                            "#666666",
-
-                        fontSize:
-                            "14px",
-                    }}
-                >
+                <p className="wbs-status-form-description">
                     {wbs.wbsCode}{" "}
                     {wbs.wbsName}
                 </p>
@@ -214,25 +174,9 @@ function WbsStatusForm({
             >
 
                 {/* Current Status */}
-                <div
-                    style={{
-                        marginBottom:
-                            "16px",
-                    }}
-                >
+                <div className="wbs-status-form-field">
 
-                    <label
-                        style={{
-                            display:
-                                "block",
-
-                            marginBottom:
-                                "6px",
-
-                            fontWeight:
-                                "bold",
-                        }}
-                    >
+                    <label className="wbs-status-form-label">
                         현재 상태
                     </label>
 
@@ -245,53 +189,16 @@ function WbsStatusForm({
                             )
                         }
                         disabled
-                        style={{
-                            width:
-                                "100%",
-
-                            padding:
-                                "10px",
-
-                            boxSizing:
-                                "border-box",
-
-                            border:
-                                "1px solid #dddddd",
-
-                            borderRadius:
-                                "4px",
-
-                            backgroundColor:
-                                "#f5f5f5",
-
-                            color:
-                                "#666666",
-                        }}
+                        className="wbs-status-form-input"
                     />
 
                 </div>
 
 
                 {/* New Status */}
-                <div
-                    style={{
-                        marginBottom:
-                            "16px",
-                    }}
-                >
+                <div className="wbs-status-form-field">
 
-                    <label
-                        style={{
-                            display:
-                                "block",
-
-                            marginBottom:
-                                "6px",
-
-                            fontWeight:
-                                "bold",
-                        }}
-                    >
+                    <label className="wbs-status-form-label">
                         변경 상태
                     </label>
 
@@ -314,25 +221,7 @@ function WbsStatusForm({
                         disabled={
                             submitting
                         }
-                        style={{
-                            width:
-                                "100%",
-
-                            padding:
-                                "10px",
-
-                            boxSizing:
-                                "border-box",
-
-                            border:
-                                "1px solid #cccccc",
-
-                            borderRadius:
-                                "4px",
-
-                            backgroundColor:
-                                "#ffffff",
-                        }}
+                        className="wbs-status-form-select"
                     >
 
                         <option value="PLANNED">
@@ -361,33 +250,7 @@ function WbsStatusForm({
 
 
                 {/* Information */}
-                <div
-                    style={{
-                        marginBottom:
-                            "20px",
-
-                        padding:
-                            "12px",
-
-                        backgroundColor:
-                            "#f7f9fc",
-
-                        border:
-                            "1px solid #e3e8ef",
-
-                        borderRadius:
-                            "4px",
-
-                        color:
-                            "#555555",
-
-                        fontSize:
-                            "13px",
-
-                        lineHeight:
-                            1.6,
-                    }}
-                >
+                <div className="wbs-status-form-info">
                     WBS 상태는 프로젝트 상황에 따라
                     자유롭게 변경할 수 있습니다.
                     <br />
@@ -398,48 +261,14 @@ function WbsStatusForm({
 
                 {/* Error */}
                 {error && (
-                    <div
-                        style={{
-                            marginBottom:
-                                "16px",
-
-                            padding:
-                                "12px",
-
-                            backgroundColor:
-                                "#fff3f3",
-
-                            border:
-                                "1px solid #f0b8b8",
-
-                            borderRadius:
-                                "4px",
-
-                            color:
-                                "#c62828",
-
-                            fontSize:
-                                "14px",
-                        }}
-                    >
+                    <div className="wbs-status-form-error">
                         {error}
                     </div>
                 )}
 
 
                 {/* Buttons */}
-                <div
-                    style={{
-                        display:
-                            "flex",
-
-                        justifyContent:
-                            "flex-end",
-
-                        gap:
-                            "8px",
-                    }}
-                >
+                <div className="wbs-status-form-buttons">
 
                     {/* Cancel */}
                     <button
@@ -450,24 +279,7 @@ function WbsStatusForm({
                         disabled={
                             submitting
                         }
-                        style={{
-                            padding:
-                                "10px 16px",
-
-                            border:
-                                "1px solid #cccccc",
-
-                            borderRadius:
-                                "4px",
-
-                            backgroundColor:
-                                "#ffffff",
-
-                            cursor:
-                                submitting
-                                    ? "default"
-                                    : "pointer",
-                        }}
+                        className="wbs-status-form-button cancel"
                     >
                         취소
                     </button>
@@ -479,30 +291,7 @@ function WbsStatusForm({
                         disabled={
                             submitting
                         }
-                        style={{
-                            padding:
-                                "10px 16px",
-
-                            border:
-                                "none",
-
-                            borderRadius:
-                                "4px",
-
-                            backgroundColor:
-                                "#1976d2",
-
-                            color:
-                                "#ffffff",
-
-                            cursor:
-                                submitting
-                                    ? "default"
-                                    : "pointer",
-
-                            fontWeight:
-                                "bold",
-                        }}
+                        className="wbs-status-form-button submit"
                     >
                         {submitting
                             ? "변경 중..."

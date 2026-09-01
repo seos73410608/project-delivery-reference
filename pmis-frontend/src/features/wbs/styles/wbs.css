@@ -1,0 +1,706 @@
+/* =========================================================
+ * WBS
+ * Project Management Information System
+ *
+ * WBS Feature 전용 스타일
+ * ========================================================= */
+
+
+/* =========================================================
+ * Common
+ * ========================================================= */
+
+.wbs-section {
+    background-color: #ffffff;
+    border: 1px solid #dddddd;
+    border-radius: 6px;
+    box-sizing: border-box;
+}
+
+.wbs-input {
+    width: 100%;
+    padding: 10px;
+    box-sizing: border-box;
+    border: 1px solid #cccccc;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.wbs-input:focus,
+.wbs-select:focus,
+.wbs-textarea:focus {
+    outline: none;
+    border-color: #1976d2;
+}
+
+.wbs-input:disabled,
+.wbs-select:disabled,
+.wbs-textarea:disabled {
+    background-color: #f5f5f5;
+    color: #666666;
+}
+
+
+/* =========================================================
+ * Toolbar
+ * ========================================================= */
+
+.wbs-toolbar {
+    background-color: #ffffff;
+    border: 1px solid #dddddd;
+    border-radius: 6px;
+    padding: 16px;
+    margin-bottom: 16px;
+    box-sizing: border-box;
+}
+
+.wbs-toolbar-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.wbs-toolbar-search {
+    flex: 1;
+    min-width: 200px;
+    padding: 9px 12px;
+    border: 1px solid #cccccc;
+    border-radius: 4px;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+.wbs-toolbar-search:focus {
+    outline: none;
+    border-color: #1976d2;
+}
+
+.wbs-toolbar-status {
+    min-width: 150px;
+    padding: 9px 12px;
+    border: 1px solid #cccccc;
+    border-radius: 4px;
+    background-color: #ffffff;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.wbs-toolbar-status:focus {
+    outline: none;
+    border-color: #1976d2;
+}
+
+.wbs-create-button {
+    padding: 9px 16px;
+    border: none;
+    border-radius: 4px;
+    background-color: #1976d2;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.wbs-create-button:hover {
+    background-color: #1565c0;
+}
+
+.wbs-create-button:disabled {
+    opacity: 0.6;
+    cursor: default;
+}
+
+
+/* =========================================================
+ * Tree
+ * ========================================================= */
+
+.wbs-tree {
+    background-color: #ffffff;
+    border: 1px solid #dddddd;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.wbs-tree-header {
+    padding: 16px;
+    border-bottom: 1px solid #eeeeee;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+.wbs-tree-content {
+    padding: 12px;
+}
+
+.wbs-tree-empty {
+    padding: 24px;
+    text-align: center;
+    color: #777777;
+}
+
+
+/* =========================================================
+ * Tree Node
+ * ========================================================= */
+
+.wbs-tree-node {
+    width: 100%;
+}
+
+.wbs-tree-node-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-bottom: 2px;
+    box-sizing: border-box;
+}
+
+.wbs-tree-node-row:hover {
+    background-color: #f5f9ff;
+}
+
+.wbs-tree-node-row.selected {
+    background-color: #e3f2fd;
+    border: 1px solid #90caf9;
+}
+
+.wbs-tree-node-row.virtual-root {
+    background-color: #f5f5f5;
+    border: 1px solid #dddddd;
+    font-weight: bold;
+}
+
+.wbs-tree-node-row.virtual-root.selected {
+    background-color: #e3f2fd;
+    border: 1px solid #90caf9;
+}
+
+.wbs-tree-toggle {
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: none;
+    background-color: transparent;
+    color: #555555;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.wbs-tree-toggle.has-children {
+    cursor: pointer;
+}
+
+.wbs-tree-toggle:disabled {
+    cursor: default;
+}
+
+.wbs-tree-code {
+    min-width: 60px;
+    font-weight: bold;
+    color: #333333;
+    white-space: nowrap;
+}
+
+.wbs-tree-code.virtual-root {
+    color: #1976d2;
+}
+
+.wbs-tree-name {
+    flex: 1;
+    min-width: 0;
+    color: #333333;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.wbs-tree-root-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    background-color: #e3f2fd;
+    color: #1976d2;
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.wbs-tree-status {
+    padding: 4px 8px;
+    border-radius: 12px;
+    background-color: #f5f5f5;
+    color: #555555;
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.wbs-tree-sort-order {
+    width: 40px;
+    text-align: right;
+    font-size: 12px;
+    color: #999999;
+    white-space: nowrap;
+}
+
+.wbs-tree-children {
+    width: 100%;
+}
+
+
+/* =========================================================
+ * Detail
+ * ========================================================= */
+
+.wbs-detail {
+    background-color: #ffffff;
+    border: 1px solid #dddddd;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.wbs-detail-empty {
+    min-height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #999999;
+    padding: 24px;
+    box-sizing: border-box;
+}
+
+.wbs-detail-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px;
+    border-bottom: 1px solid #eeeeee;
+}
+
+.wbs-detail-label {
+    margin-bottom: 4px;
+    font-size: 12px;
+    color: #777777;
+}
+
+.wbs-detail-title {
+    margin: 0;
+    font-size: 20px;
+    color: #333333;
+}
+
+.wbs-detail-status {
+    padding: 6px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+.wbs-detail-content {
+    padding: 20px;
+}
+
+.wbs-detail-row {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.wbs-detail-row-label {
+    font-size: 13px;
+    color: #777777;
+    font-weight: bold;
+}
+
+.wbs-detail-row-value {
+    min-width: 0;
+    font-size: 14px;
+    color: #333333;
+    word-break: break-word;
+}
+
+.wbs-detail-description-section {
+    margin-top: 20px;
+}
+
+.wbs-detail-description-label {
+    margin-bottom: 8px;
+    font-size: 13px;
+    font-weight: bold;
+    color: #555555;
+}
+
+.wbs-detail-description {
+    min-height: 80px;
+    padding: 12px;
+    background-color: #f9f9f9;
+    border: 1px solid #eeeeee;
+    border-radius: 4px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #444444;
+    box-sizing: border-box;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.wbs-detail-metadata {
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid #eeeeee;
+}
+
+.wbs-detail-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 24px;
+}
+
+.wbs-detail-button {
+    flex: 1;
+    padding: 10px 12px;
+    border-radius: 4px;
+    background-color: #ffffff;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.wbs-detail-button-edit {
+    border: 1px solid #1976d2;
+    color: #1976d2;
+}
+
+.wbs-detail-button-edit:hover {
+    background-color: #e3f2fd;
+}
+
+.wbs-detail-button-status {
+    border: 1px solid #757575;
+    color: #555555;
+}
+
+.wbs-detail-button-status:hover {
+    background-color: #f5f5f5;
+}
+
+.wbs-detail-button-delete {
+    border: 1px solid #d32f2f;
+    color: #d32f2f;
+}
+
+.wbs-detail-button-delete:hover {
+    background-color: #fff3f3;
+}
+
+
+/* =========================================================
+ * Form
+ * ========================================================= */
+
+.wbs-form {
+    background-color: #ffffff;
+    border: 1px solid #dddddd;
+    border-radius: 6px;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.wbs-form-header {
+    margin-bottom: 20px;
+}
+
+.wbs-form-title {
+    margin: 0;
+    font-size: 20px;
+}
+
+.wbs-form-description {
+    margin-top: 8px;
+    margin-bottom: 0;
+    color: #666666;
+    font-size: 14px;
+}
+
+.wbs-form-error {
+    margin-bottom: 16px;
+    padding: 12px;
+    background-color: #fff3f3;
+    border: 1px solid #f0b8b8;
+    border-radius: 4px;
+    color: #c62828;
+    font-size: 14px;
+}
+
+.wbs-form-field {
+    margin-bottom: 16px;
+}
+
+.wbs-form-field-last {
+    margin-bottom: 20px;
+}
+
+.wbs-form-label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: bold;
+}
+
+.wbs-form-input {
+    width: 100%;
+    padding: 10px;
+    box-sizing: border-box;
+    border: 1px solid #cccccc;
+    border-radius: 4px;
+}
+
+.wbs-form-input:focus {
+    outline: none;
+    border-color: #1976d2;
+}
+
+.wbs-form-input:disabled {
+    background-color: #f5f5f5;
+    color: #666666;
+}
+
+.wbs-form-textarea {
+    width: 100%;
+    padding: 10px;
+    box-sizing: border-box;
+    border: 1px solid #cccccc;
+    border-radius: 4px;
+    resize: vertical;
+}
+
+.wbs-form-textarea:focus {
+    outline: none;
+    border-color: #1976d2;
+}
+
+.wbs-form-select {
+    width: 100%;
+    padding: 10px;
+    box-sizing: border-box;
+    border: 1px solid #cccccc;
+    border-radius: 4px;
+    background-color: #ffffff;
+}
+
+.wbs-form-select:focus {
+    outline: none;
+    border-color: #1976d2;
+}
+
+.wbs-form-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.wbs-form-button {
+    padding: 10px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.wbs-form-button.cancel {
+    border: 1px solid #cccccc;
+    background-color: #ffffff;
+}
+
+.wbs-form-button.cancel:hover {
+    background-color: #f5f5f5;
+}
+
+.wbs-form-button.submit {
+    border: none;
+    background-color: #1976d2;
+    color: #ffffff;
+    font-weight: bold;
+}
+
+.wbs-form-button.submit:hover {
+    background-color: #1565c0;
+}
+
+.wbs-form-button:disabled {
+    cursor: default;
+    opacity: 0.6;
+}
+
+
+/* =========================================================
+ * Status Form
+ * ========================================================= */
+
+.wbs-status-form {
+    background-color: #ffffff;
+    border: 1px solid #dddddd;
+    border-radius: 6px;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.wbs-status-form-header {
+    margin-bottom: 20px;
+}
+
+.wbs-status-form-title {
+    margin: 0;
+    font-size: 20px;
+}
+
+.wbs-status-form-description {
+    margin-top: 8px;
+    margin-bottom: 0;
+    color: #666666;
+    font-size: 14px;
+}
+
+.wbs-status-form-field {
+    margin-bottom: 16px;
+}
+
+.wbs-status-form-label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: bold;
+}
+
+.wbs-status-form-input {
+    width: 100%;
+    padding: 10px;
+    box-sizing: border-box;
+    border: 1px solid #dddddd;
+    border-radius: 4px;
+    background-color: #f5f5f5;
+    color: #666666;
+}
+
+.wbs-status-form-select {
+    width: 100%;
+    padding: 10px;
+    box-sizing: border-box;
+    border: 1px solid #cccccc;
+    border-radius: 4px;
+    background-color: #ffffff;
+}
+
+.wbs-status-form-select:focus {
+    outline: none;
+    border-color: #1976d2;
+}
+
+.wbs-status-form-info {
+    margin-bottom: 20px;
+    padding: 12px;
+    background-color: #f7f9fc;
+    border: 1px solid #e3e8ef;
+    border-radius: 4px;
+    color: #555555;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.wbs-status-form-error {
+    margin-bottom: 16px;
+    padding: 12px;
+    background-color: #fff3f3;
+    border: 1px solid #f0b8b8;
+    border-radius: 4px;
+    color: #c62828;
+    font-size: 14px;
+}
+
+.wbs-status-form-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.wbs-status-form-button {
+    padding: 10px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.wbs-status-form-button.cancel {
+    border: 1px solid #cccccc;
+    background-color: #ffffff;
+}
+
+.wbs-status-form-button.cancel:hover {
+    background-color: #f5f5f5;
+}
+
+.wbs-status-form-button.submit {
+    border: none;
+    background-color: #1976d2;
+    color: #ffffff;
+    font-weight: bold;
+}
+
+.wbs-status-form-button.submit:hover {
+    background-color: #1565c0;
+}
+
+.wbs-status-form-button:disabled {
+    cursor: default;
+    opacity: 0.6;
+}
+
+
+/* =========================================================
+ * Responsive
+ * ========================================================= */
+
+@media (max-width: 768px) {
+
+    .wbs-toolbar-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .wbs-toolbar-search {
+        min-width: 0;
+        width: 100%;
+    }
+
+    .wbs-toolbar-status {
+        width: 100%;
+    }
+
+    .wbs-create-button {
+        width: 100%;
+    }
+
+    .wbs-tree-node-row {
+        gap: 6px;
+    }
+
+    .wbs-tree-code {
+        min-width: 50px;
+    }
+
+    .wbs-tree-status,
+    .wbs-tree-sort-order {
+        display: none;
+    }
+
+    .wbs-detail-row {
+        grid-template-columns: 100px 1fr;
+    }
+
+    .wbs-detail-actions {
+        flex-direction: column;
+    }
+
+    .wbs-detail-button {
+        width: 100%;
+    }
+}
