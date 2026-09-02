@@ -5,6 +5,11 @@ import type {
     WbsTreeResponse,
 } from "@/features/wbs/types/wbs";
 
+import { WBS_STATUS_LABEL } from "@/features/wbs/types/wbs";
+
+import "@/styles/badge.css";
+import "@/features/wbs/styles/wbs.css";
+
 
 interface WbsStatusFormProps {
     /**
@@ -35,6 +40,15 @@ interface WbsStatusFormProps {
 }
 
 
+const statusOptions: WbsStatus[] = [
+    "PLANNED",
+    "IN_PROGRESS",
+    "COMPLETED",
+    "ON_HOLD",
+    "CANCELLED",
+];
+
+
 function WbsStatusForm({
     wbs,
     onSubmit,
@@ -43,9 +57,6 @@ function WbsStatusForm({
 
     /**
      * 현재 선택된 상태
-     *
-     * 기본값:
-     * 현재 WBS의 상태
      */
     const [status, setStatus] =
         useState<WbsStatus>(
@@ -83,6 +94,15 @@ function WbsStatusForm({
 
 
     /**
+     * 상태 Badge CSS 클래스
+     */
+    const currentStatusClass =
+        `badge--${wbs.status
+            .toLowerCase()
+            .replace("_", "-")}`;
+
+
+    /**
      * WBS 상태 변경 Submit
      */
     const handleSubmit = async (
@@ -116,12 +136,6 @@ function WbsStatusForm({
             /**
              * 실제 API 호출은
              * 부모 컴포넌트에서 수행한다.
-             *
-             * onSubmit()
-             *   ↓
-             * updateWbs()
-             *   ↓
-             * PUT /api/wbs/{id}
              */
             await onSubmit(
                 wbs.id,
@@ -168,118 +182,104 @@ function WbsStatusForm({
 
             <form
                 id="wbs-status-form"
-                onSubmit={
-                    handleSubmit
-                }
+                onSubmit={handleSubmit}
             >
 
                 {/* Current Status */}
-                <div className="wbs-status-form-field">
+                <div className="form__field">
 
-                    <label className="wbs-status-form-label">
+                    <span className="form__label">
                         현재 상태
-                    </label>
+                    </span>
 
 
-                    <input
-                        type="text"
-                        value={
-                            getStatusLabel(
-                                wbs.status,
-                            )
+                    <span
+                        className={[
+                            "badge",
+                            currentStatusClass,
+                        ].join(" ")}
+                    >
+                        {
+                            WBS_STATUS_LABEL[
+                                wbs.status
+                            ]
                         }
-                        disabled
-                        className="wbs-status-form-input"
-                    />
+                    </span>
 
                 </div>
 
 
                 {/* New Status */}
-                <div className="wbs-status-form-field">
+                <div className="form__field">
 
-                    <label className="wbs-status-form-label">
+                    <label
+                        htmlFor="wbs-new-status"
+                        className="form__label"
+                    >
                         변경 상태
                     </label>
 
 
                     <select
-                        value={
-                            status
-                        }
-                        onChange={(
-                            event,
-                        ) => {
+                        id="wbs-new-status"
+                        value={status}
+                        onChange={(event) => {
 
                             setStatus(
-                                event.target
-                                    .value as WbsStatus,
+                                event.target.value as WbsStatus,
                             );
 
                             setError(null);
                         }}
-                        disabled={
-                            submitting
-                        }
-                        className="wbs-status-form-select"
+                        disabled={submitting}
+                        className="form__select"
                     >
 
-                        <option value="PLANNED">
-                            계획
-                        </option>
-
-                        <option value="IN_PROGRESS">
-                            진행 중
-                        </option>
-
-                        <option value="COMPLETED">
-                            완료
-                        </option>
-
-                        <option value="ON_HOLD">
-                            보류
-                        </option>
-
-                        <option value="CANCELLED">
-                            취소
-                        </option>
+                        {statusOptions.map(
+                            (option) => (
+                                <option
+                                    key={option}
+                                    value={option}
+                                >
+                                    {
+                                        WBS_STATUS_LABEL[
+                                            option
+                                        ]
+                                    }
+                                </option>
+                            ),
+                        )}
 
                     </select>
 
                 </div>
 
 
-                {/* Information */}
-                <div className="wbs-status-form-info">
-                    WBS 상태는 프로젝트 상황에 따라
-                    자유롭게 변경할 수 있습니다.
-                    <br />
-                    필요할 경우 이전 상태로 다시
-                    변경할 수 있습니다.
-                </div>
-
-
                 {/* Error */}
                 {error && (
-                    <div className="wbs-status-form-error">
-                        {error}
+                    <div className="state state--error wbs-status-form-error">
+
+                        <div className="state__icon">
+                            !
+                        </div>
+
+                        <p className="state__description">
+                            {error}
+                        </p>
+
                     </div>
                 )}
 
 
                 {/* Buttons */}
-                <div className="wbs-status-form-buttons">
+                <div className="form__actions">
 
                     {/* Cancel */}
                     <button
                         type="button"
-                        onClick={
-                            onCancel
-                        }
-                        disabled={
-                            submitting
-                        }
-                        className="wbs-status-form-button cancel"
+                        onClick={onCancel}
+                        disabled={submitting}
+                        className="button button--secondary"
                     >
                         취소
                     </button>
@@ -288,10 +288,8 @@ function WbsStatusForm({
                     {/* Submit */}
                     <button
                         type="submit"
-                        disabled={
-                            submitting
-                        }
-                        className="wbs-status-form-button submit"
+                        disabled={submitting}
+                        className="button button--primary"
                     >
                         {submitting
                             ? "변경 중..."
@@ -304,36 +302,6 @@ function WbsStatusForm({
 
         </div>
     );
-}
-
-
-/**
- * WBS Status → 화면 표시명
- */
-function getStatusLabel(
-    status: WbsStatus,
-): string {
-
-    switch (status) {
-
-        case "PLANNED":
-            return "계획";
-
-        case "IN_PROGRESS":
-            return "진행 중";
-
-        case "COMPLETED":
-            return "완료";
-
-        case "ON_HOLD":
-            return "보류";
-
-        case "CANCELLED":
-            return "취소";
-
-        default:
-            return status;
-    }
 }
 
 

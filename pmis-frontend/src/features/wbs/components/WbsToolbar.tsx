@@ -29,64 +29,98 @@ function WbsToolbar({
     onStatusChange,
     onCreate,
 }: WbsToolbarProps) {
+
     return (
         <section className="wbs-toolbar">
 
             <div className="wbs-toolbar-row">
 
                 {/* Search */}
-                <input
-                    type="text"
-                    value={keyword}
-                    onChange={(event) =>
-                        onKeywordChange(
-                            event.target.value,
-                        )
-                    }
-                    placeholder="Search WBS..."
-                    className="wbs-toolbar-search"
-                />
+                <div className="form__field wbs-toolbar-search">
+
+                    <label
+                        htmlFor="wbs-keyword"
+                        className="form__label"
+                    >
+                        Search
+                    </label>
+
+
+                    <input
+                        id="wbs-keyword"
+                        type="text"
+                        value={keyword}
+                        onChange={(event) =>
+                            onKeywordChange(
+                                event.target.value,
+                            )
+                        }
+                        placeholder="Search WBS..."
+                        className="form__input"
+                    />
+
+                </div>
 
 
                 {/* Status Filter */}
-                <select
-                    value={status}
-                    onChange={(event) =>
-                        onStatusChange(
-                            event.target.value as WbsStatus | "",
-                        )
-                    }
-                    className="wbs-toolbar-status"
-                >
-                    <option value="">
-                        All Status
-                    </option>
+                <div className="form__field wbs-toolbar-status">
 
-                    {statusOptions.map(
-                        (option) => (
-                            <option
-                                key={option}
-                                value={option}
-                            >
-                                {
-                                    WBS_STATUS_LABEL[
-                                        option
-                                    ]
-                                }
-                            </option>
-                        ),
-                    )}
-                </select>
+                    <label
+                        htmlFor="wbs-status"
+                        className="form__label"
+                    >
+                        Status
+                    </label>
+
+
+                    <select
+                        id="wbs-status"
+                        value={status}
+                        onChange={(event) =>
+                            onStatusChange(
+                                event.target.value as WbsStatus | "",
+                            )
+                        }
+                        className="form__select"
+                    >
+
+                        <option value="">
+                            All Status
+                        </option>
+
+
+                        {statusOptions.map(
+                            (option) => (
+                                <option
+                                    key={option}
+                                    value={option}
+                                >
+                                    {
+                                        WBS_STATUS_LABEL[
+                                            option
+                                        ]
+                                    }
+                                </option>
+                            ),
+                        )}
+
+                    </select>
+
+                </div>
 
 
                 {/* Create Button */}
-                <button
-                    type="button"
-                    onClick={onCreate}
-                    className="wbs-create-button"
-                >
-                    + Create WBS
-                </button>
+                <div className="wbs-toolbar-actions">
+
+                    <button
+                        type="button"
+                        onClick={onCreate}
+                        className="button button--primary"
+                    >
+                        + Create WBS
+                    </button>
+
+                </div>
 
             </div>
 

@@ -1,0 +1,392 @@
+/* =========================================================
+   PMIS - Common Form Styles
+   ========================================================= */
+
+/* ---------------------------------------------------------
+   Form
+   --------------------------------------------------------- */
+
+.form {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.form__row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px 24px;
+}
+
+.form__field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+
+  min-width: 0;
+}
+
+.form__field--full {
+  grid-column: 1 / -1;
+}
+
+
+/* ---------------------------------------------------------
+   Label
+   --------------------------------------------------------- */
+
+.form__label {
+  display: block;
+
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+
+  color: #374151;
+}
+
+
+/* ---------------------------------------------------------
+   Common Control
+   --------------------------------------------------------- */
+
+.form__input,
+.form__select,
+.form__textarea {
+  width: 100%;
+  box-sizing: border-box;
+
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+
+  background: #ffffff;
+  color: #111827;
+
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.4;
+
+  outline: none;
+
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.form__input,
+.form__select {
+  height: 40px;
+  padding: 0 12px;
+}
+
+.form__textarea {
+  min-height: 120px;
+  padding: 10px 12px;
+
+  line-height: 1.5;
+  resize: vertical;
+}
+
+
+/* ---------------------------------------------------------
+   Placeholder
+   --------------------------------------------------------- */
+
+.form__input::placeholder,
+.form__textarea::placeholder {
+  color: #9ca3af;
+}
+
+
+/* ---------------------------------------------------------
+   Hover
+   --------------------------------------------------------- */
+
+.form__input:hover:not(:disabled),
+.form__select:hover:not(:disabled),
+.form__textarea:hover:not(:disabled) {
+  border-color: #9ca3af;
+}
+
+
+/* ---------------------------------------------------------
+   Focus
+   --------------------------------------------------------- */
+
+.form__input:focus,
+.form__select:focus,
+.form__textarea:focus {
+  border-color: #2563eb;
+
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+
+/* ---------------------------------------------------------
+   Disabled
+   --------------------------------------------------------- */
+
+.form__input:disabled,
+.form__select:disabled,
+.form__textarea:disabled {
+  background: #f3f4f6;
+  color: #9ca3af;
+
+  cursor: not-allowed;
+}
+
+
+/* ---------------------------------------------------------
+   Readonly
+   --------------------------------------------------------- */
+
+.form__input:read-only,
+.form__textarea:read-only {
+  background: #f8fafc;
+}
+
+
+/* ---------------------------------------------------------
+   Help Text
+   --------------------------------------------------------- */
+
+.form__help {
+  margin: 0;
+
+  font-size: 12px;
+  line-height: 1.4;
+
+  color: #6b7280;
+}
+
+
+/* ---------------------------------------------------------
+   Error
+   --------------------------------------------------------- */
+
+.form__error {
+  margin: 0;
+
+  padding: 10px 12px;
+
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+
+  background: #fef2f2;
+  color: #b91c1c;
+
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.form__field--error .form__label {
+  color: #b91c1c;
+}
+
+.form__field--error .form__input,
+.form__field--error .form__select,
+.form__field--error .form__textarea {
+  border-color: #fca5a5;
+}
+
+.form__field--error .form__input:focus,
+.form__field--error .form__select:focus,
+.form__field--error .form__textarea:focus {
+  border-color: #dc2626;
+
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+}
+
+
+/* ---------------------------------------------------------
+   Actions
+   --------------------------------------------------------- */
+
+.form__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+
+  grid-column: 1 / -1;
+
+  margin-top: 4px;
+  padding-top: 20px;
+
+  border-top: 1px solid #e5e7eb;
+}
+
+
+/* ---------------------------------------------------------
+   Inline Form
+   --------------------------------------------------------- */
+
+.form--inline .form__row {
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(180px, 1fr)
+  );
+}
+
+.form--inline .form__actions {
+  align-self: end;
+
+  margin-top: 0;
+  padding-top: 0;
+
+  border-top: 0;
+}
+
+
+/* ---------------------------------------------------------
+   Compact Form
+   --------------------------------------------------------- */
+
+.form--compact .form__row {
+  gap: 14px 16px;
+}
+
+.form--compact .form__field {
+  gap: 5px;
+}
+
+.form--compact .form__label {
+  font-size: 12px;
+}
+
+.form--compact .form__input,
+.form--compact .form__select {
+  height: 38px;
+  padding: 0 11px;
+
+  font-size: 13px;
+}
+
+.form--compact .form__textarea {
+  min-height: 90px;
+  padding: 8px 10px;
+
+  font-size: 13px;
+}
+
+
+/* ---------------------------------------------------------
+   Search Form
+   --------------------------------------------------------- */
+
+.form--search .form__row {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.form--search .form__field {
+  gap: 7px;
+}
+
+.form--search .form__label {
+  font-size: 12px;
+}
+
+.form--search .form__input,
+.form--search .form__select {
+  height: 38px;
+  padding: 0 11px;
+
+  font-size: 13px;
+}
+
+.form--search .form__actions {
+  grid-column: 1 / -1;
+
+  margin-top: 0;
+  padding-top: 0;
+
+  border-top: 0;
+}
+
+
+/* ---------------------------------------------------------
+   Required
+   --------------------------------------------------------- */
+
+.form__required {
+  margin-left: 3px;
+
+  color: #dc2626;
+  font-weight: 700;
+}
+
+
+/* ---------------------------------------------------------
+   Checkbox / Radio
+   --------------------------------------------------------- */
+
+.form__checkbox,
+.form__radio {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+
+  min-height: 24px;
+
+  color: #374151;
+
+  font-size: 13px;
+  line-height: 1.4;
+
+  cursor: pointer;
+}
+
+.form__checkbox input,
+.form__radio input {
+  width: 16px;
+  height: 16px;
+
+  margin: 0;
+
+  accent-color: #2563eb;
+
+  cursor: pointer;
+}
+
+.form__checkbox input:disabled,
+.form__radio input:disabled {
+  cursor: not-allowed;
+}
+
+
+/* ---------------------------------------------------------
+   Responsive
+   --------------------------------------------------------- */
+
+@media (max-width: 900px) {
+  .form__row {
+    grid-template-columns: 1fr;
+  }
+
+  .form--search .form__row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+
+@media (max-width: 640px) {
+  .form__row,
+  .form--search .form__row {
+    grid-template-columns: 1fr;
+  }
+
+  .form__input,
+  .form__select {
+    height: 40px;
+  }
+
+  .form__actions {
+    flex-wrap: wrap;
+  }
+
+  .form__actions .button {
+    flex: 1;
+    min-width: 100px;
+  }
+}

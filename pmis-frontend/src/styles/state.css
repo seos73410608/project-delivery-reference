@@ -1,0 +1,332 @@
+ /* =========================================================
+    PMIS - Common State Styles
+    ========================================================= */
+
+/* ---------------------------------------------------------
+   Base State
+   --------------------------------------------------------- */
+
+.state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+
+  width: 100%;
+  min-height: 220px;
+  box-sizing: border-box;
+
+  padding: 24px;
+
+  color: #6b7280;
+
+  font-size: 13px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+
+/* ---------------------------------------------------------
+   State Icon
+   --------------------------------------------------------- */
+
+.state__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 42px;
+  height: 42px;
+
+  border-radius: 50%;
+
+  background: #f1f5f9;
+  color: #64748b;
+
+  font-size: 18px;
+  font-weight: 700;
+}
+
+
+/* ---------------------------------------------------------
+   State Title
+   --------------------------------------------------------- */
+
+.state__title {
+  margin: 0;
+
+  color: #374151;
+
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+
+/* ---------------------------------------------------------
+   State Description
+   --------------------------------------------------------- */
+
+.state__description {
+  max-width: 520px;
+  margin: 0;
+
+  color: #6b7280;
+
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+
+/* ---------------------------------------------------------
+   Loading
+   --------------------------------------------------------- */
+
+.state--loading {
+  min-height: 220px;
+
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+}
+
+
+/* ---------------------------------------------------------
+   Spinner
+   --------------------------------------------------------- */
+
+.spinner {
+  display: inline-block;
+
+  width: 24px;
+  height: 24px;
+
+  border: 2px solid #e5e7eb;
+  border-top-color: #2563eb;
+  border-radius: 50%;
+
+  animation: state-spinner 0.7s linear infinite;
+}
+
+.spinner--sm {
+  width: 18px;
+  height: 18px;
+
+  border-width: 2px;
+}
+
+.spinner--lg {
+  width: 28px;
+  height: 28px;
+
+  border-width: 3px;
+}
+
+@keyframes state-spinner {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+
+/* ---------------------------------------------------------
+   Loading Inline
+   --------------------------------------------------------- */
+
+.state--loading-inline {
+  flex-direction: row;
+
+  min-height: 40px;
+  padding: 10px 14px;
+
+  border: 0;
+  background: transparent;
+}
+
+
+/* ---------------------------------------------------------
+   Empty
+   --------------------------------------------------------- */
+
+.state--empty {
+  min-height: 220px;
+
+  background: #ffffff;
+}
+
+
+.state--empty .state__icon {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+
+/* ---------------------------------------------------------
+   Error
+   --------------------------------------------------------- */
+
+.state--error {
+  min-height: 120px;
+
+  padding: 20px;
+
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+
+.state--error .state__icon {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+
+.state--error .state__title {
+  color: #b91c1c;
+}
+
+
+.state--error .state__description {
+  color: #b91c1c;
+}
+
+
+/* ---------------------------------------------------------
+   Warning
+   --------------------------------------------------------- */
+
+.state--warning {
+  min-height: 120px;
+
+  padding: 20px;
+
+  border: 1px solid #fde68a;
+  border-radius: 8px;
+
+  background: #fffbeb;
+  color: #92400e;
+}
+
+
+.state--warning .state__icon {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+
+.state--warning .state__title {
+  color: #92400e;
+}
+
+
+.state--warning .state__description {
+  color: #92400e;
+}
+
+
+/* ---------------------------------------------------------
+   Success
+   --------------------------------------------------------- */
+
+.state--success {
+  min-height: 120px;
+
+  padding: 20px;
+
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+
+  background: #f0fdf4;
+  color: #166534;
+}
+
+
+.state--success .state__icon {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+
+.state--success .state__title {
+  color: #166534;
+}
+
+
+.state--success .state__description {
+  color: #166534;
+}
+
+
+/* ---------------------------------------------------------
+   State Actions
+   --------------------------------------------------------- */
+
+.state__actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  margin-top: 4px;
+}
+
+
+/* ---------------------------------------------------------
+   Full Page State
+   --------------------------------------------------------- */
+
+.state--page {
+  min-height: 420px;
+
+  padding: 40px;
+
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+}
+
+
+/* ---------------------------------------------------------
+   Compact State
+   --------------------------------------------------------- */
+
+.state--compact {
+  min-height: 140px;
+
+  padding: 16px;
+
+  font-size: 12px;
+}
+
+
+.state--compact .state__icon {
+  width: 36px;
+  height: 36px;
+
+  font-size: 16px;
+}
+
+
+/* ---------------------------------------------------------
+   Responsive
+   --------------------------------------------------------- */
+
+@media (max-width: 640px) {
+  .state {
+    min-height: 180px;
+    padding: 20px;
+  }
+
+  .state--page {
+    min-height: 320px;
+    padding: 28px 20px;
+  }
+
+  .state__actions {
+    flex-wrap: wrap;
+  }
+}

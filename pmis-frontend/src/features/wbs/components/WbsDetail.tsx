@@ -1,8 +1,13 @@
-import type { WbsTreeResponse } from "@/features/wbs/types/wbs";
+import type {
+    WbsTreeResponse,
+} from "@/features/wbs/types/wbs";
+
 import {
     WBS_STATUS_LABEL,
-    WBS_STATUS_COLOR,
 } from "@/features/wbs/types/wbs";
+
+import "@/styles/badge.css";
+import "@/features/wbs/styles/wbs.css";
 
 
 interface WbsDetailProps {
@@ -16,9 +21,6 @@ interface WbsDetailProps {
 
     /**
      * WBS 수정
-     *
-     * 실제 수정 처리는
-     * 부모 컴포넌트(WbsPage)에서 수행한다.
      */
     onEdit?: (
         wbs: WbsTreeResponse,
@@ -26,12 +28,6 @@ interface WbsDetailProps {
 
     /**
      * WBS 상태 변경
-     *
-     * 실제 상태 변경 처리는
-     * 부모 컴포넌트(WbsPage)에서 수행한다.
-     *
-     * 현재는 WbsStatusForm을 표시하도록
-     * WbsPage의 handleChangeStatus()가 처리한다.
      */
     onChangeStatus?: (
         wbs: WbsTreeResponse,
@@ -39,11 +35,6 @@ interface WbsDetailProps {
 
     /**
      * WBS 삭제
-     *
-     * 실제 삭제 처리는
-     * 부모 컴포넌트(WbsPage)에서 수행한다.
-     *
-     * 현재는 Backend API 연동 전이다.
      */
     onDelete?: (
         wbs: WbsTreeResponse,
@@ -74,12 +65,28 @@ function WbsDetail({
 
 
     /**
-     * 현재 WBS 상태 색상
+     * WBS Status에 대응하는
+     * 공통 Badge modifier
+     *
+     * PLANNED
+     *     → badge--planned
+     *
+     * IN_PROGRESS
+     *     → badge--in-progress
+     *
+     * COMPLETED
+     *     → badge--completed
+     *
+     * ON_HOLD
+     *     → badge--on-hold
+     *
+     * CANCELLED
+     *     → badge--cancelled
      */
-    const statusColor =
-        WBS_STATUS_COLOR[
-            wbs.status
-        ];
+    const statusClass =
+        `badge--${wbs.status
+            .toLowerCase()
+            .replace("_", "-")}`;
 
 
     return (
@@ -104,9 +111,7 @@ function WbsDetail({
                     <h2
                         className="wbs-detail-title"
                     >
-                        {
-                            wbs.wbsName
-                        }
+                        {wbs.wbsName}
                     </h2>
 
                 </div>
@@ -114,14 +119,11 @@ function WbsDetail({
 
                 {/* Status */}
                 <span
-                    className="wbs-detail-status"
-                    style={{
-                        backgroundColor:
-                            `${statusColor}15`,
-
-                        color:
-                            statusColor,
-                    }}
+                    className={[
+                        "badge",
+                        statusClass,
+                        "wbs-detail-status",
+                    ].join(" ")}
                 >
                     {
                         WBS_STATUS_LABEL[
@@ -141,51 +143,35 @@ function WbsDetail({
                 {/* WBS ID */}
                 <DetailRow
                     label="WBS ID"
-                    value={
-                        String(
-                            wbs.id,
-                        )
-                    }
+                    value={String(wbs.id)}
                 />
 
 
                 {/* Project ID */}
                 <DetailRow
                     label="Project ID"
-                    value={
-                        String(
-                            wbs.projectId,
-                        )
-                    }
+                    value={String(wbs.projectId)}
                 />
 
 
                 {/* WBS Code */}
                 <DetailRow
                     label="WBS Code"
-                    value={
-                        wbs.wbsCode
-                    }
+                    value={wbs.wbsCode}
                 />
 
 
                 {/* WBS Name */}
                 <DetailRow
                     label="WBS Name"
-                    value={
-                        wbs.wbsName
-                    }
+                    value={wbs.wbsName}
                 />
 
 
                 {/* Level */}
                 <DetailRow
                     label="Level"
-                    value={
-                        String(
-                            wbs.level,
-                        )
-                    }
+                    value={String(wbs.level)}
                 />
 
 
@@ -195,9 +181,7 @@ function WbsDetail({
                     value={
                         wbs.parentId === null
                             ? "-"
-                            : String(
-                                  wbs.parentId,
-                              )
+                            : String(wbs.parentId)
                     }
                 />
 
@@ -205,11 +189,7 @@ function WbsDetail({
                 {/* Sort Order */}
                 <DetailRow
                     label="Sort Order"
-                    value={
-                        String(
-                            wbs.sortOrder,
-                        )
-                    }
+                    value={String(wbs.sortOrder)}
                 />
 
 
@@ -277,7 +257,7 @@ function WbsDetail({
 
                 {/* Actions */}
                 <div
-                    className="wbs-detail-actions"
+                    className="form__actions wbs-detail-actions"
                 >
 
                     {/* Edit */}
@@ -288,7 +268,7 @@ function WbsDetail({
                                 wbs,
                             )
                         }
-                        className="wbs-detail-button wbs-detail-button-edit"
+                        className="button button--primary"
                     >
                         Edit
                     </button>
@@ -302,7 +282,7 @@ function WbsDetail({
                                 wbs,
                             )
                         }
-                        className="wbs-detail-button wbs-detail-button-status"
+                        className="button button--secondary"
                     >
                         Change Status
                     </button>
@@ -316,7 +296,7 @@ function WbsDetail({
                                 wbs,
                             )
                         }
-                        className="wbs-detail-button wbs-detail-button-delete"
+                        className="button button--danger"
                     >
                         Delete
                     </button>
@@ -349,18 +329,14 @@ function DetailRow({
             <span
                 className="wbs-detail-row-label"
             >
-                {
-                    label
-                }
+                {label}
             </span>
 
 
             <span
                 className="wbs-detail-row-value"
             >
-                {
-                    value
-                }
+                {value}
             </span>
 
         </div>

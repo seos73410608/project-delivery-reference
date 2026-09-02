@@ -1,7 +1,15 @@
 import { useState } from "react";
 
-import type { WbsTreeResponse } from "@/features/wbs/types/wbs";
-import { WBS_STATUS_LABEL } from "@/features/wbs/types/wbs";
+import type {
+    WbsTreeResponse,
+} from "@/features/wbs/types/wbs";
+
+import {
+    WBS_STATUS_LABEL,
+} from "@/features/wbs/types/wbs";
+
+import "@/styles/badge.css";
+import "@/features/wbs/styles/wbs.css";
 
 
 interface WbsTreeNodeProps {
@@ -71,13 +79,6 @@ function WbsTreeNode({
 
     /**
      * 현재 Node 선택 여부
-     *
-     * Virtual Root:
-     *     node.id = 0
-     *     selectedId = 0
-     *
-     * 실제 WBS:
-     *     node.id = 실제 WBS ID
      */
     const isSelected =
         node.id === selectedId;
@@ -87,6 +88,7 @@ function WbsTreeNode({
      * Node 펼침 / 접힘
      */
     const handleToggle = () => {
+
         if (!hasChildren) {
             return;
         }
@@ -107,6 +109,7 @@ function WbsTreeNode({
      *     onSelect(node)
      */
     const handleSelect = () => {
+
         if (isVirtualRoot) {
             onSelect?.(null);
             return;
@@ -119,17 +122,8 @@ function WbsTreeNode({
     /**
      * Tree depth에 따른 들여쓰기
      *
-     * Virtual Root:
-     *     12px
-     *
-     * Level 1:
-     *     32px
-     *
-     * Level 2:
-     *     52px
-     *
-     * Level 3:
-     *     72px
+     * 실제 padding은
+     * wbs.css에서 CSS 변수로 처리한다.
      */
     const paddingLeft =
         isVirtualRoot
@@ -137,27 +131,54 @@ function WbsTreeNode({
             : 12 + node.level * 20;
 
 
+    /**
+     * WBS Status에 대응하는
+     * 공통 Badge modifier
+     *
+     * PLANNED
+     *     → badge--planned
+     *
+     * IN_PROGRESS
+     *     → badge--in-progress
+     *
+     * COMPLETED
+     *     → badge--completed
+     *
+     * ON_HOLD
+     *     → badge--on-hold
+     *
+     * CANCELLED
+     *     → badge--cancelled
+     */
+    const statusClass =
+        `badge--${node.status
+            .toLowerCase()
+            .replace("_", "-")}`;
+
+
     return (
-        <div className="wbs-tree-node-wrapper">
+        <div
+            className="wbs-tree-node-wrapper"
+            style={{
+                "--wbs-tree-padding-left":
+                    `${paddingLeft}px`,
+            } as React.CSSProperties}
+        >
 
             {/* WBS Node */}
             <div
                 onClick={handleSelect}
                 className={[
-                    "wbs-tree-node",
+                    "wbs-tree-node-row",
                     isSelected
-                        ? "wbs-tree-node-selected"
+                        ? "selected"
                         : "",
                     isVirtualRoot
-                        ? "wbs-tree-node-root"
+                        ? "virtual-root"
                         : "",
                 ]
                     .filter(Boolean)
                     .join(" ")}
-                style={{
-                    paddingLeft:
-                        `${paddingLeft}px`,
-                }}
             >
 
                 {/* Expand / Collapse */}
@@ -168,11 +189,14 @@ function WbsTreeNode({
                         handleToggle();
                     }}
                     disabled={!hasChildren}
-                    className={`wbs-tree-toggle ${
+                    className={[
+                        "wbs-tree-toggle",
                         hasChildren
-                            ? "wbs-tree-toggle-enabled"
-                            : "wbs-tree-toggle-disabled"
-                    }`}
+                            ? "has-children"
+                            : "",
+                    ]
+                        .filter(Boolean)
+                        .join(" ")}
                 >
                     {hasChildren
                         ? expanded
@@ -184,11 +208,14 @@ function WbsTreeNode({
 
                 {/* WBS Code */}
                 <span
-                    className={`wbs-tree-code ${
+                    className={[
+                        "wbs-tree-code",
                         isVirtualRoot
-                            ? "wbs-tree-code-root"
-                            : ""
-                    }`}
+                            ? "virtual-root"
+                            : "",
+                    ]
+                        .filter(Boolean)
+                        .join(" ")}
                 >
                     {isVirtualRoot
                         ? "ROOT"
@@ -202,9 +229,9 @@ function WbsTreeNode({
                 </span>
 
 
-                {/* Virtual Root 설명 */}
+                {/* Virtual Root */}
                 {isVirtualRoot && (
-                    <span className="wbs-tree-root-badge">
+                    <span className="badge wbs-tree-root-badge">
                         최상위 WBS
                     </span>
                 )}
@@ -212,7 +239,13 @@ function WbsTreeNode({
 
                 {/* Status */}
                 {!isVirtualRoot && (
-                    <span className="wbs-tree-status">
+                    <span
+                        className={[
+                            "badge",
+                            statusClass,
+                            "wbs-tree-status",
+                        ].join(" ")}
+                    >
                         {
                             WBS_STATUS_LABEL[
                                 node.status
@@ -228,6 +261,7 @@ function WbsTreeNode({
                         #{node.sortOrder}
                     </span>
                 )}
+
             </div>
 
 
@@ -235,6 +269,7 @@ function WbsTreeNode({
             {hasChildren &&
                 expanded && (
                     <div className="wbs-tree-children">
+
                         {node.children.map(
                             (child) => (
                                 <WbsTreeNode
@@ -249,8 +284,10 @@ function WbsTreeNode({
                                 />
                             ),
                         )}
+
                     </div>
                 )}
+
         </div>
     );
 }

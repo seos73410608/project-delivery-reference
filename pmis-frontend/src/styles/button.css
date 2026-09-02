@@ -1,0 +1,322 @@
+/* =========================================================
+ * PMIS - Common Button Styles
+ * ========================================================= */
+
+/* ---------------------------------------------------------
+ * Base
+ * --------------------------------------------------------- */
+
+.button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+
+    min-height: 36px;
+    padding: 0 14px;
+
+    border: 1px solid transparent;
+    border-radius: 6px;
+
+    box-sizing: border-box;
+
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1;
+
+    white-space: nowrap;
+    text-decoration: none;
+
+    cursor: pointer;
+    user-select: none;
+
+    transition:
+        background-color 0.15s ease,
+        border-color 0.15s ease,
+        color 0.15s ease,
+        box-shadow 0.15s ease,
+        opacity 0.15s ease;
+}
+
+.button:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.button:disabled,
+.button[aria-disabled="true"] {
+    opacity: 0.55;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+
+/* ---------------------------------------------------------
+ * Primary
+ * --------------------------------------------------------- */
+
+.button--primary {
+    background: #2563eb;
+    border-color: #2563eb;
+    color: #ffffff;
+}
+
+.button--primary:hover {
+    background: #1d4ed8;
+    border-color: #1d4ed8;
+}
+
+.button--primary:active {
+    background: #1e40af;
+    border-color: #1e40af;
+}
+
+
+/* ---------------------------------------------------------
+ * Secondary
+ * --------------------------------------------------------- */
+
+.button--secondary {
+    background: #ffffff;
+    border-color: #d1d5db;
+    color: #374151;
+}
+
+.button--secondary:hover {
+    background: #f9fafb;
+    border-color: #9ca3af;
+}
+
+.button--secondary:active {
+    background: #f3f4f6;
+    border-color: #9ca3af;
+}
+
+
+/* ---------------------------------------------------------
+ * Danger
+ * --------------------------------------------------------- */
+
+.button--danger {
+    background: #dc2626;
+    border-color: #dc2626;
+    color: #ffffff;
+}
+
+.button--danger:hover {
+    background: #b91c1c;
+    border-color: #b91c1c;
+}
+
+.button--danger:active {
+    background: #991b1b;
+    border-color: #991b1b;
+}
+
+
+/* ---------------------------------------------------------
+ * Dark
+ * --------------------------------------------------------- */
+
+.button--dark {
+    background: #374151;
+    border-color: #374151;
+    color: #ffffff;
+}
+
+.button--dark:hover {
+    background: #111827;
+    border-color: #111827;
+}
+
+.button--dark:active {
+    background: #030712;
+    border-color: #030712;
+}
+
+
+/* ---------------------------------------------------------
+ * Ghost
+ * --------------------------------------------------------- */
+
+.button--ghost {
+    background: transparent;
+    border-color: transparent;
+    color: #475569;
+}
+
+.button--ghost:hover {
+    background: #f8fafc;
+    border-color: #e5e7eb;
+}
+
+.button--ghost:active {
+    background: #f1f5f9;
+    border-color: transparent;
+}
+
+
+/* ---------------------------------------------------------
+ * Link
+ * --------------------------------------------------------- */
+
+.button--link {
+    min-height: auto;
+    padding: 0;
+
+    background: transparent;
+    border-color: transparent;
+
+    color: #2563eb;
+}
+
+.button--link:hover {
+    color: #1d4ed8;
+    text-decoration: underline;
+}
+
+.button--link:active {
+    color: #1e40af;
+}
+
+
+/* ---------------------------------------------------------
+ * Sizes
+ * --------------------------------------------------------- */
+
+.button--sm {
+    min-height: 32px;
+    padding: 0 11px;
+
+    border-radius: 5px;
+
+    font-size: 12px;
+}
+
+.button--md {
+    min-height: 36px;
+    padding: 0 14px;
+
+    border-radius: 6px;
+
+    font-size: 13px;
+}
+
+.button--lg {
+    min-height: 40px;
+    padding: 0 18px;
+
+    border-radius: 6px;
+
+    font-size: 14px;
+}
+
+
+/* ---------------------------------------------------------
+ * Full Width
+ * --------------------------------------------------------- */
+
+.button--full {
+    width: 100%;
+}
+
+
+/* ---------------------------------------------------------
+ * Icon Button
+ * --------------------------------------------------------- */
+
+.button--icon {
+    width: 36px;
+    min-width: 36px;
+    height: 36px;
+    min-height: 36px;
+
+    padding: 0;
+}
+
+.button--icon.button--sm {
+    width: 32px;
+    min-width: 32px;
+    height: 32px;
+    min-height: 32px;
+}
+
+.button--icon.button--lg {
+    width: 40px;
+    min-width: 40px;
+    height: 40px;
+    min-height: 40px;
+}
+
+
+/* ---------------------------------------------------------
+ * Button Group
+ * --------------------------------------------------------- */
+
+.button-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.button-group--right {
+    justify-content: flex-end;
+}
+
+.button-group--center {
+    justify-content: center;
+}
+
+
+/* ---------------------------------------------------------
+ * Loading
+ * --------------------------------------------------------- */
+
+.button--loading {
+    position: relative;
+    pointer-events: none;
+}
+
+.button--loading .button__spinner {
+    width: 14px;
+    height: 14px;
+
+    border: 2px solid rgba(255, 255, 255, 0.35);
+    border-top-color: #ffffff;
+
+    border-radius: 50%;
+
+    animation: button-spinner 0.7s linear infinite;
+}
+
+.button--loading.button--secondary .button__spinner,
+.button--loading.button--ghost .button__spinner {
+    border-color: #d1d5db;
+    border-top-color: #475569;
+}
+
+@keyframes button-spinner {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+
+/* ---------------------------------------------------------
+ * Responsive
+ * --------------------------------------------------------- */
+
+@media (max-width: 640px) {
+    .button {
+        min-height: 36px;
+        padding: 0 12px;
+        font-size: 12px;
+    }
+
+    .button--lg {
+        min-height: 40px;
+        padding: 0 16px;
+        font-size: 13px;
+    }
+}

@@ -7,6 +7,10 @@ import type {
     WbsUpdateRequest,
 } from "@/features/wbs/types/wbs";
 
+import { WBS_STATUS_LABEL } from "@/features/wbs/types/wbs";
+
+import "@/features/wbs/styles/wbs.css";
+
 
 interface WbsFormProps {
     /**
@@ -69,6 +73,15 @@ interface WbsFormProps {
 }
 
 
+const statusOptions: WbsStatus[] = [
+    "PLANNED",
+    "IN_PROGRESS",
+    "COMPLETED",
+    "ON_HOLD",
+    "CANCELLED",
+];
+
+
 function WbsForm({
     mode,
     projectId,
@@ -81,12 +94,6 @@ function WbsForm({
 
     /**
      * Form 초기값
-     *
-     * 생성:
-     * 빈 값
-     *
-     * 수정:
-     * 기존 WBS 값
      */
     const [wbsCode, setWbsCode] =
         useState(
@@ -137,17 +144,32 @@ function WbsForm({
     useEffect(() => {
 
         if (mode === "edit" && wbs) {
-            setWbsCode(wbs.wbsCode);
-            setWbsName(wbs.wbsName);
+
+            setWbsCode(
+                wbs.wbsCode,
+            );
+
+            setWbsName(
+                wbs.wbsName,
+            );
+
             setDescription(
                 wbs.description ?? "",
             );
-            setStatus(wbs.status);
-            setSortOrder(wbs.sortOrder);
+
+            setStatus(
+                wbs.status,
+            );
+
+            setSortOrder(
+                wbs.sortOrder,
+            );
+
             setError(null);
 
             return;
         }
+
 
         /**
          * Create mode
@@ -191,9 +213,6 @@ function WbsForm({
 
     /**
      * 현재 Parent ID
-     *
-     * Parent WBS가 있으면 해당 ID
-     * 없으면 최상위 WBS이므로 null
      */
     const parentId =
         parentWbs?.id ?? null;
@@ -201,16 +220,11 @@ function WbsForm({
 
     /**
      * WBS Submit
-     *
-     * Create:
-     * POST /api/projects/{projectId}/wbs
-     *
-     * Update:
-     * PUT /api/wbs/{id}
      */
     const handleSubmit = async (
         event: React.FormEvent<HTMLFormElement>,
     ) => {
+
         event.preventDefault();
 
 
@@ -218,7 +232,11 @@ function WbsForm({
          * 수정 모드인데
          * 수정 대상 WBS가 없는 경우
          */
-        if (isEditMode && !wbs) {
+        if (
+            isEditMode &&
+            !wbs
+        ) {
+
             setError(
                 "수정할 WBS가 선택되지 않았습니다.",
             );
@@ -231,6 +249,7 @@ function WbsForm({
          * WBS Code validation
          */
         if (!wbsCode.trim()) {
+
             setError(
                 "WBS Code를 입력해주세요.",
             );
@@ -243,6 +262,7 @@ function WbsForm({
          * WBS Name validation
          */
         if (!wbsName.trim()) {
+
             setError(
                 "WBS 명을 입력해주세요.",
             );
@@ -258,6 +278,7 @@ function WbsForm({
             !Number.isInteger(sortOrder) ||
             sortOrder < 1
         ) {
+
             setError(
                 "정렬 순서는 1 이상의 정수여야 합니다.",
             );
@@ -267,6 +288,7 @@ function WbsForm({
 
 
         try {
+
             setSubmitting(true);
             setError(null);
 
@@ -294,12 +316,11 @@ function WbsForm({
 
             /**
              * Create
-             *
-             * POST /api/projects/{projectId}/wbs
              */
             if (!isEditMode) {
 
                 if (!onCreate) {
+
                     throw new Error(
                         "WBS 생성 처리 함수가 없습니다.",
                     );
@@ -322,10 +343,9 @@ function WbsForm({
 
             /**
              * Update
-             *
-             * PUT /api/wbs/{id}
              */
             if (!onUpdate) {
+
                 throw new Error(
                     "WBS 수정 처리 함수가 없습니다.",
                 );
@@ -333,6 +353,7 @@ function WbsForm({
 
 
             if (!wbs) {
+
                 throw new Error(
                     "수정할 WBS가 없습니다.",
                 );
@@ -351,6 +372,7 @@ function WbsForm({
             );
 
         } catch (err) {
+
             console.error(
                 isEditMode
                     ? "Failed to update WBS:"
@@ -366,6 +388,7 @@ function WbsForm({
             );
 
         } finally {
+
             setSubmitting(false);
         }
     };
@@ -391,33 +414,41 @@ function WbsForm({
 
             {/* Error */}
             {error && (
-                <div className="wbs-form-error">
-                    {error}
+                <div className="state state--error wbs-form-error">
+
+                    <div className="state__icon">
+                        !
+                    </div>
+
+                    <p className="state__description">
+                        {error}
+                    </p>
+
                 </div>
             )}
 
 
             <form
-                onSubmit={
-                    handleSubmit
-                }
+                onSubmit={handleSubmit}
             >
 
                 {/* Project ID */}
-                <div className="wbs-form-field">
+                <div className="form__field">
 
-                    <label className="wbs-form-label">
+                    <label
+                        htmlFor="wbs-project-id"
+                        className="form__label"
+                    >
                         Project ID
                     </label>
 
 
                     <input
+                        id="wbs-project-id"
                         type="text"
-                        value={
-                            projectId
-                        }
+                        value={projectId}
                         disabled
-                        className="wbs-form-input"
+                        className="form__input"
                     />
 
                 </div>
@@ -426,20 +457,22 @@ function WbsForm({
                 {/* WBS ID - Edit only */}
                 {isEditMode &&
                     wbs && (
-                        <div className="wbs-form-field">
+                        <div className="form__field">
 
-                            <label className="wbs-form-label">
+                            <label
+                                htmlFor="wbs-id"
+                                className="form__label"
+                            >
                                 WBS ID
                             </label>
 
 
                             <input
+                                id="wbs-id"
                                 type="text"
-                                value={
-                                    wbs.id
-                                }
+                                value={wbs.id}
                                 disabled
-                                className="wbs-form-input"
+                                className="form__input"
                             />
 
                         </div>
@@ -447,14 +480,18 @@ function WbsForm({
 
 
                 {/* Parent WBS */}
-                <div className="wbs-form-field">
+                <div className="form__field">
 
-                    <label className="wbs-form-label">
+                    <label
+                        htmlFor="wbs-parent"
+                        className="form__label"
+                    >
                         Parent WBS
                     </label>
 
 
                     <input
+                        id="wbs-parent"
                         type="text"
                         value={
                             parentWbs
@@ -462,150 +499,133 @@ function WbsForm({
                                 : "최상위 WBS"
                         }
                         disabled
-                        className="wbs-form-input"
+                        className="form__input"
                     />
 
                 </div>
 
 
                 {/* WBS Code */}
-                <div className="wbs-form-field">
+                <div className="form__field">
 
-                    <label className="wbs-form-label">
+                    <label
+                        htmlFor="wbs-code"
+                        className="form__label"
+                    >
                         WBS Code
                     </label>
 
 
                     <input
+                        id="wbs-code"
                         type="text"
-                        value={
-                            wbsCode
-                        }
-                        onChange={(
-                            event,
-                        ) =>
+                        value={wbsCode}
+                        onChange={(event) =>
                             setWbsCode(
-                                event.target
-                                    .value,
+                                event.target.value,
                             )
                         }
                         placeholder="예: 3.1.1"
-                        disabled={
-                            submitting
-                        }
-                        className="wbs-form-input"
+                        disabled={submitting}
+                        className="form__input"
                     />
 
                 </div>
 
 
                 {/* WBS Name */}
-                <div className="wbs-form-field">
+                <div className="form__field">
 
-                    <label className="wbs-form-label">
+                    <label
+                        htmlFor="wbs-name"
+                        className="form__label"
+                    >
                         WBS 명
                     </label>
 
 
                     <input
+                        id="wbs-name"
                         type="text"
-                        value={
-                            wbsName
-                        }
-                        onChange={(
-                            event,
-                        ) =>
+                        value={wbsName}
+                        onChange={(event) =>
                             setWbsName(
-                                event.target
-                                    .value,
+                                event.target.value,
                             )
                         }
                         placeholder="WBS 이름을 입력하세요."
-                        disabled={
-                            submitting
-                        }
-                        className="wbs-form-input"
+                        disabled={submitting}
+                        className="form__input"
                     />
 
                 </div>
 
 
                 {/* Description */}
-                <div className="wbs-form-field">
+                <div className="form__field">
 
-                    <label className="wbs-form-label">
+                    <label
+                        htmlFor="wbs-description"
+                        className="form__label"
+                    >
                         설명
                     </label>
 
 
                     <textarea
-                        value={
-                            description
-                        }
-                        onChange={(
-                            event,
-                        ) =>
+                        id="wbs-description"
+                        value={description}
+                        onChange={(event) =>
                             setDescription(
-                                event.target
-                                    .value,
+                                event.target.value,
                             )
                         }
                         placeholder="WBS 설명을 입력하세요."
-                        disabled={
-                            submitting
-                        }
+                        disabled={submitting}
                         rows={4}
-                        className="wbs-form-textarea"
+                        className="form__textarea"
                     />
 
                 </div>
 
 
                 {/* Status */}
-                <div className="wbs-form-field">
+                <div className="form__field">
 
-                    <label className="wbs-form-label">
+                    <label
+                        htmlFor="wbs-status"
+                        className="form__label"
+                    >
                         상태
                     </label>
 
 
                     <select
-                        value={
-                            status
-                        }
-                        onChange={(
-                            event,
-                        ) =>
+                        id="wbs-status"
+                        value={status}
+                        onChange={(event) =>
                             setStatus(
-                                event.target
-                                    .value as WbsStatus,
+                                event.target.value as WbsStatus,
                             )
                         }
-                        disabled={
-                            submitting
-                        }
-                        className="wbs-form-select"
+                        disabled={submitting}
+                        className="form__select"
                     >
 
-                        <option value="PLANNED">
-                            계획
-                        </option>
-
-                        <option value="IN_PROGRESS">
-                            진행 중
-                        </option>
-
-                        <option value="COMPLETED">
-                            완료
-                        </option>
-
-                        <option value="ON_HOLD">
-                            보류
-                        </option>
-
-                        <option value="CANCELLED">
-                            취소
-                        </option>
+                        {statusOptions.map(
+                            (option) => (
+                                <option
+                                    key={option}
+                                    value={option}
+                                >
+                                    {
+                                        WBS_STATUS_LABEL[
+                                            option
+                                        ]
+                                    }
+                                </option>
+                            ),
+                        )}
 
                     </select>
 
@@ -613,51 +633,44 @@ function WbsForm({
 
 
                 {/* Sort Order */}
-                <div className="wbs-form-field-last">
+                <div className="form__field">
 
-                    <label className="wbs-form-label">
+                    <label
+                        htmlFor="wbs-sort-order"
+                        className="form__label"
+                    >
                         정렬 순서
                     </label>
 
 
                     <input
+                        id="wbs-sort-order"
                         type="number"
                         min={1}
-                        value={
-                            sortOrder
-                        }
-                        onChange={(
-                            event,
-                        ) =>
+                        value={sortOrder}
+                        onChange={(event) =>
                             setSortOrder(
                                 Number(
-                                    event.target
-                                        .value,
+                                    event.target.value,
                                 ),
                             )
                         }
-                        disabled={
-                            submitting
-                        }
-                        className="wbs-form-input"
+                        disabled={submitting}
+                        className="form__input"
                     />
 
                 </div>
 
 
                 {/* Buttons */}
-                <div className="wbs-form-buttons">
+                <div className="form__actions">
 
                     {/* Cancel */}
                     <button
                         type="button"
-                        onClick={
-                            onCancel
-                        }
-                        disabled={
-                            submitting
-                        }
-                        className="wbs-form-button cancel"
+                        onClick={onCancel}
+                        disabled={submitting}
+                        className="button button--secondary"
                     >
                         취소
                     </button>
@@ -666,10 +679,8 @@ function WbsForm({
                     {/* Submit */}
                     <button
                         type="submit"
-                        disabled={
-                            submitting
-                        }
-                        className="wbs-form-button submit"
+                        disabled={submitting}
+                        className="button button--primary"
                     >
                         {submitting
                             ? isEditMode

@@ -5,6 +5,8 @@ import type {
     WbsTreeResponse,
 } from "@/features/wbs/types/wbs";
 
+import "@/features/wbs/styles/wbs.css";
+
 
 interface WbsTreeProps {
     wbsList: WbsTreeResponse[];
@@ -44,23 +46,6 @@ interface WbsTreeProps {
  * Backend에는 저장되지 않는
  * 화면 전용 Root이다.
  *
- * 실제 Backend WBS:
- *
- * WBS
- * ├── 1 프로젝트 관리
- * │   ├── 1.1 프로젝트 계획
- * │   │   └── 1.1.1 상세 일정 계획
- * │   └── 1.2 프로젝트 수행
- * │
- * └── 2 테스트 관리
- *     └── 2.1 테스트 계획
- *
- *
- * Virtual Root:
- *
- * WBS
- *
- *
  * 사용자가 Virtual Root를 선택하고
  * WBS 생성 버튼을 누르면
  *
@@ -71,75 +56,30 @@ interface WbsTreeProps {
 const createVirtualRoot = (
     children: WbsTreeResponse[],
 ): WbsTreeResponse => ({
-    /**
-     * 실제 DB에는 존재하지 않는
-     * 화면 전용 ID
-     */
     id: 0,
 
-    /**
-     * 실제 프로젝트 ID
-     *
-     * children이 있으면 첫 번째 WBS의
-     * projectId를 사용한다.
-     *
-     * WBS가 하나도 없는 경우에는
-     * 0을 사용한다.
-     */
     projectId:
         children.length > 0
             ? children[0].projectId
             : 0,
 
-    /**
-     * Virtual Root 자체에는
-     * Parent가 없다.
-     */
     parentId: null,
 
-    /**
-     * Virtual Root에는
-     * 실제 WBS Code가 없다.
-     */
     wbsCode: "",
 
-    /**
-     * 화면 표시용 이름
-     */
     wbsName: "WBS",
 
-    /**
-     * 실제 WBS보다 한 단계 위의
-     * 화면 전용 Level
-     */
     level: 0,
 
-    /**
-     * 화면 전용 Sort Order
-     */
     sortOrder: 0,
 
-    /**
-     * 화면 전용 기본 Status
-     */
     status: "PLANNED",
 
-    /**
-     * 설명 없음
-     */
     description: null,
 
-    /**
-     * Backend 생성일시 없음
-     */
     createdAt: "",
-
     updatedAt: "",
 
-    /**
-     * 실제 Backend WBS를
-     * Virtual Root의 children으로 연결한다.
-     */
     children,
 });
 
@@ -151,6 +91,16 @@ function WbsTree({
     keyword,
     status,
 }: WbsTreeProps) {
+
+    /**
+     * 검색 조건을 한 번만 계산한다.
+     */
+    const normalizedKeyword =
+        keyword.trim().toLowerCase();
+
+    const isFiltering =
+        normalizedKeyword !== "" ||
+        status !== "";
 
 
     /**
@@ -181,18 +131,16 @@ function WbsTree({
                  * WBS Code / Name 검색
                  */
                 const keywordMatched =
-                    keyword.trim() === "" ||
+                    normalizedKeyword === "" ||
                     node.wbsCode
                         .toLowerCase()
                         .includes(
-                            keyword
-                                .toLowerCase(),
+                            normalizedKeyword,
                         ) ||
                     node.wbsName
                         .toLowerCase()
                         .includes(
-                            keyword
-                                .toLowerCase(),
+                            normalizedKeyword,
                         );
 
 
@@ -249,36 +197,23 @@ function WbsTree({
      *
      * Virtual Root를 표시한다.
      *
-     * WBS
-     * ├── 1 프로젝트 관리
-     * └── 2 테스트 관리
-     *
-     *
      * 검색 중:
      *
      * Virtual Root를 숨기고
      * 검색 결과만 표시한다.
      */
     const displayTree =
-        keyword.trim() === "" &&
-        status === ""
-            ? [
+        isFiltering
+            ? filteredWbsTree
+            : [
                   createVirtualRoot(
                       filteredWbsTree,
                   ),
-              ]
-            : filteredWbsTree;
+              ];
 
 
     /**
      * WBS Node 선택
-     *
-     * Virtual Root:
-     *     id = 0
-     *     → onSelect(null)
-     *
-     * 실제 WBS:
-     *     → onSelect(node)
      */
     const handleSelect = (
         node: WbsTreeResponse | null,
@@ -301,8 +236,16 @@ function WbsTree({
 
                 {displayTree.length === 0 ? (
 
-                    <div className="wbs-tree-empty">
-                        No WBS found.
+                    <div className="state state--empty wbs-tree-empty">
+
+                        <div className="state__icon">
+                            !
+                        </div>
+
+                        <p className="state__title">
+                            No WBS found.
+                        </p>
+
                     </div>
 
                 ) : (
@@ -312,21 +255,9 @@ function WbsTree({
                             <WbsTreeNode
                                 key={node.id}
                                 node={node}
-
-                                /**
-                                 * Virtual Root:
-                                 *
-                                 * selectedWbsId = 0
-                                 *
-                                 * 실제 WBS:
-                                 *
-                                 * selectedWbsId = 실제 ID
-                                 */
                                 selectedId={
-                                    selectedWbsId ??
-                                    0
+                                    selectedWbsId ?? 0
                                 }
-
                                 onSelect={
                                     handleSelect
                                 }

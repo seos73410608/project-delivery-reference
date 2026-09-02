@@ -996,39 +996,26 @@ function WbsPage() {
 
 
     return (
-        <div>
+        <div className="page wbs-page">
 
             {/* Page Header */}
-            <div
-                style={{
-                    marginBottom:
-                        "24px",
-                }}
-            >
+            <div className="page__header">
 
-                <h1
-                    style={{
-                        margin: 0,
+                <div className="page__header-content">
 
-                        fontSize:
-                            "28px",
-                    }}
-                >
-                    WBS Management
-                </h1>
+                    <div className="page__eyebrow">
+                        PROJECT MANAGEMENT
+                    </div>
 
+                    <h1 className="page__title">
+                        WBS Management
+                    </h1>
 
-                <p
-                    style={{
-                        marginTop:
-                            "8px",
+                    <p className="page__description">
+                        Work Breakdown Structure management
+                    </p>
 
-                        color:
-                            "#666666",
-                    }}
-                >
-                    Work Breakdown Structure management
-                </p>
+                </div>
 
             </div>
 
@@ -1040,13 +1027,7 @@ function WbsPage() {
                     pageFormMode === "edit"
                 ) && (
 
-                    <div
-                        style={{
-                            marginBottom:
-                                "16px",
-                        }}
-                    >
-
+                    <div className="wbs-page__form">
                         <WbsForm
                             mode={
                                 formMode
@@ -1078,7 +1059,6 @@ function WbsPage() {
                                 handleFormCancel
                             }
                         />
-
                     </div>
                 )}
 
@@ -1088,13 +1068,7 @@ function WbsPage() {
                 pageFormMode === "status" &&
                 selectedWbs && (
 
-                    <div
-                        style={{
-                            marginBottom:
-                                "16px",
-                        }}
-                    >
-
+                    <div className="wbs-page__form">
                         <WbsStatusForm
                             wbs={
                                 selectedWbs
@@ -1108,20 +1082,13 @@ function WbsPage() {
                                 handleFormCancel
                             }
                         />
-
                     </div>
                 )}
 
 
             {/* Toolbar */}
             {!showForm && (
-                <div
-                    style={{
-                        marginBottom:
-                            "16px",
-                    }}
-                >
-
+                <div className="wbs-page__toolbar">
                     <WbsToolbar
                         keyword={
                             keyword
@@ -1143,32 +1110,18 @@ function WbsPage() {
                             handleCreate
                         }
                     />
-
                 </div>
             )}
 
 
             {/* Loading */}
             {loading && (
-                <div
-                    style={{
-                        padding:
-                            "40px",
+                <div className="state state--loading">
+                    <span className="spinner" />
 
-                        textAlign:
-                            "center",
-
-                        backgroundColor:
-                            "#ffffff",
-
-                        border:
-                            "1px solid #dddddd",
-
-                        borderRadius:
-                            "6px",
-                    }}
-                >
-                    WBS 정보를 불러오는 중입니다...
+                    <p className="state__description">
+                        WBS 정보를 불러오는 중입니다...
+                    </p>
                 </div>
             )}
 
@@ -1176,28 +1129,20 @@ function WbsPage() {
             {/* Error */}
             {!loading &&
                 error && (
-                    <div
-                        style={{
-                            padding:
-                                "20px",
+                    <div className="state state--error">
 
-                            marginBottom:
-                                "16px",
+                        <div className="state__icon">
+                            !
+                        </div>
 
-                            backgroundColor:
-                                "#fff3f3",
+                        <p className="state__title">
+                            WBS 정보를 불러오지 못했습니다.
+                        </p>
 
-                            border:
-                                "1px solid #f0b8b8",
+                        <p className="state__description">
+                            {error}
+                        </p>
 
-                            borderRadius:
-                                "6px",
-
-                            color:
-                                "#c62828",
-                        }}
-                    >
-                        {error}
                     </div>
                 )}
 
@@ -1211,31 +1156,20 @@ function WbsPage() {
                     status !== ""
                 ) && (
 
-                    <div
-                        style={{
-                            padding:
-                                "40px",
+                    <div className="state state--empty">
 
-                            marginBottom:
-                                "16px",
+                        <div className="state__icon">
+                            !
+                        </div>
 
-                            textAlign:
-                                "center",
+                        <p className="state__title">
+                            검색 결과가 없습니다.
+                        </p>
 
-                            backgroundColor:
-                                "#ffffff",
+                        <p className="state__description">
+                            검색 조건에 해당하는 WBS가 없습니다.
+                        </p>
 
-                            border:
-                                "1px solid #dddddd",
-
-                            borderRadius:
-                                "6px",
-
-                            color:
-                                "#666666",
-                        }}
-                    >
-                        검색 조건에 해당하는 WBS가 없습니다.
                     </div>
                 )}
 
@@ -1244,21 +1178,7 @@ function WbsPage() {
             {!loading &&
                 !error && (
 
-                    <div
-                        style={{
-                            display:
-                                "grid",
-
-                            gridTemplateColumns:
-                                "1.5fr 1fr",
-
-                            gap:
-                                "16px",
-
-                            alignItems:
-                                "start",
-                        }}
-                    >
+                    <div className="wbs-page__content">
 
                         {/* WBS Tree */}
                         <WbsTree
