@@ -7,7 +7,6 @@ import type {
 
 import { WBS_STATUS_LABEL } from "@/features/wbs/types/wbs";
 
-import "@/styles/badge.css";
 import "@/features/wbs/styles/wbs.css";
 
 
