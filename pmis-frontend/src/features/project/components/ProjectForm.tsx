@@ -606,6 +606,7 @@ function ProjectForm({
         >
 
             {/* Header */}
+
             <div
                 className="project-form__header"
             >
@@ -638,35 +639,52 @@ function ProjectForm({
 
 
             {/* Error */}
+
             {error && (
 
                 <div
-                    className="project-form__error"
+                    className="state state--error project-form__error"
                     role="alert"
                 >
-                    {error}
+
+                    <span
+                        className="state__icon"
+                    >
+                        !
+                    </span>
+
+
+                    <span
+                        className="state__description"
+                    >
+                        {error}
+                    </span>
+
                 </div>
 
             )}
 
 
             {/* Form */}
+
             <form
-                className="project-form__form"
+                className="form project-form__form"
                 onSubmit={handleSubmit}
             >
 
 
                 {/* Project ID */}
+
                 {isEditMode &&
                     project && (
 
                     <div
-                        className="project-form__field"
+                        className="form__field"
                     >
 
                         <label
                             htmlFor="projectId"
+                            className="form__label"
                         >
                             Project ID
                         </label>
@@ -675,6 +693,7 @@ function ProjectForm({
                         <input
                             id="projectId"
                             type="text"
+                            className="form__input"
                             value={project.id}
                             disabled
                         />
@@ -685,12 +704,14 @@ function ProjectForm({
 
 
                 {/* Project Code */}
+
                 <div
-                    className="project-form__field"
+                    className="form__field"
                 >
 
                     <label
                         htmlFor="projectCode"
+                        className="form__label"
                     >
                         프로젝트 코드
                     </label>
@@ -699,6 +720,7 @@ function ProjectForm({
                     <input
                         id="projectCode"
                         type="text"
+                        className="form__input"
                         value={projectCode}
                         onChange={(event) =>
                             setProjectCode(
@@ -716,7 +738,7 @@ function ProjectForm({
                     {isEditMode && (
 
                         <span
-                            className="project-form__help"
+                            className="form__help"
                         >
                             프로젝트 코드는 수정할 수 없습니다.
                         </span>
@@ -727,12 +749,14 @@ function ProjectForm({
 
 
                 {/* Project Name */}
+
                 <div
-                    className="project-form__field"
+                    className="form__field"
                 >
 
                     <label
                         htmlFor="projectName"
+                        className="form__label"
                     >
                         프로젝트명
                     </label>
@@ -741,6 +765,7 @@ function ProjectForm({
                     <input
                         id="projectName"
                         type="text"
+                        className="form__input"
                         value={projectName}
                         onChange={(event) =>
                             setProjectName(
@@ -757,12 +782,14 @@ function ProjectForm({
 
 
                 {/* Customer */}
+
                 <div
-                    className="project-form__field"
+                    className="form__field"
                 >
 
                     <label
                         htmlFor="customerName"
+                        className="form__label"
                     >
                         고객사
                     </label>
@@ -771,6 +798,7 @@ function ProjectForm({
                     <input
                         id="customerName"
                         type="text"
+                        className="form__input"
                         value={customerName}
                         onChange={(event) =>
                             setCustomerName(
@@ -787,12 +815,14 @@ function ProjectForm({
 
 
                 {/* Project Manager */}
+
                 <div
-                    className="project-form__field"
+                    className="form__field"
                 >
 
                     <label
                         htmlFor="projectManager"
+                        className="form__label"
                     >
                         PM
                     </label>
@@ -801,6 +831,7 @@ function ProjectForm({
                     <input
                         id="projectManager"
                         type="text"
+                        className="form__input"
                         value={projectManager}
                         onChange={(event) =>
                             setProjectManager(
@@ -817,14 +848,16 @@ function ProjectForm({
 
 
                 {/* Status - Edit only */}
+
                 {isEditMode && (
 
                     <div
-                        className="project-form__field"
+                        className="form__field"
                     >
 
                         <label
                             htmlFor="status"
+                            className="form__label"
                         >
                             상태
                         </label>
@@ -832,6 +865,7 @@ function ProjectForm({
 
                         <select
                             id="status"
+                            className="form__select"
                             value={status}
                             onChange={(event) =>
                                 setStatus(
@@ -872,12 +906,14 @@ function ProjectForm({
 
 
                 {/* Priority */}
+
                 <div
-                    className="project-form__field"
+                    className="form__field"
                 >
 
                     <label
                         htmlFor="priority"
+                        className="form__label"
                     >
                         우선순위
                     </label>
@@ -885,6 +921,7 @@ function ProjectForm({
 
                     <select
                         id="priority"
+                        className="form__select"
                         value={priority}
                         onChange={(event) =>
                             setPriority(
@@ -919,12 +956,14 @@ function ProjectForm({
 
 
                 {/* Start Date */}
+
                 <div
-                    className="project-form__field"
+                    className="form__field"
                 >
 
                     <label
                         htmlFor="startDate"
+                        className="form__label"
                     >
                         시작일
                     </label>
@@ -933,6 +972,7 @@ function ProjectForm({
                     <input
                         id="startDate"
                         type="date"
+                        className="form__input"
                         value={startDate}
                         onChange={(event) =>
                             setStartDate(
@@ -948,12 +988,14 @@ function ProjectForm({
 
 
                 {/* End Date */}
+
                 <div
-                    className="project-form__field"
+                    className="form__field"
                 >
 
                     <label
                         htmlFor="endDate"
+                        className="form__label"
                     >
                         종료일
                     </label>
@@ -962,6 +1004,7 @@ function ProjectForm({
                     <input
                         id="endDate"
                         type="date"
+                        className="form__input"
                         value={endDate}
                         onChange={(event) =>
                             setEndDate(
@@ -977,12 +1020,14 @@ function ProjectForm({
 
 
                 {/* Description */}
+
                 <div
-                    className="project-form__field project-form__field--full"
+                    className="form__field form__field--full"
                 >
 
                     <label
                         htmlFor="description"
+                        className="form__label"
                     >
                         설명
                     </label>
@@ -990,6 +1035,7 @@ function ProjectForm({
 
                     <textarea
                         id="description"
+                        className="form__textarea"
                         value={description}
                         onChange={(event) =>
                             setDescription(
@@ -1007,14 +1053,16 @@ function ProjectForm({
 
 
                 {/* Actions */}
+
                 <div
-                    className="project-form__actions"
+                    className="form__actions project-form__actions"
                 >
 
                     {/* Cancel */}
+
                     <button
                         type="button"
-                        className="project-form__button project-form__button--cancel"
+                        className="button button--secondary"
                         onClick={onCancel}
                         disabled={
                             submitting
@@ -1025,9 +1073,10 @@ function ProjectForm({
 
 
                     {/* Submit */}
+
                     <button
                         type="submit"
-                        className="project-form__button project-form__button--submit"
+                        className="button button--primary"
                         disabled={
                             submitting
                         }

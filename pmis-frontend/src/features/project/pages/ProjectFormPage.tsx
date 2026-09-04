@@ -358,18 +358,20 @@ function ProjectFormPage() {
         return (
 
             <div
-                className="project-form-page"
+                className="page project-form-page"
             >
 
                 <div
-                    className="project-form-page__state"
+                    className="state state--loading project-form-page__state"
                 >
 
                     <div
-                        className="project-form-page__spinner"
+                        className="spinner"
                     />
 
-                    <span>
+                    <span
+                        className="state__description"
+                    >
                         프로젝트 정보를 불러오는 중입니다...
                     </span>
 
@@ -393,37 +395,47 @@ function ProjectFormPage() {
         return (
 
             <div
-                className="project-form-page"
+                className="page project-form-page"
             >
 
                 <div
-                    className="project-form-page__state project-form-page__state--error"
+                    className="state state--error project-form-page__state"
                 >
 
                     <div
-                        className="project-form-page__error-icon"
+                        className="state__icon"
                     >
                         !
                     </div>
 
 
-                    <strong>
+                    <strong
+                        className="state__title"
+                    >
                         프로젝트 정보를 불러올 수 없습니다.
                     </strong>
 
 
-                    <span>
+                    <span
+                        className="state__description"
+                    >
                         {error}
                     </span>
 
 
-                    <button
-                        type="button"
-                        className="project-form-page__back-button"
-                        onClick={handleCancel}
+                    <div
+                        className="state__actions"
                     >
-                        돌아가기
-                    </button>
+
+                        <button
+                            type="button"
+                            className="button button--secondary"
+                            onClick={handleCancel}
+                        >
+                            돌아가기
+                        </button>
+
+                    </div>
 
                 </div>
 
@@ -448,37 +460,47 @@ function ProjectFormPage() {
         return (
 
             <div
-                className="project-form-page"
+                className="page project-form-page"
             >
 
                 <div
-                    className="project-form-page__state project-form-page__state--error"
+                    className="state state--error project-form-page__state"
                 >
 
                     <div
-                        className="project-form-page__error-icon"
+                        className="state__icon"
                     >
                         !
                     </div>
 
 
-                    <strong>
+                    <strong
+                        className="state__title"
+                    >
                         프로젝트를 찾을 수 없습니다.
                     </strong>
 
 
-                    <span>
+                    <span
+                        className="state__description"
+                    >
                         수정할 프로젝트 정보가 존재하지 않습니다.
                     </span>
 
 
-                    <button
-                        type="button"
-                        className="project-form-page__back-button"
-                        onClick={handleCancel}
+                    <div
+                        className="state__actions"
                     >
-                        프로젝트 상세로 돌아가기
-                    </button>
+
+                        <button
+                            type="button"
+                            className="button button--secondary"
+                            onClick={handleCancel}
+                        >
+                            프로젝트 상세로 돌아가기
+                        </button>
+
+                    </div>
 
                 </div>
 
@@ -498,7 +520,7 @@ function ProjectFormPage() {
     return (
 
         <div
-            className="project-form-page"
+            className="page project-form-page"
         >
 
             <div

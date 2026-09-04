@@ -42,6 +42,15 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 
+const STATUS_BADGE_CLASSES: Record<Project['status'], string> = {
+  PLANNING: 'badge--planned',
+  IN_PROGRESS: 'badge--in-progress',
+  ON_HOLD: 'badge--on-hold',
+  COMPLETED: 'badge--completed',
+  CANCELLED: 'badge--cancelled',
+};
+
+
 const PRIORITY_LABELS: Record<string, string> = {
   LOW: '낮음',
   MEDIUM: '보통',
@@ -68,6 +77,10 @@ function ProjectDetail({
   const priorityLabel =
     PRIORITY_LABELS[project.priority] ??
     project.priority;
+
+
+  const statusBadgeClass =
+    STATUS_BADGE_CLASSES[project.status];
 
 
   return (
@@ -114,10 +127,7 @@ function ProjectDetail({
         >
 
           <span
-            className={
-              `project-status ` +
-              `project-status--${project.status.toLowerCase()}`
-            }
+            className={`badge ${statusBadgeClass}`}
           >
             {statusLabel}
           </span>
@@ -272,10 +282,7 @@ function ProjectDetail({
             <strong>
 
               <span
-                className={
-                  `project-status ` +
-                  `project-status--${project.status.toLowerCase()}`
-                }
+                className={`badge ${statusBadgeClass}`}
               >
                 {statusLabel}
               </span>
@@ -401,7 +408,7 @@ function ProjectDetail({
 
         <button
           type="button"
-          className="project-detail__delete-button"
+          className="button button--danger"
           onClick={onDelete}
           disabled={deleting}
         >

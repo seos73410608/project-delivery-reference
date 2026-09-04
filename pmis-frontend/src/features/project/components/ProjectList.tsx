@@ -18,6 +18,74 @@ interface ProjectListProps {
 }
 
 
+/* =========================================================
+   Labels
+   ========================================================= */
+
+const STATUS_LABELS: Record<
+  Project['status'],
+  string
+> = {
+  PLANNING:
+    '계획',
+
+  IN_PROGRESS:
+    '진행중',
+
+  ON_HOLD:
+    '보류',
+
+  COMPLETED:
+    '완료',
+
+  CANCELLED:
+    '취소',
+};
+
+
+const STATUS_BADGE_CLASSES: Record<
+  Project['status'],
+  string
+> = {
+  PLANNING:
+    'badge--planned',
+
+  IN_PROGRESS:
+    'badge--in-progress',
+
+  ON_HOLD:
+    'badge--on-hold',
+
+  COMPLETED:
+    'badge--completed',
+
+  CANCELLED:
+    'badge--cancelled',
+};
+
+
+const PRIORITY_LABELS: Record<
+  Project['priority'],
+  string
+> = {
+  LOW:
+    '낮음',
+
+  MEDIUM:
+    '보통',
+
+  HIGH:
+    '높음',
+
+  CRITICAL:
+    '긴급',
+};
+
+
+/* =========================================================
+   Component
+   ========================================================= */
+
 function ProjectList({
   projects,
   loading,
@@ -28,16 +96,17 @@ function ProjectList({
   /**
    * Loading
    */
+
   if (loading) {
 
     return (
       <section className="project-list">
 
-        <div className="project-list__loading">
+        <div className="state state--loading project-list__loading">
 
-          <div className="project-list__spinner" />
+          <div className="spinner" />
 
-          <span>
+          <span className="state__description">
             프로젝트를 불러오는 중입니다...
           </span>
 
@@ -52,22 +121,25 @@ function ProjectList({
   /**
    * Empty
    */
+
   if (projects.length === 0) {
 
     return (
       <section className="project-list">
 
-        <div className="project-list__empty">
+        <div className="state state--empty project-list__empty">
 
-          <div className="project-list__empty-icon">
+          <div className="state__icon">
             PRJ
           </div>
 
-          <strong>
+
+          <strong className="state__title">
             조회된 프로젝트가 없습니다.
           </strong>
 
-          <span>
+
+          <span className="state__description">
             검색 조건에 해당하는 프로젝트가 없습니다.
           </span>
 
@@ -194,7 +266,7 @@ function ProjectList({
 
                   <button
                     type="button"
-                    className="project-list__name"
+                    className="button button--link project-list__name"
                     onClick={() =>
                       onProjectClick(
                         project,
@@ -296,11 +368,9 @@ function ProjectList({
 }
 
 
-/**
- * ========================================
- * 프로젝트 상태 Badge
- * ========================================
- */
+/* =========================================================
+   프로젝트 상태 Badge
+   ========================================================= */
 
 function ProjectStatusBadge({
   status,
@@ -308,79 +378,25 @@ function ProjectStatusBadge({
   status: Project['status'];
 }) {
 
-  const statusLabel: Record<
-    Project['status'],
-    string
-  > = {
-
-    PLANNING:
-      '계획',
-
-    IN_PROGRESS:
-      '진행중',
-
-    ON_HOLD:
-      '보류',
-
-    COMPLETED:
-      '완료',
-
-    CANCELLED:
-      '취소',
-
-  };
-
-
   return (
     <span
-      className={
-        `project-list__badge ` +
-        `project-list__badge--${status.toLowerCase()}`
-      }
+      className={`badge ${STATUS_BADGE_CLASSES[status]}`}
     >
-
-      <span
-        className="project-list__badge-dot"
-      />
-
-      {statusLabel[status]}
-
+      {STATUS_LABELS[status]}
     </span>
   );
 }
 
 
-/**
- * ========================================
- * 프로젝트 우선순위 Badge
- * ========================================
- */
+/* =========================================================
+   프로젝트 우선순위 Badge
+   ========================================================= */
 
 function ProjectPriorityBadge({
   priority,
 }: {
   priority: Project['priority'];
 }) {
-
-  const priorityLabel: Record<
-    Project['priority'],
-    string
-  > = {
-
-    LOW:
-      '낮음',
-
-    MEDIUM:
-      '보통',
-
-    HIGH:
-      '높음',
-
-    CRITICAL:
-      '긴급',
-
-  };
-
 
   return (
     <span
@@ -389,7 +405,7 @@ function ProjectPriorityBadge({
         `project-list__badge--priority-${priority.toLowerCase()}`
       }
     >
-      {priorityLabel[priority]}
+      {PRIORITY_LABELS[priority]}
     </span>
   );
 }

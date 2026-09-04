@@ -20,10 +20,10 @@
 
   padding: 24px;
 
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--color-border);
   border-radius: 8px;
 
-  background: #ffffff;
+  background: var(--color-bg-primary);
 }
 
 .project-detail__summary-main {
@@ -33,7 +33,7 @@
 .project-detail__code {
   margin-bottom: 8px;
 
-  color: #6b7280;
+  color: var(--color-text-secondary);
 
   font-family:
     "SFMono-Regular",
@@ -49,7 +49,7 @@
 .project-detail__summary h2 {
   margin: 0;
 
-  color: #111827;
+  color: var(--color-text-primary);
 
   font-size: 22px;
   font-weight: 700;
@@ -59,7 +59,7 @@
 .project-detail__summary p {
   margin: 8px 0 0;
 
-  color: #6b7280;
+  color: var(--color-text-secondary);
 
   font-size: 13px;
   line-height: 1.6;
@@ -84,16 +84,16 @@
 .project-detail__card {
   overflow: hidden;
 
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--color-border);
   border-radius: 8px;
 
-  background: #ffffff;
+  background: var(--color-bg-primary);
 }
 
 .project-detail__card-header {
   padding: 18px 20px;
 
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .project-detail__section-label {
@@ -101,7 +101,7 @@
 
   margin-bottom: 4px;
 
-  color: #9ca3af;
+  color: var(--color-text-tertiary);
 
   font-size: 10px;
   font-weight: 700;
@@ -111,7 +111,7 @@
 .project-detail__card-header h3 {
   margin: 0;
 
-  color: #111827;
+  color: var(--color-text-primary);
 
   font-size: 15px;
   font-weight: 700;
@@ -125,7 +125,8 @@
 .project-detail__grid {
   display: grid;
 
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
 }
 
 .project-detail__item {
@@ -138,11 +139,11 @@
 
   padding: 16px 20px;
 
-  border-bottom: 1px solid #f3f4f6;
+  border-bottom: 1px solid var(--color-border-light);
 }
 
 .project-detail__item:nth-child(odd) {
-  border-right: 1px solid #f3f4f6;
+  border-right: 1px solid var(--color-border-light);
 }
 
 .project-detail__item:nth-last-child(-n + 2) {
@@ -150,14 +151,14 @@
 }
 
 .project-detail__item > span:first-child {
-  color: #9ca3af;
+  color: var(--color-text-tertiary);
 
   font-size: 11px;
   font-weight: 600;
 }
 
 .project-detail__item > strong {
-  color: #374151;
+  color: var(--color-text-secondary);
 
   font-size: 13px;
   font-weight: 600;
@@ -173,7 +174,7 @@
 
   padding: 20px;
 
-  color: #4b5563;
+  color: var(--color-text-secondary);
 
   font-size: 13px;
   line-height: 1.7;
@@ -183,71 +184,30 @@
 
 
 /* ========================================
-   Status
+   Priority
    ======================================== */
-
-.project-status,
-.project-priority {
-  display: inline-flex;
-  align-items: center;
-
-  padding: 4px 8px;
-
-  border-radius: 4px;
-
-  font-size: 11px;
-  font-weight: 700;
-  line-height: 1;
-}
-
-
-/* Status */
-
-.project-status--planning {
-  background: #f3f4f6;
-  color: #4b5563;
-}
-
-.project-status--in_progress {
-  background: #e8f0fe;
-  color: #315f9f;
-}
-
-.project-status--on_hold {
-  background: #fff7e6;
-  color: #9a6700;
-}
-
-.project-status--completed {
-  background: #eaf7ef;
-  color: #287d46;
-}
-
-.project-status--cancelled {
-  background: #fcebea;
-  color: #b42318;
-}
-
-
-/* Priority */
 
 .project-priority--low {
   background: #f3f4f6;
+
   color: #6b7280;
 }
 
 .project-priority--medium {
   background: #eef2ff;
+
   color: #4f46a5;
 }
 
 .project-priority--high {
   background: #fff7e6;
+
   color: #b45309;
 }
 
 .project-priority--critical {
   background: #fcebea;
+
   color: #b42318;
 }
 
@@ -273,13 +233,13 @@
 }
 
 .project-detail__metadata span {
-  color: #9ca3af;
+  color: var(--color-text-tertiary);
 
   font-size: 11px;
 }
 
 .project-detail__metadata strong {
-  color: #6b7280;
+  color: var(--color-text-secondary);
 
   font-size: 11px;
   font-weight: 500;
@@ -295,66 +255,6 @@
   justify-content: flex-end;
 
   padding-top: 4px;
-}
-
-.project-detail__delete-button {
-  min-height: 36px;
-
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
-  padding: 0 14px;
-
-  border: 1px solid #fecaca;
-  border-radius: 4px;
-
-  background: #ffffff;
-
-  font-family: inherit;
-  font-size: 12px;
-  font-weight: 600;
-
-  color: #dc2626;
-
-  cursor: pointer;
-
-  transition:
-    background-color 0.15s ease,
-    border-color 0.15s ease,
-    color 0.15s ease,
-    box-shadow 0.15s ease;
-}
-
-.project-detail__delete-button:hover {
-  border-color: #fca5a5;
-
-  background: #fef2f2;
-
-  color: #b91c1c;
-}
-
-.project-detail__delete-button:active {
-  background: #fee2e2;
-}
-
-.project-detail__delete-button:focus-visible {
-  outline: 2px solid rgba(220, 38, 38, 0.3);
-  outline-offset: 2px;
-}
-
-.project-detail__delete-button:disabled {
-  opacity: 0.5;
-
-  cursor: not-allowed;
-}
-
-.project-detail__delete-button:disabled:hover {
-  border-color: #fecaca;
-
-  background: #ffffff;
-
-  color: #dc2626;
 }
 
 
@@ -383,7 +283,7 @@
   }
 
   .project-detail__item:nth-last-child(-n + 2) {
-    border-bottom: 1px solid #f3f4f6;
+    border-bottom: 1px solid var(--color-border-light);
   }
 
   .project-detail__item:last-child {
@@ -402,7 +302,7 @@
     justify-content: stretch;
   }
 
-  .project-detail__delete-button {
+  .project-detail__actions .button {
     width: 100%;
   }
 

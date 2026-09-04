@@ -1,0 +1,150 @@
+/* ========================================
+   Project Page
+   ======================================== */
+
+.project-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+
+/* ========================================
+   Header
+   ======================================== */
+
+.project-page__header {
+  margin-bottom: 0;
+}
+
+.project-page__header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+
+/* ========================================
+   Summary
+   ======================================== */
+
+.project-page__summary {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 20px 24px;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+}
+
+.project-page__summary-label {
+  color: var(--color-text-secondary);
+  font-size: 13px;
+}
+
+.project-page__summary-value {
+  color: var(--color-text-primary);
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.project-page__summary-unit {
+  color: var(--color-text-secondary);
+  font-size: 13px;
+}
+
+
+/* ========================================
+   Search
+   ======================================== */
+
+.project-page__search {
+  padding: 20px 24px;
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+}
+
+
+/* ========================================
+   Content
+   ======================================== */
+
+.project-page__content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.project-page__content-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.project-page__content-title {
+  margin: 0;
+  color: var(--color-text-primary);
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.project-page__content-description {
+  margin: 4px 0 0;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+}
+
+.project-page__content-count {
+  color: var(--color-text-secondary);
+  font-size: 13px;
+}
+
+
+/* ========================================
+   Pagination
+   ======================================== */
+
+.project-page__pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding-top: 8px;
+}
+
+.project-page__pagination-info {
+  min-width: 80px;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  text-align: center;
+}
+
+
+/* ========================================
+   Responsive
+   ======================================== */
+
+@media (max-width: 768px) {
+
+  .project-page {
+    gap: 16px;
+  }
+
+  .project-page__summary {
+    flex-wrap: wrap;
+    gap: 16px;
+    padding: 16px;
+  }
+
+  .project-page__content-header {
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .project-page__pagination {
+    gap: 8px;
+  }
+
+}

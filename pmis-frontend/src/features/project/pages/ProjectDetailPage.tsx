@@ -351,19 +351,21 @@ function ProjectDetailPage() {
     return (
 
       <div
-        className="project-detail-page"
+        className="page project-detail-page"
       >
 
         <div
-          className="project-detail-page__loading"
+          className="state state--loading project-detail-page__loading"
         >
 
           <div
-            className="project-detail-page__spinner"
+            className="spinner"
           />
 
 
-          <span>
+          <span
+            className="state__description"
+          >
             프로젝트 정보를 불러오는 중입니다...
           </span>
 
@@ -390,27 +392,31 @@ function ProjectDetailPage() {
     return (
 
       <div
-        className="project-detail-page"
+        className="page project-detail-page"
       >
 
         <div
-          className="project-detail-page__error"
+          className="state state--error project-detail-page__error"
           role="alert"
         >
 
           <div
-            className="project-detail-page__error-icon"
+            className="state__icon"
           >
             !
           </div>
 
 
-          <strong>
+          <strong
+            className="state__title"
+          >
             프로젝트 정보를 불러올 수 없습니다.
           </strong>
 
 
-          <span>
+          <span
+            className="state__description"
+          >
             {error}
           </span>
 
@@ -419,12 +425,10 @@ function ProjectDetailPage() {
 
         <button
           type="button"
-          className="project-detail-page__back-button"
+          className="button button--secondary"
           onClick={handleBack}
         >
-
           프로젝트 목록
-
         </button>
 
       </div>
@@ -445,27 +449,31 @@ function ProjectDetailPage() {
     return (
 
       <div
-        className="project-detail-page"
+        className="page project-detail-page"
       >
 
         <div
-          className="project-detail-page__error"
+          className="state state--error project-detail-page__error"
           role="alert"
         >
 
           <div
-            className="project-detail-page__error-icon"
+            className="state__icon"
           >
             !
           </div>
 
 
-          <strong>
+          <strong
+            className="state__title"
+          >
             프로젝트를 찾을 수 없습니다.
           </strong>
 
 
-          <span>
+          <span
+            className="state__description"
+          >
             요청한 프로젝트 정보가 존재하지 않습니다.
           </span>
 
@@ -474,12 +482,10 @@ function ProjectDetailPage() {
 
         <button
           type="button"
-          className="project-detail-page__back-button"
+          className="button button--secondary"
           onClick={handleBack}
         >
-
           프로젝트 목록
-
         </button>
 
       </div>
@@ -498,7 +504,7 @@ function ProjectDetailPage() {
   return (
 
     <div
-      className="project-detail-page"
+      className="page project-detail-page"
     >
 
 
@@ -507,29 +513,33 @@ function ProjectDetailPage() {
           ================================================ */}
 
       <div
-        className="project-detail-page__header"
+        className="page__header project-detail-page__header"
       >
 
 
         {/* Header Information */}
 
-        <div>
+        <div
+          className="page__header-content"
+        >
 
           <div
-            className="project-detail-page__eyebrow"
+            className="page__eyebrow"
           >
-
             PROJECT DETAIL
-
           </div>
 
 
-          <h1>
+          <h1
+            className="page__title"
+          >
             프로젝트 상세
           </h1>
 
 
-          <p>
+          <p
+            className="page__description"
+          >
             프로젝트의 상세 정보를 확인합니다.
           </p>
 
@@ -546,13 +556,11 @@ function ProjectDetailPage() {
 
           <button
             type="button"
-            className="project-detail-page__edit-button"
+            className="button button--primary"
             onClick={handleEdit}
             disabled={deleting}
           >
-
             수정
-
           </button>
 
 
@@ -560,13 +568,11 @@ function ProjectDetailPage() {
 
           <button
             type="button"
-            className="project-detail-page__back-button"
+            className="button button--secondary"
             onClick={handleBack}
             disabled={deleting}
           >
-
             ← 목록으로
-
           </button>
 
         </div>
@@ -581,18 +587,20 @@ function ProjectDetailPage() {
       {error && (
 
         <div
-          className="project-detail-page__action-error"
+          className="state state--error project-detail-page__action-error"
           role="alert"
         >
 
           <span
-            className="project-detail-page__error-icon"
+            className="state__icon"
           >
             !
           </span>
 
 
-          <span>
+          <span
+            className="state__description"
+          >
             {error}
           </span>
 

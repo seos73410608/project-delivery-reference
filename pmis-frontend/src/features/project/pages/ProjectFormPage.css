@@ -1,229 +1,57 @@
+/* ========================================
+   Project Form Page
+   ======================================== */
+
 .project-form-page {
-
     width: 100%;
-
     min-height: 100%;
 
     box-sizing: border-box;
 
     padding: 28px 32px 40px;
 
-    background: #f8fafc;
+    background: var(--color-bg-secondary);
 }
 
 
-/* =========================================================
+/* ========================================
    Container
-   ========================================================= */
+   ======================================== */
 
 .project-form-page__container {
-
     width: 100%;
-
     max-width: 1200px;
 
     margin: 0 auto;
 }
 
 
-/* =========================================================
+/* ========================================
    State
-   ========================================================= */
+   ======================================== */
 
 .project-form-page__state {
-
     min-height: 420px;
 
-    display: flex;
-
-    flex-direction: column;
-
-    align-items: center;
-
-    justify-content: center;
-
-    gap: 10px;
+    box-sizing: border-box;
 
     padding: 40px;
 
-    border: 1px solid #e5e7eb;
-
+    border: 1px solid var(--color-border);
     border-radius: 10px;
 
-    background: #ffffff;
-
-    color: #6b7280;
-
-    font-size: 13px;
-
-    box-sizing: border-box;
+    background: var(--color-bg-primary);
 }
 
 
-/* =========================================================
-   Loading
-   ========================================================= */
-
-.project-form-page__spinner {
-
-    width: 28px;
-
-    height: 28px;
-
-    border: 3px solid #e5e7eb;
-
-    border-top-color: #2563eb;
-
-    border-radius: 50%;
-
-    animation:
-        project-form-page-spin
-        0.8s linear infinite;
-}
-
-
-@keyframes project-form-page-spin {
-
-    to {
-
-        transform: rotate(360deg);
-
-    }
-
-}
-
-
-/* =========================================================
-   Error
-   ========================================================= */
-
-.project-form-page__state--error {
-
-    color: #6b7280;
-
-}
-
-
-.project-form-page__state--error strong {
-
-    color: #374151;
-
-    font-size: 14px;
-
-}
-
-
-.project-form-page__state--error span {
-
-    color: #9ca3af;
-
-    font-size: 12px;
-
-}
-
-
-/* =========================================================
-   Error Icon
-   ========================================================= */
-
-.project-form-page__error-icon {
-
-    width: 36px;
-
-    height: 36px;
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-    margin-bottom: 4px;
-
-    border-radius: 50%;
-
-    background: #fee2e2;
-
-    color: #dc2626;
-
-    font-size: 14px;
-
-    font-weight: 700;
-}
-
-
-/* =========================================================
-   Back Button
-   ========================================================= */
-
-.project-form-page__back-button {
-
-    min-width: 100px;
-
-    height: 36px;
-
-    margin-top: 8px;
-
-    padding: 0 16px;
-
-    border: 1px solid #d1d5db;
-
-    border-radius: 6px;
-
-    background: #ffffff;
-
-    color: #374151;
-
-    font-family: inherit;
-
-    font-size: 12px;
-
-    font-weight: 500;
-
-    cursor: pointer;
-
-    transition:
-        background-color 0.15s ease,
-        border-color 0.15s ease,
-        color 0.15s ease;
-}
-
-
-.project-form-page__back-button:hover {
-
-    border-color: #9ca3af;
-
-    background: #f9fafb;
-
-}
-
-
-.project-form-page__back-button:active {
-
-    background: #f3f4f6;
-
-}
-
-
-.project-form-page__back-button:focus-visible {
-
-    outline: 2px solid rgba(37, 99, 235, 0.35);
-
-    outline-offset: 2px;
-
-}
-
-
-/* =========================================================
+/* ========================================
    Responsive
-   ========================================================= */
+   ======================================== */
 
 @media (max-width: 900px) {
 
     .project-form-page {
-
         padding: 24px 20px 32px;
-
     }
 
 }
@@ -232,20 +60,15 @@
 @media (max-width: 640px) {
 
     .project-form-page {
-
         padding: 20px 16px 28px;
-
     }
 
-
     .project-form-page__state {
-
         min-height: 360px;
 
         padding: 28px 20px;
 
         text-align: center;
-
     }
 
 }

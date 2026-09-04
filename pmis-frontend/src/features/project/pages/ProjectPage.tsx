@@ -289,7 +289,7 @@ function ProjectPage() {
 
 
   return (
-    <div className="project-page">
+    <div className="page project-page">
 
 
       {/* ================================
@@ -297,27 +297,27 @@ function ProjectPage() {
           ================================ */}
 
       <section
-        className="project-page__header"
+        className="page__header project-page__header"
       >
 
-        <div>
+        <div className="page__header-content">
 
           <div
-            className="project-page__eyebrow"
+            className="page__eyebrow"
           >
             PROJECT MANAGEMENT
           </div>
 
 
           <h1
-            className="project-page__title"
+            className="page__title"
           >
             프로젝트 관리
           </h1>
 
 
           <p
-            className="project-page__description"
+            className="page__description"
           >
             프로젝트 정보를 조회하고 관리합니다.
           </p>
@@ -364,7 +364,7 @@ function ProjectPage() {
 
           <button
             type="button"
-            className="project-page__create-button"
+            className="button button--primary"
             onClick={handleCreate}
           >
             + 프로젝트 등록
@@ -398,18 +398,20 @@ function ProjectPage() {
       {error && (
 
         <div
-          className="project-page__error"
+          className="state state--error project-page__error"
           role="alert"
         >
 
           <span
-            className="project-page__error-icon"
+            className="state__icon"
           >
             !
           </span>
 
 
-          <span>
+          <span
+            className="state__description"
+          >
             {error}
           </span>
 
@@ -490,7 +492,7 @@ function ProjectPage() {
 
             <button
               type="button"
-              className="project-page__pagination-button"
+              className="button button--secondary"
               onClick={() =>
                 handlePageChange(
                   page - 1,
@@ -529,7 +531,7 @@ function ProjectPage() {
 
             <button
               type="button"
-              className="project-page__pagination-button"
+              className="button button--secondary"
               onClick={() =>
                 handlePageChange(
                   page + 1,

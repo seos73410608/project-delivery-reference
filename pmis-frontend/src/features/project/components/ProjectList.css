@@ -1,13 +1,18 @@
+/* ========================================
+   Project List
+   ======================================== */
+
 .project-list {
   width: 100%;
   box-sizing: border-box;
-  background: #ffffff;
+
+  background: var(--color-bg-primary);
 }
 
 
-/* =========================================================
+/* ========================================
    Header
-   ========================================================= */
+   ======================================== */
 
 .project-list__header {
   min-height: 64px;
@@ -18,9 +23,9 @@
   align-items: center;
   justify-content: space-between;
 
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--color-border);
 
-  background: #ffffff;
+  background: var(--color-bg-primary);
 }
 
 .project-list__header h2 {
@@ -29,7 +34,7 @@
   font-size: 15px;
   font-weight: 700;
 
-  color: #111827;
+  color: var(--color-text-primary);
 }
 
 .project-list__header span {
@@ -39,13 +44,13 @@
 
   font-size: 12px;
 
-  color: #6b7280;
+  color: var(--color-text-secondary);
 }
 
 
-/* =========================================================
+/* ========================================
    Count
-   ========================================================= */
+   ======================================== */
 
 .project-list__count {
   display: flex;
@@ -59,7 +64,7 @@
 
   font-size: 11px;
 
-  color: #9ca3af;
+  color: var(--color-text-tertiary);
 
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -78,17 +83,17 @@
 
   border-radius: 4px;
 
-  background: #f3f4f6;
+  background: var(--color-bg-tertiary);
 
   font-size: 12px;
 
-  color: #374151;
+  color: var(--color-text-secondary);
 }
 
 
-/* =========================================================
+/* ========================================
    Table Wrapper
-   ========================================================= */
+   ======================================== */
 
 .project-list__table-wrapper {
   width: 100%;
@@ -97,9 +102,9 @@
 }
 
 
-/* =========================================================
+/* ========================================
    Table
-   ========================================================= */
+   ======================================== */
 
 .project-list__table {
   width: 100%;
@@ -112,12 +117,12 @@
 }
 
 
-/* =========================================================
+/* ========================================
    Table Header
-   ========================================================= */
+   ======================================== */
 
 .project-list__table thead {
-  background: #f8fafc;
+  background: var(--color-bg-tertiary);
 }
 
 .project-list__table th {
@@ -125,35 +130,35 @@
 
   padding: 0 16px;
 
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--color-border);
 
   text-align: left;
 
   font-size: 11px;
   font-weight: 700;
 
-  color: #6b7280;
+  color: var(--color-text-secondary);
 
   white-space: nowrap;
 }
 
 
-/* =========================================================
+/* ========================================
    Table Body
-   ========================================================= */
+   ======================================== */
 
 .project-list__table td {
   height: 64px;
 
   padding: 10px 16px;
 
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid var(--color-border-light);
 
   vertical-align: middle;
 
   font-size: 13px;
 
-  color: #374151;
+  color: var(--color-text-secondary);
 }
 
 .project-list__table tbody tr {
@@ -162,7 +167,7 @@
 }
 
 .project-list__table tbody tr:hover {
-  background: #f8fafc;
+  background: var(--color-bg-tertiary);
 }
 
 .project-list__table tbody tr:last-child td {
@@ -170,19 +175,19 @@
 }
 
 
-/* =========================================================
+/* ========================================
    Project Code
-   ========================================================= */
+   ======================================== */
 
 .project-list__code {
   display: inline-flex;
 
   padding: 5px 8px;
 
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--color-border);
   border-radius: 4px;
 
-  background: #f8fafc;
+  background: var(--color-bg-tertiary);
 
   font-family:
     'SFMono-Regular',
@@ -193,82 +198,56 @@
   font-size: 11px;
   font-weight: 600;
 
-  color: #475569;
+  color: var(--color-text-secondary);
 
   white-space: nowrap;
 }
 
 
-/* =========================================================
+/* ========================================
    Project Name
-   ========================================================= */
+   ======================================== */
 
 .project-list__name {
   display: block;
 
   max-width: 260px;
 
-  padding: 0;
-
-  border: none;
-
-  background: transparent;
-
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 
-  cursor: pointer;
-
-  font-family: inherit;
-
-  font-size: 13px;
-  font-weight: 700;
-
-  color: #2563eb;
-
   text-align: left;
 }
 
-.project-list__name:hover {
-  text-decoration: underline;
-}
 
-.project-list__name:focus-visible {
-  outline: 2px solid rgba(37, 99, 235, 0.35);
-  outline-offset: 2px;
-
-  border-radius: 2px;
-}
-
-
-/* =========================================================
+/* ========================================
    Customer
-   ========================================================= */
+   ======================================== */
 
 .project-list__customer {
   font-weight: 500;
 
-  color: #374151;
+  color: var(--color-text-secondary);
 
   white-space: nowrap;
 }
 
 
-/* =========================================================
+/* ========================================
    Project Manager
-   ========================================================= */
+   ======================================== */
 
 .project-list__manager {
-  color: #4b5563;
+  color: var(--color-text-secondary);
 
   white-space: nowrap;
 }
 
 
-/* =========================================================
+/* ========================================
    Date
-   ========================================================= */
+   ======================================== */
 
 .project-list__date {
   font-family:
@@ -279,85 +258,15 @@
 
   font-size: 11px;
 
-  color: #64748b;
+  color: var(--color-text-tertiary);
 
   white-space: nowrap;
 }
 
 
-/* =========================================================
-   Badge
-   ========================================================= */
-
-.project-list__badge {
-  display: inline-flex;
-
-  align-items: center;
-
-  gap: 6px;
-
-  min-height: 24px;
-
-  padding: 3px 8px;
-
-  border-radius: 4px;
-
-  font-size: 11px;
-  font-weight: 700;
-
-  white-space: nowrap;
-}
-
-.project-list__badge-dot {
-  width: 6px;
-  height: 6px;
-
-  flex-shrink: 0;
-
-  border-radius: 50%;
-
-  background: currentColor;
-}
-
-
-/* =========================================================
-   Status
-   ========================================================= */
-
-.project-list__badge--planning {
-  color: #64748b;
-
-  background: #f1f5f9;
-}
-
-.project-list__badge--in_progress {
-  color: #2563eb;
-
-  background: #eff6ff;
-}
-
-.project-list__badge--on_hold {
-  color: #d97706;
-
-  background: #fffbeb;
-}
-
-.project-list__badge--completed {
-  color: #16a34a;
-
-  background: #f0fdf4;
-}
-
-.project-list__badge--cancelled {
-  color: #dc2626;
-
-  background: #fef2f2;
-}
-
-
-/* =========================================================
+/* ========================================
    Priority
-   ========================================================= */
+   ======================================== */
 
 .project-list__badge--priority-low {
   color: #64748b;
@@ -384,103 +293,9 @@
 }
 
 
-/* =========================================================
-   Loading
-   ========================================================= */
-
-.project-list__loading {
-  min-height: 220px;
-
-  display: flex;
-
-  flex-direction: column;
-
-  align-items: center;
-  justify-content: center;
-
-  gap: 12px;
-
-  color: #6b7280;
-
-  font-size: 12px;
-}
-
-.project-list__spinner {
-  width: 24px;
-  height: 24px;
-
-  border: 2px solid #e5e7eb;
-
-  border-top-color: #64748b;
-
-  border-radius: 50%;
-
-  animation:
-    project-list-spin
-    0.8s linear infinite;
-}
-
-@keyframes project-list-spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-
-/* =========================================================
-   Empty
-   ========================================================= */
-
-.project-list__empty {
-  min-height: 220px;
-
-  display: flex;
-
-  flex-direction: column;
-
-  align-items: center;
-  justify-content: center;
-
-  gap: 6px;
-}
-
-.project-list__empty-icon {
-  width: 42px;
-  height: 42px;
-
-  display: flex;
-
-  align-items: center;
-  justify-content: center;
-
-  margin-bottom: 8px;
-
-  border-radius: 6px;
-
-  background: #f1f5f9;
-
-  font-size: 10px;
-  font-weight: 700;
-
-  color: #64748b;
-}
-
-.project-list__empty strong {
-  font-size: 13px;
-
-  color: #374151;
-}
-
-.project-list__empty span {
-  font-size: 11px;
-
-  color: #9ca3af;
-}
-
-
-/* =========================================================
+/* ========================================
    Responsive
-   ========================================================= */
+   ======================================== */
 
 @media (max-width: 900px) {
 
@@ -493,6 +308,7 @@
     padding-left: 12px;
     padding-right: 12px;
   }
+
 }
 
 
@@ -535,4 +351,5 @@
 
     font-size: 12px;
   }
+
 }
