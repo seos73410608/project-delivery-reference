@@ -11,7 +11,7 @@ import java.time.LocalDate;
  *
  * Schedule Entity에 대한 동적 검색 조건을 제공한다.
  *
- * 검색 조건은 다음과 같이 조합할 수 있다.
+ * 지원 조건:
  *
  * - projectId
  * - wbsId
@@ -21,8 +21,11 @@ import java.time.LocalDate;
  * - endDate
  * - overlaps
  *
+ * Calendar 조회에서는 overlaps 조건을 사용하여
+ * 지정된 기간과 겹치는 Schedule을 조회한다.
+ *
  * JpaSpecificationExecutor와 연계하여
- * Schedule 검색 API에서 사용한다.
+ * Schedule 검색 및 Calendar 조회에서 사용한다.
  */
 public final class ScheduleSpecification {
 
@@ -30,21 +33,19 @@ public final class ScheduleSpecification {
     }
 
     /**
-     * 프로젝트 ID 조건
-     *
-     * Schedule의 Project 연관관계를 통해
-     * Project ID를 조회한다.
+     * Project ID 조건
      *
      * 조건:
      *
      * schedule.project.id = projectId
      *
-     * @param projectId 프로젝트 ID
+     * @param projectId Project ID
      * @return Specification
      */
     public static Specification<Schedule> projectId(
             Long projectId
     ) {
+
         return (root, query, criteriaBuilder) ->
                 projectId == null
                         ? null
@@ -57,9 +58,6 @@ public final class ScheduleSpecification {
     /**
      * WBS ID 조건
      *
-     * Schedule의 Wbs 연관관계를 통해
-     * WBS ID를 조회한다.
-     *
      * 조건:
      *
      * schedule.wbs.id = wbsId
@@ -70,6 +68,7 @@ public final class ScheduleSpecification {
     public static Specification<Schedule> wbsId(
             Long wbsId
     ) {
+
         return (root, query, criteriaBuilder) ->
                 wbsId == null
                         ? null
@@ -92,6 +91,7 @@ public final class ScheduleSpecification {
     public static Specification<Schedule> status(
             ScheduleStatus status
     ) {
+
         return (root, query, criteriaBuilder) ->
                 status == null
                         ? null
@@ -110,9 +110,11 @@ public final class ScheduleSpecification {
      *
      * 조건:
      *
-     * scheduleName LIKE %keyword%
+     * LOWER(scheduleName) LIKE %keyword%
+     *
      * OR
-     * description LIKE %keyword%
+     *
+     * LOWER(description) LIKE %keyword%
      *
      * @param keyword 검색어
      * @return Specification
@@ -120,9 +122,12 @@ public final class ScheduleSpecification {
     public static Specification<Schedule> keyword(
             String keyword
     ) {
+
         return (root, query, criteriaBuilder) -> {
 
-            if (keyword == null || keyword.isBlank()) {
+            if (keyword == null ||
+                    keyword.isBlank()) {
+
                 return null;
             }
 
@@ -130,12 +135,14 @@ public final class ScheduleSpecification {
                     "%" + keyword.trim().toLowerCase() + "%";
 
             return criteriaBuilder.or(
+
                     criteriaBuilder.like(
                             criteriaBuilder.lower(
                                     root.get("scheduleName")
                             ),
                             pattern
                     ),
+
                     criteriaBuilder.like(
                             criteriaBuilder.lower(
                                     root.get("description")
@@ -147,9 +154,10 @@ public final class ScheduleSpecification {
     }
 
     /**
-     * 시작일 조건
+     * 시작일 이후 조회 조건
      *
-     * 지정한 날짜 이후에 시작하는 Schedule을 조회한다.
+     * 지정한 날짜 이후에 시작하는
+     * Schedule을 조회한다.
      *
      * 조건:
      *
@@ -161,6 +169,7 @@ public final class ScheduleSpecification {
     public static Specification<Schedule> startDateFrom(
             LocalDate startDate
     ) {
+
         return (root, query, criteriaBuilder) ->
                 startDate == null
                         ? null
@@ -171,9 +180,10 @@ public final class ScheduleSpecification {
     }
 
     /**
-     * 종료일 조건
+     * 종료일 이전 조회 조건
      *
-     * 지정한 날짜 이전에 종료하는 Schedule을 조회한다.
+     * 지정한 날짜 이전에 종료하는
+     * Schedule을 조회한다.
      *
      * 조건:
      *
@@ -185,6 +195,7 @@ public final class ScheduleSpecification {
     public static Specification<Schedule> endDateTo(
             LocalDate endDate
     ) {
+
         return (root, query, criteriaBuilder) ->
                 endDate == null
                         ? null
@@ -197,21 +208,34 @@ public final class ScheduleSpecification {
     /**
      * Schedule 기간 중복 조건
      *
-     * 특정 검색 기간과 겹치는 Schedule을 조회한다.
+     * 지정된 검색 기간과
+     * 하나라도 겹치는 Schedule을 조회한다.
      *
      * Schedule:
      *
-     * startDate -------- endDate
+     * startDate ---------------- endDate
      *
-     * 검색기간:
+     * 검색 기간:
      *
-     *       searchStart -------- searchEnd
+     *          searchStart -------- searchEnd
      *
-     * 두 기간이 겹치는 조건:
+     * 기간 중복 조건:
      *
      * schedule.startDate <= searchEnd
+     *
      * AND
+     *
      * schedule.endDate >= searchStart
+     *
+     * 예:
+     *
+     * Schedule
+     * 2026-08-01 ~ 2026-08-10
+     *
+     * Calendar 조회
+     * 2026-08-05 ~ 2026-08-15
+     *
+     * → 조회 대상
      *
      * @param searchStart 검색 시작일
      * @param searchEnd 검색 종료일
@@ -221,17 +245,22 @@ public final class ScheduleSpecification {
             LocalDate searchStart,
             LocalDate searchEnd
     ) {
+
         return (root, query, criteriaBuilder) -> {
 
-            if (searchStart == null || searchEnd == null) {
+            if (searchStart == null ||
+                    searchEnd == null) {
+
                 return null;
             }
 
             return criteriaBuilder.and(
+
                     criteriaBuilder.lessThanOrEqualTo(
                             root.get("startDate"),
                             searchEnd
                     ),
+
                     criteriaBuilder.greaterThanOrEqualTo(
                             root.get("endDate"),
                             searchStart

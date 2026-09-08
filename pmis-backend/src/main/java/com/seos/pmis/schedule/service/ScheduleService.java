@@ -2,9 +2,11 @@ package com.seos.pmis.schedule.service;
 
 import com.seos.pmis.project.entity.Project;
 import com.seos.pmis.project.repository.ProjectRepository;
+import com.seos.pmis.schedule.dto.request.ScheduleCalendarRequest;
 import com.seos.pmis.schedule.dto.request.ScheduleCreateRequest;
 import com.seos.pmis.schedule.dto.request.ScheduleSearchRequest;
 import com.seos.pmis.schedule.dto.request.ScheduleUpdateRequest;
+import com.seos.pmis.schedule.dto.response.ScheduleCalendarResponse;
 import com.seos.pmis.schedule.dto.response.ScheduleResponse;
 import com.seos.pmis.schedule.entity.Schedule;
 import com.seos.pmis.schedule.entity.ScheduleStatus;
@@ -33,6 +35,7 @@ import java.util.List;
  * - Project별 Schedule 조회
  * - WBS별 Schedule 조회
  * - Schedule 검색
+ * - Calendar 기간 기반 Schedule 조회
  * - Schedule 생성
  * - Schedule 수정
  * - Schedule 상태 변경
@@ -54,6 +57,7 @@ public class ScheduleService {
 
     private final WbsRepository wbsRepository;
 
+
     /**
      * Schedule 단건 조회
      *
@@ -66,6 +70,7 @@ public class ScheduleService {
 
         return ScheduleResponse.from(schedule);
     }
+
 
     /**
      * Project별 Schedule 조회
@@ -95,6 +100,7 @@ public class ScheduleService {
                 .toList();
     }
 
+
     /**
      * WBS별 Schedule 조회
      *
@@ -122,6 +128,7 @@ public class ScheduleService {
                 .map(ScheduleResponse::from)
                 .toList();
     }
+
 
     /**
      * Schedule 검색
@@ -177,10 +184,13 @@ public class ScheduleService {
                 .map(ScheduleResponse::from);
     }
 
+
     /**
      * 기간 조건을 포함한 Schedule 검색
      *
      * 특정 기간과 겹치는 Schedule을 조회한다.
+     *
+     * 일반 검색 기능에서 기간 조건이 필요한 경우 사용한다.
      *
      * @param request 검색 요청
      * @param searchStart 검색 시작일
@@ -234,6 +244,86 @@ public class ScheduleService {
                 .map(ScheduleResponse::from);
     }
 
+
+    /**
+     * Calendar 기간 기반 Schedule 조회
+     *
+     * Calendar 화면에 표시할 Schedule을 조회한다.
+     *
+     * 조회 조건:
+     * - startDate
+     * - endDate
+     * - wbsId
+     * - status
+     *
+     * Calendar의 핵심 조건은
+     * 요청 기간과 Schedule 기간이 겹치는지 여부이다.
+     *
+     * 예:
+     *
+     * 요청 기간
+     * 2026-08-01 ~ 2026-08-31
+     *
+     * Schedule
+     * 2026-07-25 ~ 2026-08-05
+     *
+     * 위 일정은 요청 기간과 겹치므로 조회된다.
+     *
+     * @param projectId Project ID
+     * @param request Calendar 조회 조건
+     * @return Calendar Schedule 목록
+     */
+    public List<ScheduleCalendarResponse> findCalendar(
+            Long projectId,
+            ScheduleCalendarRequest request
+    ) {
+
+        validateProjectId(projectId);
+
+        if (request == null) {
+            throw new IllegalArgumentException(
+                    "Schedule calendar request is required."
+            );
+        }
+
+        if (!projectRepository.existsById(projectId)) {
+            throw new IllegalArgumentException(
+                    "Project not found: " + projectId
+            );
+        }
+
+        validateCalendarRequest(request);
+
+        return scheduleRepository.findAll(
+                        ScheduleSpecification.projectId(projectId)
+                                .and(
+                                        ScheduleSpecification.overlaps(
+                                                request.getStartDate(),
+                                                request.getEndDate()
+                                        )
+                                )
+                                .and(
+                                        ScheduleSpecification.wbsId(
+                                                request.getWbsId()
+                                        )
+                                )
+                                .and(
+                                        ScheduleSpecification.status(
+                                                request.getStatus()
+                                        )
+                                ),
+                        Sort.by(
+                                Sort.Direction.ASC,
+                                "startDate",
+                                "sortOrder"
+                        )
+                )
+                .stream()
+                .map(ScheduleCalendarResponse::from)
+                .toList();
+    }
+
+
     /**
      * Schedule 생성
      *
@@ -283,6 +373,7 @@ public class ScheduleService {
         return ScheduleResponse.from(savedSchedule);
     }
 
+
     /**
      * Schedule 수정
      *
@@ -330,6 +421,7 @@ public class ScheduleService {
         return ScheduleResponse.from(schedule);
     }
 
+
     /**
      * Schedule 상태 변경
      *
@@ -351,6 +443,7 @@ public class ScheduleService {
 
         return ScheduleResponse.from(schedule);
     }
+
 
     /**
      * Schedule 정렬 순서 변경
@@ -374,6 +467,7 @@ public class ScheduleService {
         return ScheduleResponse.from(schedule);
     }
 
+
     /**
      * Schedule 삭제
      *
@@ -392,6 +486,7 @@ public class ScheduleService {
 
         scheduleRepository.delete(schedule);
     }
+
 
     /**
      * Schedule Entity 조회
@@ -415,6 +510,7 @@ public class ScheduleService {
                 );
     }
 
+
     /**
      * Project Entity 조회
      *
@@ -430,6 +526,7 @@ public class ScheduleService {
                         )
                 );
     }
+
 
     /**
      * Project ID Validation
@@ -449,6 +546,7 @@ public class ScheduleService {
         }
     }
 
+
     /**
      * WBS ID Validation
      */
@@ -466,6 +564,7 @@ public class ScheduleService {
             );
         }
     }
+
 
     /**
      * Schedule Create Request Validation
@@ -486,6 +585,11 @@ public class ScheduleService {
                 request.getScheduleName()
         );
 
+        validateDateRange(
+                request.getStartDate(),
+                request.getEndDate()
+        );
+
         validateSortOrder(
                 request.getSortOrder()
         );
@@ -494,6 +598,7 @@ public class ScheduleService {
                 request.getStatus()
         );
     }
+
 
     /**
      * Schedule Update Request Validation
@@ -514,6 +619,11 @@ public class ScheduleService {
                 request.getScheduleName()
         );
 
+        validateDateRange(
+                request.getStartDate(),
+                request.getEndDate()
+        );
+
         validateSortOrder(
                 request.getSortOrder()
         );
@@ -522,6 +632,39 @@ public class ScheduleService {
                 request.getStatus()
         );
     }
+
+
+    /**
+     * Schedule Calendar Request Validation
+     *
+     * Calendar 조회 기간은 필수이다.
+     *
+     * WBS와 Status는 선택 조건이다.
+     *
+     * @param request Calendar 조회 요청
+     */
+    private void validateCalendarRequest(
+            ScheduleCalendarRequest request
+    ) {
+
+        validateSearchPeriod(
+                request.getStartDate(),
+                request.getEndDate()
+        );
+
+        if (request.getWbsId() != null) {
+            validateWbsId(
+                    request.getWbsId()
+            );
+        }
+
+        if (request.getStatus() != null) {
+            validateStatus(
+                    request.getStatus()
+            );
+        }
+    }
+
 
     /**
      * Schedule 검색 요청 Validation
@@ -566,6 +709,7 @@ public class ScheduleService {
         }
     }
 
+
     /**
      * Pageable 생성
      *
@@ -605,6 +749,7 @@ public class ScheduleService {
         );
     }
 
+
     /**
      * 정렬 필드 Validation
      */
@@ -636,6 +781,7 @@ public class ScheduleService {
         };
     }
 
+
     /**
      * 정렬 방향 Validation
      */
@@ -663,6 +809,7 @@ public class ScheduleService {
         }
     }
 
+
     /**
      * Schedule 이름 Validation
      */
@@ -686,6 +833,7 @@ public class ScheduleService {
         }
     }
 
+
     /**
      * Schedule Status Validation
      */
@@ -700,6 +848,7 @@ public class ScheduleService {
             );
         }
     }
+
 
     /**
      * Sort Order Validation
@@ -722,6 +871,7 @@ public class ScheduleService {
             );
         }
     }
+
 
     /**
      * 시작일 / 종료일 Validation
@@ -755,8 +905,11 @@ public class ScheduleService {
         }
     }
 
+
     /**
      * 검색 기간 Validation
+     *
+     * Calendar 및 기간 검색에서 사용한다.
      */
     private void validateSearchPeriod(
             LocalDate searchStart,
@@ -784,6 +937,7 @@ public class ScheduleService {
             );
         }
     }
+
 
     /**
      * WBS와 Project의 소속 관계 Validation

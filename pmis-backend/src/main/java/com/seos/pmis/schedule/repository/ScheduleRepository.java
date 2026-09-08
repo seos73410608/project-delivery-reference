@@ -4,6 +4,7 @@ import com.seos.pmis.schedule.entity.Schedule;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
+import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -72,6 +73,47 @@ public interface ScheduleRepository
     List<Schedule> findByProject_IdAndWbs_IdOrderBySortOrderAsc(
             Long projectId,
             Long wbsId
+    );
+
+    /**
+     * Calendar 기간별 Schedule 조회
+     *
+     * 특정 프로젝트에 속하면서
+     * Calendar 조회 기간과 일정 기간이 겹치는
+     * Schedule을 조회한다.
+     *
+     * 기간 겹침 조건:
+     *
+     * Schedule.startDate <= Calendar.endDate
+     *
+     * AND
+     *
+     * Schedule.endDate >= Calendar.startDate
+     *
+     * 예:
+     *
+     * Calendar
+     * 2026-08-01 ~ 2026-08-31
+     *
+     * Schedule
+     * 2026-07-25 ~ 2026-08-10
+     *
+     * 위 Schedule은 Calendar 기간과 겹치므로
+     * 조회 대상에 포함된다.
+     *
+     * 조회 결과는 시작일 오름차순,
+     * 동일 시작일인 경우 sortOrder 오름차순으로 정렬한다.
+     *
+     * @param projectId 프로젝트 ID
+     * @param endDate Calendar 조회 종료일
+     * @param startDate Calendar 조회 시작일
+     * @return Calendar 조회 기간에 포함되는 Schedule 목록
+     */
+    List<Schedule>
+    findByProject_IdAndStartDateLessThanEqualAndEndDateGreaterThanEqualOrderByStartDateAscSortOrderAsc(
+            Long projectId,
+            LocalDate endDate,
+            LocalDate startDate
     );
 
     /**

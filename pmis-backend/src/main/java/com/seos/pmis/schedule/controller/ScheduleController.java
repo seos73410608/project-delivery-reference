@@ -1,8 +1,10 @@
 package com.seos.pmis.schedule.controller;
 
+import com.seos.pmis.schedule.dto.request.ScheduleCalendarRequest;
 import com.seos.pmis.schedule.dto.request.ScheduleCreateRequest;
 import com.seos.pmis.schedule.dto.request.ScheduleSearchRequest;
 import com.seos.pmis.schedule.dto.request.ScheduleUpdateRequest;
+import com.seos.pmis.schedule.dto.response.ScheduleCalendarResponse;
 import com.seos.pmis.schedule.dto.response.ScheduleResponse;
 import com.seos.pmis.schedule.entity.ScheduleStatus;
 import com.seos.pmis.schedule.service.ScheduleService;
@@ -35,6 +37,7 @@ import java.util.List;
  * - WBS별 Schedule 조회
  * - Schedule 검색
  * - 기간 조건 Schedule 검색
+ * - Calendar Schedule 조회
  * - Schedule 생성
  * - Schedule 수정
  * - Schedule 상태 변경
@@ -130,6 +133,89 @@ public class ScheduleController {
 
         return ResponseEntity.ok(
                 scheduleService.findByProjectId(projectId)
+        );
+    }
+
+    /**
+     * Calendar용 Schedule 조회
+     *
+     * GET /api/projects/{projectId}/schedules/calendar
+     *
+     * 지정된 Calendar 기간과 겹치는
+     * Schedule을 조회한다.
+     *
+     * Calendar 조회 조건:
+     *
+     * - startDate
+     * - endDate
+     * - wbsId
+     * - status
+     *
+     * 기간 중복 조건:
+     *
+     * schedule.startDate <= endDate
+     *
+     * AND
+     *
+     * schedule.endDate >= startDate
+     *
+     * @param projectId Project ID
+     * @param request Calendar 조회 조건
+     * @return Calendar Schedule 목록
+     */
+    @GetMapping("/projects/{projectId}/schedules/calendar")
+    @Operation(
+            summary = "Calendar Schedule 조회",
+            description = """
+                    특정 Project의 Calendar 조회 기간과
+                    겹치는 Schedule을 조회한다.
+
+                    조회 조건:
+                    - startDate
+                    - endDate
+                    - wbsId
+                    - status
+
+                    Calendar 기간과 하나라도 겹치는
+                    Schedule을 반환한다.
+                    """
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Calendar Schedule 조회 성공",
+                    content = @Content(
+                            schema = @Schema(
+                                    implementation =
+                                            ScheduleCalendarResponse.class
+                            )
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "잘못된 Calendar 조회 조건"
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Project를 찾을 수 없음"
+            )
+    })
+    public ResponseEntity<List<ScheduleCalendarResponse>> findCalendar(
+            @Parameter(
+                    description = "Project ID",
+                    required = true,
+                    in = ParameterIn.PATH
+            )
+            @PathVariable Long projectId,
+
+            @ModelAttribute ScheduleCalendarRequest request
+    ) {
+
+        return ResponseEntity.ok(
+                scheduleService.findCalendar(
+                        projectId,
+                        request
+                )
         );
     }
 
@@ -253,7 +339,9 @@ public class ScheduleController {
                     example = "2026-08-01"
             )
             @RequestParam
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            @DateTimeFormat(
+                    iso = DateTimeFormat.ISO.DATE
+            )
             LocalDate searchStart,
 
             @Parameter(
@@ -262,7 +350,9 @@ public class ScheduleController {
                     example = "2026-08-31"
             )
             @RequestParam
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            @DateTimeFormat(
+                    iso = DateTimeFormat.ISO.DATE
+            )
             LocalDate searchEnd
     ) {
 
