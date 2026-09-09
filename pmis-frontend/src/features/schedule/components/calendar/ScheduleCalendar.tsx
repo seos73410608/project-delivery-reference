@@ -13,6 +13,19 @@ import type {
   ScheduleResponse,
 } from '../../types/schedule';
 
+import {
+  createCalendarDays,
+  formatDate,
+  getCalendarEndDate,
+  getCalendarStartDate,
+} from '../../utils/calendarUtils';
+
+import CalendarHeader
+  from './CalendarHeader';
+
+import CalendarGrid
+  from './CalendarGrid';
+
 import '../../styles/Calendar.css';
 
 
@@ -25,155 +38,6 @@ interface ScheduleCalendarProps {
   ) => void;
 
 }
-
-
-const DAYS_OF_WEEK = [
-  'Sun',
-  'Mon',
-  'Tue',
-  'Wed',
-  'Thu',
-  'Fri',
-  'Sat',
-];
-
-
-/**
- * =====================================================
- * Date Utility
- * =====================================================
- */
-
-
-/**
- * Date를 YYYY-MM-DD 형식으로 변환한다.
- */
-const formatDate =
-  (
-    date: Date,
-  ): string => {
-
-    const year =
-      date.getFullYear();
-
-
-    const month =
-      String(
-        date.getMonth() + 1,
-      ).padStart(
-        2,
-        '0',
-      );
-
-
-    const day =
-      String(
-        date.getDate(),
-      ).padStart(
-        2,
-        '0',
-      );
-
-
-    return `${year}-${month}-${day}`;
-
-  };
-
-
-/**
- * 날짜 문자열을 Local Date로 변환한다.
- *
- * new Date('YYYY-MM-DD') 사용 시
- * Timezone 문제가 발생할 수 있으므로
- * 직접 Date 객체를 생성한다.
- */
-const parseDate =
-  (
-    value: string,
-  ): Date => {
-
-    const [
-      year,
-      month,
-      day,
-    ] =
-      value
-        .split('-')
-        .map(Number);
-
-
-    return new Date(
-      year,
-      month - 1,
-      day,
-    );
-
-  };
-
-
-/**
- * 두 날짜가 같은 날짜인지 확인한다.
- */
-const isSameDate =
-  (
-    first: Date,
-    second: Date,
-  ): boolean => {
-
-    return (
-      first.getFullYear() ===
-        second.getFullYear() &&
-
-      first.getMonth() ===
-        second.getMonth() &&
-
-      first.getDate() ===
-        second.getDate()
-    );
-
-  };
-
-
-/**
- * Date가 두 날짜 사이에 포함되는지 확인한다.
- */
-const isDateInRange =
-  (
-    date: Date,
-    startDate: Date,
-    endDate: Date,
-  ): boolean => {
-
-    const target =
-      new Date(
-        date.getFullYear(),
-        date.getMonth(),
-        date.getDate(),
-      );
-
-
-    const start =
-      new Date(
-        startDate.getFullYear(),
-        startDate.getMonth(),
-        startDate.getDate(),
-      );
-
-
-    const end =
-      new Date(
-        endDate.getFullYear(),
-        endDate.getMonth(),
-        endDate.getDate(),
-      );
-
-
-    return (
-      target >= start &&
-      target <= end
-    );
-
-  };
 
 
 /**
@@ -261,10 +125,8 @@ const ScheduleCalendar = (
   const calendarStartDate =
     useMemo(
       () =>
-        new Date(
-          currentDate.getFullYear(),
-          currentDate.getMonth(),
-          1,
+        getCalendarStartDate(
+          currentDate,
         ),
       [
         currentDate,
@@ -278,10 +140,8 @@ const ScheduleCalendar = (
   const calendarEndDate =
     useMemo(
       () =>
-        new Date(
-          currentDate.getFullYear(),
-          currentDate.getMonth() + 1,
-          0,
+        getCalendarEndDate(
+          currentDate,
         ),
       [
         currentDate,
@@ -297,89 +157,16 @@ const ScheduleCalendar = (
 
 
   /**
-   * 월 시작 요일
-   */
-  const firstDayOfWeek =
-    calendarStartDate.getDay();
-
-
-  /**
-   * 월 마지막 날짜
-   */
-  const lastDate =
-    calendarEndDate.getDate();
-
-
-  /**
    * Calendar Cell 목록
    */
   const calendarDays =
     useMemo(
-      () => {
-
-        const days:
-          Array<
-            Date | null
-          > = [];
-
-
-        /**
-         * 월 시작 전 빈 Cell
-         */
-        for (
-          let index = 0;
-          index < firstDayOfWeek;
-          index += 1
-        ) {
-
-          days.push(
-            null,
-          );
-
-        }
-
-
-        /**
-         * 현재 월 날짜
-         */
-        for (
-          let day = 1;
-          day <= lastDate;
-          day += 1
-        ) {
-
-          days.push(
-            new Date(
-              currentDate.getFullYear(),
-              currentDate.getMonth(),
-              day,
-            ),
-          );
-
-        }
-
-
-        /**
-         * 마지막 주 빈 Cell
-         */
-        while (
-          days.length % 7 !== 0
-        ) {
-
-          days.push(
-            null,
-          );
-
-        }
-
-
-        return days;
-
-      },
+      () =>
+        createCalendarDays(
+          currentDate,
+        ),
       [
         currentDate,
-        firstDayOfWeek,
-        lastDate,
       ],
     );
 
@@ -531,51 +318,6 @@ const ScheduleCalendar = (
 
   /**
    * =====================================================
-   * Render Utility
-   * =====================================================
-   */
-
-
-  /**
-   * 특정 날짜에 포함되는
-   * Schedule 목록을 조회한다.
-   */
-  const getSchedulesByDate =
-    (
-      date: Date,
-    ): ScheduleResponse[] => {
-
-      return schedules.filter(
-        (
-          schedule,
-        ) => {
-
-          const startDate =
-            parseDate(
-              schedule.startDate,
-            );
-
-
-          const endDate =
-            parseDate(
-              schedule.endDate,
-            );
-
-
-          return isDateInRange(
-            date,
-            startDate,
-            endDate,
-          );
-
-        },
-      );
-
-    };
-
-
-  /**
-   * =====================================================
    * Month Title
    * =====================================================
    */
@@ -606,83 +348,20 @@ const ScheduleCalendar = (
           Calendar Header
           ================================================ */}
 
-      <div
-        className="schedule-calendar__header"
-      >
-
-
-        <div
-          className="schedule-calendar__title-area"
-        >
-
-          <div>
-
-            <div
-              className="schedule-calendar__eyebrow"
-            >
-              PROJECT SCHEDULE
-            </div>
-
-
-            <h2
-              className="schedule-calendar__title"
-            >
-              Schedule Calendar
-            </h2>
-
-          </div>
-
-        </div>
-
-
-        <div
-          className="schedule-calendar__navigation"
-        >
-
-          <button
-            type="button"
-            className="schedule-calendar__nav-button"
-            onClick={
-              handlePreviousMonth
-            }
-            aria-label="Previous month"
-          >
-            ‹
-          </button>
-
-
-          <button
-            type="button"
-            className="schedule-calendar__today-button"
-            onClick={
-              handleToday
-            }
-          >
-            Today
-          </button>
-
-
-          <div
-            className="schedule-calendar__month"
-          >
-            {monthTitle}
-          </div>
-
-
-          <button
-            type="button"
-            className="schedule-calendar__nav-button"
-            onClick={
-              handleNextMonth
-            }
-            aria-label="Next month"
-          >
-            ›
-          </button>
-
-        </div>
-
-      </div>
+      <CalendarHeader
+        monthTitle={
+          monthTitle
+        }
+        onPreviousMonth={
+          handlePreviousMonth
+        }
+        onNextMonth={
+          handleNextMonth
+        }
+        onToday={
+          handleToday
+        }
+      />
 
 
       {/* ================================================
@@ -737,251 +416,17 @@ const ScheduleCalendar = (
           className="schedule-calendar__container"
         >
 
-
-          {/* ==============================================
-              Day Header
-              ============================================== */}
-
-          <div
-            className="schedule-calendar__week"
-          >
-
-            {DAYS_OF_WEEK.map(
-              (
-                day,
-                index,
-              ) => (
-
-                <div
-                  key={day}
-                  className={[
-                    'schedule-calendar__week-day',
-
-                    index === 0
-                      ? 'schedule-calendar__week-day--sunday'
-                      : '',
-
-                    index === 6
-                      ? 'schedule-calendar__week-day--saturday'
-                      : '',
-                  ]
-                    .filter(Boolean)
-                    .join(' ')}
-                >
-
-                  {day}
-
-                </div>
-
-              ),
-            )}
-
-          </div>
-
-
-          {/* ==============================================
-              Calendar Days
-              ============================================== */}
-
-          <div
-            className="schedule-calendar__grid"
-          >
-
-            {calendarDays.map(
-              (
-                date,
-                index,
-              ) => {
-
-
-                /**
-                 * Empty Day
-                 */
-                if (!date) {
-
-                  return (
-
-                    <div
-                      key={`empty-${index}`}
-                      className="schedule-calendar__day schedule-calendar__day--empty"
-                    />
-
-                  );
-
-                }
-
-
-                /**
-                 * 해당 날짜 Schedule
-                 */
-                const daySchedules =
-                  getSchedulesByDate(
-                    date,
-                  );
-
-
-                /**
-                 * Today
-                 */
-                const today =
-                  new Date();
-
-
-                const isToday =
-                  isSameDate(
-                    date,
-                    today,
-                  );
-
-
-                /**
-                 * Day Of Week
-                 */
-                const dayOfWeek =
-                  date.getDay();
-
-
-                return (
-
-                  <div
-                    key={
-                      formatDate(
-                        date,
-                      )
-                    }
-                    className={[
-                      'schedule-calendar__day',
-
-                      isToday
-                        ? 'schedule-calendar__day--today'
-                        : '',
-
-                      dayOfWeek === 0
-                        ? 'schedule-calendar__day--sunday'
-                        : '',
-
-                      dayOfWeek === 6
-                        ? 'schedule-calendar__day--saturday'
-                        : '',
-                    ]
-                      .filter(Boolean)
-                      .join(' ')}
-                  >
-
-
-                    {/* ====================================
-                        Day Number
-                        ==================================== */}
-
-                    <div
-                      className="schedule-calendar__day-header"
-                    >
-
-                      <span
-                        className="schedule-calendar__day-number"
-                      >
-                        {date.getDate()}
-                      </span>
-
-                    </div>
-
-
-                    {/* ====================================
-                        Schedule List
-                        ==================================== */}
-
-                    <div
-                      className="schedule-calendar__schedule-list"
-                    >
-
-                      {daySchedules.map(
-                        (
-                          schedule,
-                        ) => {
-
-                          const startDate =
-                            parseDate(
-                              schedule.startDate,
-                            );
-
-
-                          const endDate =
-                            parseDate(
-                              schedule.endDate,
-                            );
-
-
-                          const isStartDate =
-                            isSameDate(
-                              date,
-                              startDate,
-                            );
-
-
-                          const isEndDate =
-                            isSameDate(
-                              date,
-                              endDate,
-                            );
-
-
-                          return (
-
-                            <button
-                              key={
-                                `${schedule.id}-${formatDate(date)}`
-                              }
-                              type="button"
-                              className={[
-                                'schedule-calendar__schedule',
-
-                                `schedule-calendar__schedule--${schedule.status.toLowerCase()}`,
-
-                                isStartDate
-                                  ? 'schedule-calendar__schedule--start'
-                                  : '',
-
-                                isEndDate
-                                  ? 'schedule-calendar__schedule--end'
-                                  : '',
-                              ]
-                                .filter(Boolean)
-                                .join(' ')}
-                              onClick={
-                                () =>
-                                  onSelect?.(
-                                    schedule,
-                                  )
-                              }
-                              title={
-                                `${schedule.scheduleName}
-${schedule.startDate} ~ ${schedule.endDate}`
-                              }
-                            >
-
-                              <span
-                                className="schedule-calendar__schedule-name"
-                              >
-                                {schedule.scheduleName}
-                              </span>
-
-                            </button>
-
-                          );
-
-                        },
-                      )}
-
-                    </div>
-
-                  </div>
-
-                );
-
-              },
-            )}
-
-          </div>
+          <CalendarGrid
+            calendarDays={
+              calendarDays
+            }
+            schedules={
+              schedules
+            }
+            onSelect={
+              onSelect
+            }
+          />
 
         </div>
 
