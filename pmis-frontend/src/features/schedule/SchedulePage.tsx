@@ -12,6 +12,7 @@ import {
   updateSchedule,
 } from './api/scheduleApi';
 
+import ScheduleCalendar from './components/calendar/ScheduleCalendar';
 import ScheduleDetail from './components/ScheduleDetail';
 import ScheduleForm from './components/ScheduleForm';
 import ScheduleList from './components/ScheduleList';
@@ -25,6 +26,7 @@ import type {
 } from './types/schedule';
 
 import './styles/schedule.css';
+import './styles/Calendar.css';
 
 
 /**
@@ -51,8 +53,17 @@ const PROJECT_ID = 2;
  * - Schedule 삭제
  * - Schedule 선택 상태 관리
  * - Schedule Form 상태 관리
+ * - Schedule Calendar 조회
  */
 const SchedulePage = () => {
+
+
+  /**
+   * =====================================================
+   * State
+   * =====================================================
+   */
+
 
   const [
     schedules,
@@ -130,6 +141,7 @@ const SchedulePage = () => {
       async () => {
 
         setLoading(true);
+
         setError('');
 
 
@@ -141,7 +153,9 @@ const SchedulePage = () => {
             );
 
 
-          setSchedules(data);
+          setSchedules(
+            data,
+          );
 
         } catch (err) {
 
@@ -171,13 +185,16 @@ const SchedulePage = () => {
    * 최초 Schedule 목록 조회
    * =====================================================
    */
-  useEffect(() => {
+  useEffect(
+    () => {
 
-    void loadSchedules();
+      void loadSchedules();
 
-  }, [
-    loadSchedules,
-  ]);
+    },
+    [
+      loadSchedules,
+    ],
+  );
 
 
   /**
@@ -196,6 +213,7 @@ const SchedulePage = () => {
     async () => {
 
       setLoading(true);
+
       setError('');
 
 
@@ -249,10 +267,14 @@ const SchedulePage = () => {
           );
 
 
-        setSchedules(filtered);
+        setSchedules(
+          filtered,
+        );
 
 
-        setSelectedSchedule(null);
+        setSelectedSchedule(
+          null,
+        );
 
       } catch (err) {
 
@@ -327,11 +349,20 @@ const SchedulePage = () => {
   const handleCreateOpen =
     () => {
 
-      setSelectedSchedule(null);
+      setSelectedSchedule(
+        null,
+      );
 
-      setEditingSchedule(null);
 
-      setIsCreating(true);
+      setEditingSchedule(
+        null,
+      );
+
+
+      setIsCreating(
+        true,
+      );
+
 
       setError('');
 
@@ -351,6 +382,7 @@ const SchedulePage = () => {
     ) => {
 
       setLoading(true);
+
       setError('');
 
 
@@ -376,7 +408,9 @@ const SchedulePage = () => {
         );
 
 
-        setIsCreating(false);
+        setIsCreating(
+          false,
+        );
 
       } catch (err) {
 
@@ -419,7 +453,10 @@ const SchedulePage = () => {
       );
 
 
-      setIsCreating(false);
+      setIsCreating(
+        false,
+      );
+
 
       setError('');
 
@@ -440,6 +477,7 @@ const SchedulePage = () => {
     ) => {
 
       setLoading(true);
+
       setError('');
 
 
@@ -468,7 +506,9 @@ const SchedulePage = () => {
         );
 
 
-        setEditingSchedule(null);
+        setEditingSchedule(
+          null,
+        );
 
       } catch (err) {
 
@@ -528,11 +568,14 @@ const SchedulePage = () => {
 
 
       if (!confirmed) {
+
         return;
+
       }
 
 
       setLoading(true);
+
       setError('');
 
 
@@ -552,11 +595,19 @@ const SchedulePage = () => {
         );
 
 
-        setSelectedSchedule(null);
+        setSelectedSchedule(
+          null,
+        );
 
-        setEditingSchedule(null);
 
-        setIsCreating(false);
+        setEditingSchedule(
+          null,
+        );
+
+
+        setIsCreating(
+          false,
+        );
 
       } catch (err) {
 
@@ -587,9 +638,15 @@ const SchedulePage = () => {
   const handleFormClose =
     () => {
 
-      setIsCreating(false);
+      setIsCreating(
+        false,
+      );
 
-      setEditingSchedule(null);
+
+      setEditingSchedule(
+        null,
+      );
+
 
       setError('');
 
@@ -802,6 +859,22 @@ const SchedulePage = () => {
         </div>
 
       )}
+
+
+      {/* ================================================
+          Schedule Calendar
+          ================================================ */}
+
+      <div
+        className="schedule-page__calendar"
+      >
+
+        <ScheduleCalendar
+          projectId={PROJECT_ID}
+          onSelect={handleSelect}
+        />
+
+      </div>
 
 
       {/* ================================================

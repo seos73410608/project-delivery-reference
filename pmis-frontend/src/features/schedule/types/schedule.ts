@@ -8,6 +8,7 @@ export interface ApiResponse<T> {
   data: T;
 }
 
+
 /**
  * Schedule Status
  */
@@ -17,6 +18,7 @@ export type ScheduleStatus =
   | 'COMPLETED'
   | 'ON_HOLD'
   | 'CANCELLED';
+
 
 /**
  * Schedule Response
@@ -35,6 +37,7 @@ export interface ScheduleResponse {
   updatedAt: string;
 }
 
+
 /**
  * Schedule 생성 요청
  */
@@ -48,6 +51,7 @@ export interface ScheduleCreateRequest {
   sortOrder?: number;
 }
 
+
 /**
  * Schedule 수정 요청
  */
@@ -60,6 +64,7 @@ export interface ScheduleUpdateRequest {
   description?: string;
   sortOrder?: number;
 }
+
 
 /**
  * Schedule 검색 조건
@@ -75,6 +80,22 @@ export interface ScheduleSearchParams {
   size?: number;
 }
 
+
+/**
+ * Schedule Calendar 조회 조건
+ *
+ * GET /api/projects/{projectId}/schedules/calendar
+ *
+ * Query Parameters:
+ * - startDate
+ * - endDate
+ */
+export interface ScheduleCalendarParams {
+  startDate: string;
+  endDate: string;
+}
+
+
 /**
  * Page Response
  */
@@ -87,5 +108,4 @@ export interface PageResponse<T> {
   numberOfElements: number;
   first: boolean;
   last: boolean;
-  empty: boolean;
 }

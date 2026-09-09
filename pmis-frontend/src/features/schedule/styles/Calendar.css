@@ -1,0 +1,902 @@
+/**
+ * =====================================================
+ * Schedule Calendar
+ * =====================================================
+ */
+
+.schedule-calendar {
+  width: 100%;
+
+  padding: 24px;
+
+  box-sizing: border-box;
+
+  background: #ffffff;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+}
+
+
+/**
+ * =====================================================
+ * Calendar Header
+ * =====================================================
+ */
+
+.schedule-calendar__header {
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 24px;
+
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+
+  border-bottom: 1px solid #e5e7eb;
+}
+
+
+.schedule-calendar__title-area {
+  display: flex;
+
+  align-items: center;
+}
+
+
+.schedule-calendar__eyebrow {
+  margin-bottom: 6px;
+
+  font-size: 11px;
+  font-weight: 700;
+
+  letter-spacing: 0.12em;
+
+  color: #64748b;
+}
+
+
+.schedule-calendar__title {
+  margin: 0;
+
+  font-size: 24px;
+  font-weight: 700;
+
+  color: #1e293b;
+}
+
+
+/**
+ * =====================================================
+ * Calendar Navigation
+ * =====================================================
+ */
+
+.schedule-calendar__navigation {
+  display: flex;
+
+  align-items: center;
+
+  gap: 8px;
+}
+
+
+.schedule-calendar__nav-button,
+.schedule-calendar__today-button {
+  height: 36px;
+
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+
+  background: #ffffff;
+
+  cursor: pointer;
+
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+
+.schedule-calendar__nav-button {
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  width: 36px;
+
+  font-size: 24px;
+  line-height: 1;
+
+  color: #475569;
+}
+
+
+.schedule-calendar__nav-button:hover {
+  background: #f8fafc;
+
+  border-color: #94a3b8;
+}
+
+
+.schedule-calendar__nav-button:active {
+  background: #f1f5f9;
+}
+
+
+.schedule-calendar__today-button {
+  padding: 0 14px;
+
+  font-size: 13px;
+  font-weight: 600;
+
+  color: #334155;
+}
+
+
+.schedule-calendar__today-button:hover {
+  background: #f8fafc;
+
+  border-color: #94a3b8;
+}
+
+
+.schedule-calendar__today-button:active {
+  background: #f1f5f9;
+}
+
+
+.schedule-calendar__month {
+  min-width: 90px;
+
+  margin: 0 4px;
+
+  font-size: 16px;
+  font-weight: 700;
+
+  text-align: center;
+
+  color: #1e293b;
+}
+
+
+/**
+ * =====================================================
+ * Error
+ * =====================================================
+ */
+
+.schedule-calendar__error {
+  margin-bottom: 20px;
+  padding: 12px 16px;
+
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+
+  background: #fef2f2;
+
+  font-size: 14px;
+
+  color: #b91c1c;
+}
+
+
+/**
+ * =====================================================
+ * Loading
+ * =====================================================
+ */
+
+.schedule-calendar__loading {
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 12px;
+
+  min-height: 420px;
+
+  font-size: 14px;
+
+  color: #64748b;
+}
+
+
+.schedule-calendar__loading .spinner {
+  width: 18px;
+  height: 18px;
+
+  border: 2px solid #e2e8f0;
+  border-top-color: #2563eb;
+  border-radius: 50%;
+
+  animation:
+    schedule-calendar-spin
+    0.7s
+    linear
+    infinite;
+}
+
+
+@keyframes schedule-calendar-spin {
+
+  to {
+    transform:
+      rotate(360deg);
+  }
+
+}
+
+
+/**
+ * =====================================================
+ * Calendar Container
+ * =====================================================
+ */
+
+.schedule-calendar__container {
+  width: 100%;
+
+  overflow: hidden;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+}
+
+
+/**
+ * =====================================================
+ * Week Header
+ * =====================================================
+ */
+
+.schedule-calendar__week {
+  display: grid;
+
+  grid-template-columns:
+    repeat(7, 1fr);
+
+  background: #f8fafc;
+
+  border-bottom:
+    1px solid #e5e7eb;
+}
+
+
+.schedule-calendar__week-day {
+  padding: 12px 8px;
+
+  box-sizing: border-box;
+
+  font-size: 12px;
+  font-weight: 700;
+
+  text-align: center;
+
+  color: #64748b;
+
+  border-right:
+    1px solid #e5e7eb;
+}
+
+
+.schedule-calendar__week-day:last-child {
+  border-right: none;
+}
+
+
+.schedule-calendar__week-day--sunday {
+  color: #dc2626;
+}
+
+
+.schedule-calendar__week-day--saturday {
+  color: #2563eb;
+}
+
+
+/**
+ * =====================================================
+ * Calendar Grid
+ * =====================================================
+ */
+
+.schedule-calendar__grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(7, 1fr);
+}
+
+
+/**
+ * =====================================================
+ * Calendar Day
+ * =====================================================
+ */
+
+.schedule-calendar__day {
+  position: relative;
+
+  min-width: 0;
+  min-height: 130px;
+
+  padding: 8px;
+
+  box-sizing: border-box;
+
+  background: #ffffff;
+
+  border-right:
+    1px solid #e5e7eb;
+
+  border-bottom:
+    1px solid #e5e7eb;
+
+  overflow: hidden;
+}
+
+
+/**
+ * 토요일
+ */
+
+.schedule-calendar__day:nth-child(7n) {
+  border-right: none;
+}
+
+
+/**
+ * Empty Day
+ */
+
+.schedule-calendar__day--empty {
+  background: #f8fafc;
+}
+
+
+/**
+ * Today
+ */
+
+.schedule-calendar__day--today {
+  background: #eff6ff;
+}
+
+
+/**
+ * Sunday
+ */
+
+.schedule-calendar__day--sunday {
+  background: #fffafa;
+}
+
+
+/**
+ * Saturday
+ */
+
+.schedule-calendar__day--saturday {
+  background: #fafcff;
+}
+
+
+/**
+ * Today 우선
+ */
+
+.schedule-calendar__day--today {
+  background: #eff6ff;
+}
+
+
+/**
+ * =====================================================
+ * Day Header
+ * =====================================================
+ */
+
+.schedule-calendar__day-header {
+  display: flex;
+
+  align-items: center;
+
+  min-height: 28px;
+
+  margin-bottom: 6px;
+}
+
+
+.schedule-calendar__day-number {
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  width: 26px;
+  height: 26px;
+
+  border-radius: 50%;
+
+  font-size: 13px;
+  font-weight: 600;
+
+  color: #334155;
+}
+
+
+/**
+ * Today Number
+ */
+
+.schedule-calendar__day--today
+.schedule-calendar__day-number {
+  background: #2563eb;
+
+  color: #ffffff;
+}
+
+
+/**
+ * Sunday Number
+ */
+
+.schedule-calendar__day--sunday
+.schedule-calendar__day-number {
+  color: #dc2626;
+}
+
+
+/**
+ * Saturday Number
+ */
+
+.schedule-calendar__day--saturday
+.schedule-calendar__day-number {
+  color: #2563eb;
+}
+
+
+/**
+ * Today + Sunday
+ */
+
+.schedule-calendar__day--today.schedule-calendar__day--sunday
+.schedule-calendar__day-number {
+  color: #ffffff;
+}
+
+
+/**
+ * Today + Saturday
+ */
+
+.schedule-calendar__day--today.schedule-calendar__day--saturday
+.schedule-calendar__day-number {
+  color: #ffffff;
+}
+
+
+/**
+ * =====================================================
+ * Schedule List
+ * =====================================================
+ */
+
+.schedule-calendar__schedule-list {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 4px;
+
+  width: 100%;
+
+  overflow: hidden;
+}
+
+
+/**
+ * =====================================================
+ * Schedule Item
+ * =====================================================
+ */
+
+.schedule-calendar__schedule {
+  display: flex;
+
+  align-items: center;
+
+  width: 100%;
+  min-width: 0;
+  min-height: 24px;
+
+  padding: 4px 6px;
+
+  box-sizing: border-box;
+
+  border-radius: 4px;
+
+  font-size: 11px;
+  font-weight: 500;
+
+  cursor: pointer;
+
+  overflow: hidden;
+
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease;
+}
+
+
+.schedule-calendar__schedule:hover {
+  opacity: 0.85;
+}
+
+
+/**
+ * =====================================================
+ * Schedule Name
+ * =====================================================
+ */
+
+.schedule-calendar__schedule-name {
+  display: block;
+
+  width: 100%;
+
+  overflow: hidden;
+
+  white-space: nowrap;
+
+  text-overflow: ellipsis;
+}
+
+
+/**
+ * =====================================================
+ * Schedule Status
+ * =====================================================
+ */
+
+
+/**
+ * PLANNED
+ */
+
+.schedule-calendar__schedule--planned {
+  background: #e0f2fe;
+
+  color: #0369a1;
+}
+
+
+/**
+ * IN_PROGRESS
+ */
+
+.schedule-calendar__schedule--in_progress {
+  background: #dbeafe;
+
+  color: #1d4ed8;
+}
+
+
+/**
+ * COMPLETED
+ */
+
+.schedule-calendar__schedule--completed {
+  background: #dcfce7;
+
+  color: #15803d;
+}
+
+
+/**
+ * ON_HOLD
+ */
+
+.schedule-calendar__schedule--on_hold {
+  background: #fef3c7;
+
+  color: #b45309;
+}
+
+
+/**
+ * CANCELLED
+ */
+
+.schedule-calendar__schedule--cancelled {
+  background: #fee2e2;
+
+  color: #b91c1c;
+}
+
+
+/**
+ * =====================================================
+ * Multi Day Schedule
+ * =====================================================
+ */
+
+
+/**
+ * 시작 날짜
+ */
+
+.schedule-calendar__schedule--start {
+  border-top-left-radius: 6px;
+  border-bottom-left-radius: 6px;
+}
+
+
+/**
+ * 종료 날짜
+ */
+
+.schedule-calendar__schedule--end {
+  border-top-right-radius: 6px;
+  border-bottom-right-radius: 6px;
+}
+
+
+/**
+ * 단일 날짜 Schedule
+ */
+
+.schedule-calendar__schedule--start.schedule-calendar__schedule--end {
+  border-radius: 6px;
+}
+
+
+/**
+ * =====================================================
+ * Calendar Footer
+ * =====================================================
+ */
+
+.schedule-calendar__footer {
+  display: flex;
+
+  align-items: center;
+  justify-content: flex-end;
+
+  gap: 6px;
+
+  margin-top: 16px;
+
+  font-size: 13px;
+
+  color: #64748b;
+}
+
+
+.schedule-calendar__footer strong {
+  font-size: 15px;
+
+  color: #1e293b;
+}
+
+
+/**
+ * =====================================================
+ * Responsive
+ * =====================================================
+ */
+
+@media (
+  max-width: 1024px
+) {
+
+  .schedule-calendar {
+    padding: 20px;
+  }
+
+
+  .schedule-calendar__header {
+    flex-direction: column;
+
+    align-items: flex-start;
+  }
+
+
+  .schedule-calendar__navigation {
+    width: 100%;
+
+    justify-content: flex-start;
+  }
+
+
+  .schedule-calendar__day {
+    min-height: 110px;
+  }
+
+}
+
+
+@media (
+  max-width: 768px
+) {
+
+  .schedule-calendar {
+    padding: 16px;
+  }
+
+
+  .schedule-calendar__header {
+    gap: 16px;
+
+    margin-bottom: 16px;
+  }
+
+
+  .schedule-calendar__title {
+    font-size: 20px;
+  }
+
+
+  /**
+   * 모바일 Calendar는
+   * 가로 스크롤을 허용한다.
+   */
+
+  .schedule-calendar__container {
+    overflow-x: auto;
+  }
+
+
+  .schedule-calendar__week,
+  .schedule-calendar__grid {
+    min-width: 700px;
+  }
+
+
+  .schedule-calendar__navigation {
+    gap: 6px;
+  }
+
+
+  .schedule-calendar__today-button {
+    padding: 0 10px;
+  }
+
+
+  .schedule-calendar__month {
+    min-width: 76px;
+
+    font-size: 14px;
+  }
+
+
+  .schedule-calendar__week-day {
+    padding: 10px 4px;
+
+    font-size: 10px;
+  }
+
+
+  .schedule-calendar__day {
+    min-height: 100px;
+
+    padding: 5px;
+  }
+
+
+  .schedule-calendar__day-number {
+    width: 22px;
+    height: 22px;
+
+    font-size: 12px;
+  }
+
+
+  .schedule-calendar__schedule {
+    min-height: 20px;
+
+    padding: 3px 4px;
+
+    font-size: 10px;
+  }
+
+
+  .schedule-calendar__schedule-list {
+    gap: 2px;
+  }
+
+}
+
+
+@media (
+  max-width: 480px
+) {
+
+  .schedule-calendar {
+    padding: 12px;
+  }
+
+
+  .schedule-calendar__eyebrow {
+    font-size: 9px;
+  }
+
+
+  .schedule-calendar__title {
+    font-size: 18px;
+  }
+
+
+  .schedule-calendar__nav-button {
+    width: 32px;
+    height: 32px;
+  }
+
+
+  .schedule-calendar__today-button {
+    height: 32px;
+
+    padding: 0 8px;
+
+    font-size: 11px;
+  }
+
+
+  .schedule-calendar__month {
+    min-width: 66px;
+
+    font-size: 13px;
+  }
+
+
+  .schedule-calendar__week,
+  .schedule-calendar__grid {
+    min-width: 630px;
+  }
+
+
+  .schedule-calendar__week-day {
+    padding: 8px 2px;
+
+    font-size: 9px;
+  }
+
+
+  .schedule-calendar__day {
+    min-height: 90px;
+
+    padding: 4px;
+  }
+
+
+  .schedule-calendar__day-header {
+    min-height: 22px;
+
+    margin-bottom: 2px;
+  }
+
+
+  .schedule-calendar__day-number {
+    width: 20px;
+    height: 20px;
+
+    font-size: 11px;
+  }
+
+
+  .schedule-calendar__schedule {
+    min-height: 18px;
+
+    padding: 2px 3px;
+
+    font-size: 9px;
+  }
+
+}
