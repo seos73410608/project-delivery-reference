@@ -24,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.util.List;
 
+
 /**
  * Issue Service
  *
@@ -39,6 +40,7 @@ import java.util.List;
  * - Issue 상태 변경
  * - Issue 정렬 순서 변경
  * - Issue 삭제
+ * - Project별 Issue Key 생성
  * - Request Validation
  * - 날짜 Validation
  * - Project 존재 여부 검증
@@ -170,6 +172,15 @@ public class IssueService {
      * Issue는 반드시 특정 Project에
      * 소속되어야 한다.
      *
+     * Issue Key는 Project별로
+     * 자동 생성한다.
+     *
+     * Issue Key 형식:
+     *
+     * ISSUE-001
+     * ISSUE-002
+     * ISSUE-003
+     *
      * @param projectId Project ID
      * @param request Issue 생성 요청
      * @return 생성된 Issue
@@ -187,8 +198,12 @@ public class IssueService {
         Project project =
                 findProject(projectId);
 
+        String issueKey =
+                generateIssueKey(projectId);
+
         Issue issue = Issue.builder()
                 .project(project)
+                .issueKey(issueKey)
                 .title(request.getTitle())
                 .description(request.getDescription())
                 .status(request.getStatus())
@@ -350,6 +365,91 @@ public class IssueService {
         Issue issue = findIssue(id);
 
         issueRepository.delete(issue);
+    }
+
+
+    /**
+     * Project별 Issue Key 생성
+     *
+     * Issue Key 형식:
+     *
+     * ISSUE-001
+     * ISSUE-002
+     * ISSUE-003
+     *
+     * Project별로 독립적인
+     * Issue 순번을 사용한다.
+     *
+     * @param projectId Project ID
+     * @return 생성된 Issue Key
+     */
+    private String generateIssueKey(
+            Long projectId
+    ) {
+
+        int nextSequence =
+                issueRepository
+                        .findTopByProject_IdOrderByIdDesc(
+                                projectId
+                        )
+                        .map(Issue::getIssueKey)
+                        .map(this::extractIssueSequence)
+                        .orElse(0)
+                        + 1;
+
+        return String.format(
+                "ISSUE-%03d",
+                nextSequence
+        );
+    }
+
+
+    /**
+     * Issue Key에서 순번 추출
+     *
+     * 예:
+     *
+     * ISSUE-001 -> 1
+     * ISSUE-025 -> 25
+     *
+     * @param issueKey Issue Key
+     * @return Issue 순번
+     */
+    private int extractIssueSequence(
+            String issueKey
+    ) {
+
+        if (issueKey == null ||
+                issueKey.isBlank()) {
+
+            return 0;
+        }
+
+        String[] tokens =
+                issueKey.split("-");
+
+        if (tokens.length != 2 ||
+                !"ISSUE".equals(tokens[0])) {
+
+            throw new IllegalArgumentException(
+                    "Invalid Issue Key format: "
+                            + issueKey
+            );
+        }
+
+        try {
+
+            return Integer.parseInt(
+                    tokens[1]
+            );
+
+        } catch (NumberFormatException e) {
+
+            throw new IllegalArgumentException(
+                    "Invalid Issue Key format: "
+                            + issueKey
+            );
+        }
     }
 
 

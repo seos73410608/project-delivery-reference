@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 import java.util.List;
+import java.util.Optional;
+
 
 /**
  * Issue Repository
@@ -22,6 +24,7 @@ import java.util.List;
  * - Status별 Issue 조회
  * - Priority별 Issue 조회
  * - 동적 검색
+ * - Project별 최근 Issue 조회
  */
 public interface IssueRepository extends
         JpaRepository<Issue, Long>,
@@ -88,5 +91,19 @@ public interface IssueRepository extends
     List<Issue> findByProject_IdAndAssigneeIdOrderBySortOrderAsc(
             Long projectId,
             Long assigneeId
+    );
+
+
+    /**
+     * Project별 가장 최근 생성된 Issue 조회
+     *
+     * Project별 Issue Key 생성 시
+     * 다음 순번을 계산하기 위해 사용한다.
+     *
+     * @param projectId Project ID
+     * @return 가장 최근 생성된 Issue
+     */
+    Optional<Issue> findTopByProject_IdOrderByIdDesc(
+            Long projectId
     );
 }

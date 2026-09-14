@@ -1,0 +1,55 @@
+[1mdiff --git a/pmis-backend/src/main/java/com/seos/pmis/issue/entity/Issue.java b/pmis-backend/src/main/java/com/seos/pmis/issue/entity/Issue.java[m
+[1mindex 9f6c2fa..97c3116 100644[m
+[1m--- a/pmis-backend/src/main/java/com/seos/pmis/issue/entity/Issue.java[m
+[1m+++ b/pmis-backend/src/main/java/com/seos/pmis/issue/entity/Issue.java[m
+[36m@@ -29,7 +29,16 @@[m [mimport java.time.LocalDate;[m
+ @Entity[m
+ @Builder[m
+ @Table([m
+[31m-        name = "issues"[m
+[32m+[m[32m        name = "issues",[m
+[32m+[m[32m        uniqueConstraints = {[m
+[32m+[m[32m                @UniqueConstraint([m
+[32m+[m[32m                        name = "uk_issues_project_issue_key",[m
+[32m+[m[32m                        columnNames = {[m
+[32m+[m[32m                                "project_id",[m
+[32m+[m[32m                                "issue_key"[m
+[32m+[m[32m                        }[m
+[32m+[m[32m                )[m
+[32m+[m[32m        }[m
+ )[m
+ @NoArgsConstructor(access = AccessLevel.PROTECTED)[m
+ @AllArgsConstructor(access = AccessLevel.PRIVATE)[m
+[36m@@ -63,19 +72,25 @@[m [mpublic class Issue extends BaseEntity {[m
+     /**[m
+      * Issue 식별 Key[m
+      *[m
+[31m-     * 예:[m
+[32m+[m[32m     * Project별로 독립적인[m
+[32m+[m[32m     * Issue Key를 관리한다.[m
+[32m+[m[32m     *[m
+[32m+[m[32m     * 형식:[m
+      *[m
+[31m-     * ISSUE-001[m
+[31m-     * ISSUE-002[m
+[32m+[m[32m     * P{projectId}-ISSUE-{sequence}[m
+      *[m
+[31m-     * 현재 V1에서는[m
+[31m-     * 자동 생성 정책을 적용하지 않는다.[m
+[32m+[m[32m     * 예:[m
+      *[m
+[31m-     * 향후 Project별 Issue Key[m
+[31m-     * 생성 정책을 적용할 수 있다.[m
+[32m+[m[32m     * P1-ISSUE-001[m
+[32m+[m[32m     * P1-ISSUE-002[m
+[32m+[m[32m     * P2-ISSUE-001[m
+[32m+[m[32m     *[m
+[32m+[m[32m     * Issue Key는 생성 시 자동 설정되며[m
+[32m+[m[32m     * 생성 이후 변경하지 않는다.[m
+      */[m
+     @Column([m
+             name = "issue_key",[m
+[32m+[m[32m            nullable = false,[m
+             length = 50[m
+     )[m
+     private String issueKey;[m

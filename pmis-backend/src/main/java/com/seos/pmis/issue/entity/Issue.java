@@ -29,7 +29,16 @@ import java.time.LocalDate;
 @Entity
 @Builder
 @Table(
-        name = "issues"
+        name = "issues",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_issues_project_issue_key",
+                        columnNames = {
+                                "project_id",
+                                "issue_key"
+                        }
+                )
+        }
 )
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
@@ -63,19 +72,25 @@ public class Issue extends BaseEntity {
     /**
      * Issue 식별 Key
      *
+     * Project별로 독립적인
+     * Issue Key를 관리한다.
+     *
+     * 형식:
+     *
+     * P{projectId}-ISSUE-{sequence}
+     *
      * 예:
      *
-     * ISSUE-001
-     * ISSUE-002
+     * P1-ISSUE-001
+     * P1-ISSUE-002
+     * P2-ISSUE-001
      *
-     * 현재 V1에서는
-     * 자동 생성 정책을 적용하지 않는다.
-     *
-     * 향후 Project별 Issue Key
-     * 생성 정책을 적용할 수 있다.
+     * Issue Key는 생성 시 자동 설정되며
+     * 생성 이후 변경하지 않는다.
      */
     @Column(
             name = "issue_key",
+            nullable = false,
             length = 50
     )
     private String issueKey;
