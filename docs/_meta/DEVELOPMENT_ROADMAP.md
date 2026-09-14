@@ -1,8 +1,8 @@
 # PMIS Development Roadmap
 
-> **Version:** **1.9**
+> **Version:** **1.10**
 >
-> **Last Updated:** **2026-09-09**
+> **Last Updated:** **2026-09-11**
 >
 > **Project:** **Project Management Information System (PMIS)**
 
@@ -120,38 +120,20 @@ Report / Dashboard
 # 3. Architecture
 
 ```text
-┌─────────────────────────────────────────────┐
-│                PMIS Frontend                │
-│ React + TypeScript + Vite                   │
-│ React Router DOM                            │
-│ Layout / Components / Pages / Features      │
-│ Project / WBS / Schedule / Issue / Risk     │
-│ Change / Evidence / CMDB / Report           │
-└──────────────────────┬──────────────────────┘
-                       │ REST API
-                       ▼
-┌─────────────────────────────────────────────┐
-│                 PMIS Backend                │
-│ Spring Boot + Spring Security + JWT         │
-│ Controller / Service / Repository           │
-│ DTO / Mapper / Specification                │
-│ Evidence / File / Verification              │
-└──────────────────────┬──────────────────────┘
-                       │
-                       ▼
-┌─────────────────────────────────────────────┐
-│                   MariaDB                   │
-└──────────────────────┬──────────────────────┘
-                       │
-                       ▼
-              File / Object Storage
-                    Planned
-                       │
-                       ▼
-┌─────────────────────────────────────────────┐
-│                  Spring AI                  │
-│ AI Assistant / Analysis / RAG               │
-└─────────────────────────────────────────────┘
+PMIS Frontend
+React + TypeScript + Vite
+        ↓ REST API
+PMIS Backend
+Spring Boot + Spring Security + JWT
+Controller / Service / Repository
+DTO / Mapper / Specification
+        ↓
+MariaDB
+        ↓
+File / Object Storage (Planned)
+        ↓
+Spring AI
+AI Assistant / Analysis / RAG
 ```
 
 ## Backend
@@ -181,8 +163,6 @@ Report / Dashboard
 
 # 4. Git Flow
 
-## Development Flow
-
 ```text
 main
  ▲
@@ -196,7 +176,7 @@ develop
 feature/*
 ```
 
-모든 기능은 Feature Branch에서 개발 후 `develop`으로 Merge한다. 검증 완료 후 `main`으로 Release 한다.
+모든 기능은 Feature Branch에서 개발 후 `develop`으로 Merge한다.
 
 ## Backend Feature Branch
 
@@ -247,20 +227,6 @@ feature/frontend-auth
 feature/frontend-ai
 ```
 
-## Recent Refactoring Branch
-
-```text
-refactor/schedule-calendar-components
-```
-
-최근 Schedule Calendar를 Header / Grid / Day / Event Component로 분리하고 Calendar Utility를 정리하였다.
-
-```text
-refactor/schedule-calendar-components
-        ↓
-develop
-```
-
 ---
 
 # 5. Version Strategy
@@ -286,6 +252,7 @@ MAJOR.MINOR.PATCH
 - Schedule Frontend Management UI
 - Schedule Calendar API Integration
 - Schedule Calendar Component Refactoring
+- Issue Management Backend
 
 ---
 
@@ -311,21 +278,20 @@ feat: implement JWT authentication
 feat: implement project CRUD
 feat: implement WBS CRUD
 feat: implement schedule CRUD
+feat: implement issue management domain
 feat(frontend): implement schedule management UI
 feat(frontend): integrate schedule calendar API
 refactor(frontend): split schedule calendar into components
 docs: update PMIS development roadmap
 ```
 
-기능 구현과 문서 현행화는 가능한 경우 별도의 Commit으로 관리한다.
-
 ---
 
 # 7. Sprint Plan
 
-# Sprint 0 - Base Project
+## Sprint 0 - Base Project
 
-## Goal
+### Goal
 
 프로젝트 기반 구축
 
@@ -347,22 +313,15 @@ docs: update PMIS development roadmap
 - Backend / Frontend 프로젝트 분리
 - Frontend Directory Architecture 설계
 
-### Deliverables
-
-- Base Project
-- Backend Build Success
-- Frontend Project Structure
-- Git Repository
-
 ---
 
-# Sprint 1 - Authentication & Security
+## Sprint 1 - Authentication & Security
 
-## Goal
+### Goal
 
 JWT 기반 인증 / 인가 구축
 
-### Backend Tasks
+### Backend
 
 - JWT Provider
 - JWT Filter
@@ -373,7 +332,7 @@ JWT 기반 인증 / 인가 구축
 - Role Authorization
 - Password Encoder
 
-### Frontend Planned Tasks
+### Frontend Planned
 
 - Login Page
 - Login Form
@@ -384,13 +343,9 @@ JWT 기반 인증 / 인가 구축
 
 ---
 
-# Sprint 2 - Project Management & Frontend Foundation
+## Sprint 2 - Project Management & Frontend Foundation
 
-## Goal
-
-Project Management Backend을 구축하고 PMIS Frontend의 기본 화면 구조를 완성한다.
-
-## Backend Completed
+### Backend Completed
 
 - Project CRUD
 - Customer / PM / Status / Priority
@@ -398,11 +353,7 @@ Project Management Backend을 구축하고 PMIS Frontend의 기본 화면 구조
 - Project Search
 - Sorting
 - Project Dashboard API
-- Total Project Count
-- Status Count
-- Priority Count
-- Recent Project KPI
-- Upcoming Deadline KPI
+- Project Dashboard KPI
 - Project Detail API
 - Project Detail Response
 - Project Detail Service
@@ -419,15 +370,13 @@ project/controller
 └── ProjectDetailController
 ```
 
-## Frontend Foundation
+### Frontend Foundation
 
 - React
 - Vite
 - TypeScript
-- npm
 - React Router DOM
 - Feature-based Directory Structure
-- API / Service / Store 구조 준비
 - AppRouter
 - MainLayout
 - Header
@@ -439,29 +388,18 @@ project/controller
 - Loading
 - EmptyState
 
-## Project Frontend
+### Project Frontend
 
-- Project List
-- Project Search
-- Project Detail
-- Project Registration
-- Project Edit
-- Project Delete
+- Project List / Search / Detail
+- Project Registration / Edit / Delete
 - API Integration
 - Loading / Empty / Error State
-- Delete Confirmation
 
 ---
 
-# Sprint 3 - WBS / Schedule Management
+## Sprint 3 - WBS / Schedule Management
 
-## Goal
-
-프로젝트 작업 구조와 일정을 관리하는 핵심 기능을 Backend와 Frontend에서 구현하고 실제 REST API Integration 기반의 업무 화면을 구축한다.
-
-## WBS Backend
-
-### Completed
+### WBS Backend Completed
 
 - WBS CRUD
 - Tree Structure
@@ -471,9 +409,7 @@ project/controller
 - Delete Handling
 - Swagger API Verification
 
-## WBS Frontend
-
-### Completed
+### WBS Frontend Completed
 
 - WBS API Client
 - WBS API Integration
@@ -484,30 +420,21 @@ project/controller
 - Progress Display
 - WBS Delete
 
-### Remaining
+### WBS Remaining
 
 - WBS Browser Verification
 - WBS Integration Test
 
----
-
-## Schedule Backend
-
-### Completed
+### Schedule Backend Completed
 
 - Schedule CRUD
 - Project별 Schedule 조회
 - Schedule 단건 조회
-- Schedule 생성
-- Schedule 수정
-- Schedule 삭제
+- Schedule 생성 / 수정 / 삭제
 - Schedule Status 변경
 - Sort Order 관리
 - Schedule Search
-- Project 조건 검색
-- WBS 조건 검색
-- Keyword 검색
-- Status 검색
+- Project / WBS / Keyword / Status 검색
 - Dynamic Sorting
 - Pagination
 - Period Search
@@ -515,109 +442,25 @@ project/controller
 - Calendar 조회 API
 - Swagger / OpenAPI 검증
 
-### Schedule API Verification
-
-```text
-Schedule List
-    ↓
-Schedule Create
-    ↓
-Schedule List Verification
-    ↓
-Schedule Detail
-    ↓
-Schedule Update
-    ↓
-Schedule Status
-    ↓
-Schedule Sort Order
-    ↓
-Schedule Search
-    ↓
-Schedule Period Search
-    ↓
-Schedule Delete
-    ↓
-Deleted Schedule Verification
-```
-
-Not Found 및 기본 Validation 시나리오도 검증 대상으로 관리한다.
-
----
-
-## Schedule Frontend
-
-### Completed
+### Schedule Frontend Completed
 
 - Schedule Management UI
-- Schedule List UI
-- Schedule Search UI
-- Schedule Detail UI
-- Schedule Registration UI
-- Schedule Edit UI
-- Schedule Delete UI
+- Schedule List / Search / Detail
+- Schedule Registration / Edit / Delete
 - Schedule Status Management UI
-- Schedule Management Styling
-- Schedule API Client
-- Schedule API Integration
+- Schedule API Client / API Integration
 - Schedule Calendar UI
-- Schedule Calendar API Integration
+- Calendar API Integration
 - Calendar Range Query
 - Previous / Next Month Navigation
 - Today Navigation
-- Loading State
-- Error State
+- Loading / Error State
 - Calendar Schedule Selection
 - Calendar Component Refactoring
 - Calendar Utility Separation
-- Calendar Production Build Verification
+- Production Build Verification
 
-### Schedule Calendar Component Architecture
-
-```text
-ScheduleCalendar
-│
-├── CalendarHeader
-│   ├── Previous Month
-│   ├── Today
-│   └── Next Month
-│
-└── CalendarGrid
-    │
-    └── CalendarDay
-        │
-        └── CalendarEvent
-```
-
-### Calendar Utility
-
-```text
-calendarUtils.ts
-
-├── formatDate()
-├── parseDate()
-├── isSameDate()
-├── isDateInRange()
-└── createCalendarDays()
-```
-
-Calendar Grid 날짜 생성 로직을 Component에서 Utility로 분리하여 날짜 관련 공통 로직을 재사용할 수 있도록 정리하였다.
-
-### Calendar API
-
-```text
-GET
-/api/projects/{projectId}/schedules/calendar
-```
-
-Query:
-
-```text
-startDate
-endDate
-```
-
-### Current / Next
+### Schedule Next
 
 - Schedule Browser Verification
 - Gantt UI
@@ -628,35 +471,61 @@ endDate
 
 ---
 
-# Sprint 4 - Issue / Risk / Change Management
+## Sprint 4 - Issue / Risk / Change Management
 
-## Goal
+### Goal
 
 프로젝트의 이슈, 리스크, 변경 요청을 통합 관리한다.
 
-### Backend Feature Branch
+### Issue Backend Completed
 
-```text
-feature/issue-management
-feature/risk-management
-feature/change-management
-```
-
-### Frontend Feature Branch
-
-```text
-feature/frontend-issue
-feature/frontend-risk
-feature/frontend-change
-```
-
-### Issue
-
+- Issue Entity
 - Issue CRUD
-- Assignment
-- Status Workflow
-- Priority
+- Project별 Issue 조회
+- Issue 단건 조회
+- Issue Search
+- Dynamic Specification
+- Keyword Search
+- Status Search
+- Priority Search
+- Assignee Search
+- Pagination
+- Dynamic Sorting
+- Issue Status Update
+- Status Workflow Validation
+- Issue Delete
+- Swagger API Verification
+
+### Issue API
+
+```text
+GET    /api/issues/{id}
+GET    /api/projects/{projectId}/issues
+GET    /api/issues
+POST   /api/projects/{projectId}/issues
+PUT    /api/issues/{id}
+PATCH  /api/issues/{id}/status
+DELETE /api/issues/{id}
+```
+
+### Issue Frontend Planned
+
+- Issue List
+- Issue Search
+- Issue Detail
+- Issue Registration
+- Issue Edit
+- Issue Status UI
+- Issue Delete
+- Issue API Integration
+
+### Future Enhancement
+
+- Assignment UI 고도화
 - Attachment
+- Issue History
+- Comment / Activity
+- Dashboard Integration
 
 ### Risk
 
@@ -675,49 +544,28 @@ feature/frontend-change
 
 ---
 
-# Sprint 5 - Evidence & Inspection Management
+## Sprint 5 - Evidence & Inspection Management
 
-## Goal
+### Goal
 
 프로젝트 수행 과정에서 발생하는 산출물과 증적을 체계적으로 관리하고 증적의 존재 여부 및 검수 상태를 확인한다.
 
-### Backend
-
-```text
-feature/evidence-management
-```
-
-### Frontend
-
-```text
-feature/frontend-evidence
-```
-
-## Evidence Status
+### Evidence Status
 
 ```text
 Evidence Item
       ↓
 Required?
-┌────┴────┐
-YES       NO
-│          └── NOT_REQUIRED
-▼
-Evidence Exists?
-┌────┴────┐
-YES       NO
-│          └── MISSING
-▼
-PRESENT
-│
-▼
-Verification
-├── PENDING
-├── VERIFIED
-└── REJECTED
+├── YES → Evidence Exists?
+│          ├── YES → PRESENT → Verification
+│          │                    ├── PENDING
+│          │                    ├── VERIFIED
+│          │                    └── REJECTED
+│          └── NO  → MISSING
+└── NO → NOT_REQUIRED
 ```
 
-## Evidence Dashboard
+### Evidence Dashboard
 
 - 전체 증적 대상 수
 - 증적 확보 수
@@ -731,13 +579,7 @@ Verification
 
 ---
 
-# Sprint 6 - CMDB
-
-## Goal
-
-프로젝트 인프라와 구성 정보를 관리하는 CMDB를 구현한다.
-
-### Tasks
+## Sprint 6 - CMDB
 
 - Server CI
 - Software CI
@@ -752,11 +594,7 @@ Verification
 
 ---
 
-# Sprint 7 - Dashboard & Report
-
-## Goal
-
-PMO 업무에 필요한 통합 Dashboard와 Report 기능을 구현한다.
+## Sprint 7 - Dashboard & Report
 
 ### Dashboard
 
@@ -780,17 +618,9 @@ PMO 업무에 필요한 통합 Dashboard와 Report 기능을 구현한다.
 - PDF Export
 - Statistics API
 
-> HMC Reference 기반 Dashboard UI는 Sprint 2에서 선행 구현되었다. Sprint 7에서는 실제 PMIS API 기반 통합 Dashboard로 확장한다.
-
 ---
 
-# Sprint 8 - Spring AI
-
-## Goal
-
-PMIS 데이터를 활용하는 AI Assistant를 구현한다.
-
-### Tasks
+## Sprint 8 - Spring AI
 
 - OpenAI Integration
 - Prompt Management
@@ -806,22 +636,21 @@ PMIS 데이터를 활용하는 AI Assistant를 구현한다.
 
 ---
 
-# Sprint 9 - Finalization
+## Sprint 9 - Finalization
 
-## Backend
+### Backend
 
 - Refactoring
 - Unit Test
 - Integration Test
 - Swagger
-- Docker
-- Docker Compose
+- Docker / Docker Compose
 - GitHub Actions
 - Security Hardening
 - Audit Log
 - Evidence Integrity Validation
 
-## Frontend
+### Frontend
 
 - Component Refactoring
 - Responsive UI
@@ -831,7 +660,7 @@ PMIS 데이터를 활용하는 AI Assistant를 구현한다.
 - Accessibility
 - Build Optimization
 
-## Common
+### Common
 
 - API Integration Test
 - E2E Test
@@ -916,9 +745,7 @@ PMIS 데이터를 활용하는 AI Assistant를 구현한다.
 - REST API Contract
 - API Error Handling
 - Authentication Integration
-- Loading State
-- Empty State
-- Error State
+- Loading / Empty / Error State
 - Browser Verification
 - Production Build Verification
 - E2E Verification
@@ -939,38 +766,22 @@ PMIS 데이터를 활용하는 AI Assistant를 구현한다.
 
 ```text
 docs/design/
-
 ├── issue/
 │   └── ISSUE_DESIGN.md
-│
 ├── project/
 │   ├── PROJECT_DESIGN.md
 │   └── PROJECT_DASHBOARD_DESIGN.md
-│
 ├── report/
 │   └── REPORT_DESIGN.md
-│
 ├── schedule/
 │   └── SCHEDULE_DESIGN.md
-│
 ├── server/
 │   └── SERVER_CONFIGURATION_DESIGN.md
-│
 ├── wbs/
 │   └── WBS_DESIGN.md
-│
 └── evidence/
     └── EVIDENCE_DESIGN.md
 ```
-
-## Frontend Documentation
-
-- 001_frontend_architecture.md
-- 002_frontend_folder_structure.md
-- 003_frontend_coding_convention.md
-- 004_frontend_ui_design.md
-- 005_frontend_component_architecture.md
-- 006_frontend_development_history.md
 
 문서와 소스코드는 항상 동일한 상태를 유지한다.
 
@@ -985,9 +796,6 @@ docs/design/
 - JWT Authentication
 - MariaDB Schema
 - Project Management
-- Project Search
-- Project Dashboard
-- Project Detail
 - WBS Management
 - Schedule Management
 - Issue Management
@@ -1005,20 +813,13 @@ docs/design/
 ## Frontend
 
 - PMIS Frontend
-- React
-- TypeScript
-- Vite
+- React / TypeScript / Vite
 - React Router
 - Application Layout
 - Dashboard
-- Project Management UI
-- WBS UI
-- Schedule UI
-- Calendar UI
-- Gantt UI
-- Issue UI
-- Risk UI
-- Change UI
+- Project / WBS / Schedule UI
+- Calendar / Gantt UI
+- Issue / Risk / Change UI
 - Evidence Dashboard UI
 - CMDB UI
 - Report UI
@@ -1055,9 +856,9 @@ docs/design/
 
 # 14. Current Project Status
 
-## Backend
+## Backend Completed
 
-### Completed
+### Foundation / Security
 
 - Spring Boot
 - Gradle Kotlin DSL
@@ -1076,9 +877,7 @@ docs/design/
 - Project Dashboard API
 - Project Dashboard KPI
 - Project Detail API
-- Project Controller Separation
-- Project Dashboard Controller Separation
-- Project Detail Controller Separation
+- Controller Separation
 
 ### WBS
 
@@ -1091,16 +890,29 @@ docs/design/
 
 - Schedule CRUD
 - Schedule Search
-- Schedule Pagination
-- Schedule Sorting
+- Schedule Pagination / Sorting
 - Schedule Period Search
 - Schedule Validation
 - Schedule Calendar API
 - Schedule Swagger API Verification
 
+### Issue
+
+- Issue CRUD
+- Project별 Issue 조회
+- Issue Search
+- Dynamic Specification
+- Keyword / Status / Priority / Assignee Search
+- Pagination
+- Dynamic Sorting
+- Issue Status Update
+- Status Workflow Validation
+- Issue Delete
+- Swagger API Verification
+
 ### Planned
 
-- Issue
+- Issue Frontend
 - Risk
 - Change
 - Evidence
@@ -1112,11 +924,9 @@ docs/design/
 
 ---
 
-## Frontend
+## Frontend Completed
 
-### Completed
-
-#### Foundation
+### Foundation
 
 - React
 - Vite
@@ -1133,49 +943,35 @@ docs/design/
 - Loading
 - EmptyState
 
-#### Dashboard
+### Dashboard
 
 - HMC Reference 기반 Dashboard UI
 - Dashboard Component 분리
-- Dashboard Production Build Verification
+- Production Build Verification
 
-#### Project
+### Project
 
 - Project API Client
-- Project List UI
-- Project Search UI
-- Project Detail UI
-- Project Registration UI
-- Project Edit UI
-- Project Delete UI
+- Project List / Search / Detail
+- Project Registration / Edit / Delete
 - Project CRUD API Integration
-- Project Loading / Empty / Error State
+- Loading / Empty / Error State
 
-#### WBS
+### WBS
 
-- WBS API Client
-- WBS API Integration
-- WBS Tree UI
-- WBS Detail UI
-- WBS Form UI
-- WBS Status Form UI
+- WBS API Client / Integration
+- WBS Tree / Detail / Form / Status Form
 - WBS Delete
 
-#### Schedule
+### Schedule
 
 - Schedule Management UI
-- Schedule List UI
-- Schedule Search UI
-- Schedule Detail UI
-- Schedule Registration UI
-- Schedule Edit UI
-- Schedule Delete UI
+- Schedule List / Search / Detail
+- Schedule Registration / Edit / Delete
 - Schedule Status UI
-- Schedule Management Styling
-- Schedule API Client
 - Schedule API Integration
 - Schedule Calendar UI
-- Schedule Calendar API Integration
+- Calendar API Integration
 - Calendar Component Separation
 - Calendar Utility Separation
 - Production Build Verification
@@ -1193,6 +989,7 @@ docs/design/
 - WBS / Schedule Gantt Integration
 - Dashboard API Integration
 - Authentication UI
+- Issue Frontend
 
 ---
 
@@ -1229,13 +1026,6 @@ Integration Verification
 ```text
 Schedule Backend
     ├── CRUD                     ✓
-    ├── List                     ✓
-    ├── Detail                   ✓
-    ├── Create                   ✓
-    ├── Update                   ✓
-    ├── Delete                   ✓
-    ├── Status                   ✓
-    ├── Sort Order               ✓
     ├── Search                   ✓
     ├── Pagination               ✓
     ├── Dynamic Sorting          ✓
@@ -1247,14 +1037,9 @@ Schedule Backend
                 ▼
 Schedule Frontend
     ├── Management UI            ✓
-    ├── List UI                  ✓
-    ├── Search UI                ✓
-    ├── Detail UI                ✓
-    ├── Create UI                ✓
-    ├── Edit UI                  ✓
-    ├── Delete UI                ✓
+    ├── List / Search / Detail   ✓
+    ├── Create / Edit / Delete   ✓
     ├── Status UI                ✓
-    ├── Styling                  ✓
     └── Calendar UI              ✓
                 │
                 ▼
@@ -1271,29 +1056,43 @@ Visualization
     └── Gantt                    →
 ```
 
-Schedule Domain은 **Backend API, Management UI, Calendar UI 및 Calendar API Integration**까지 구현된 상태이다.
-
-현재 다음 핵심 단계는 **Browser Verification과 Gantt Visualization**이다.
-
 ---
 
-# 17. Current Project Frontend State
-
-Project Management Frontend는 CRUD 전체 기능이 구현되어 `develop`에 통합된 상태이다.
+# 17. Current Issue State
 
 ```text
-Project List                 ✓
-Project Search               ✓
-Project Detail               ✓
-Project Registration         ✓
-Project Edit                 ✓
-Project Delete               ✓
-Project API Integration      ✓
-Loading State                ✓
-Empty State                  ✓
-Error State                  ✓
-Router Integration           ✓
-Production Build             ✓
+Issue Backend
+    ├── Entity                   ✓
+    ├── Priority / Status        ✓
+    ├── Repository               ✓
+    ├── Create / Update DTO      ✓
+    ├── Search DTO               ✓
+    ├── Status Update DTO        ✓
+    ├── Response DTO             ✓
+    ├── Specification            ✓
+    ├── CRUD Service             ✓
+    ├── Search                   ✓
+    ├── Status Workflow          ✓
+    ├── Controller               ✓
+    └── Swagger Verification     ✓
+                │
+                ▼
+Git Integration
+    ├── Feature Commit           ✓
+    ├── Push                     ✓
+    ├── Merge to develop         ✓
+    └── develop Push             ✓
+                │
+                ▼
+Issue Frontend
+    ├── API Client               →
+    ├── List                     →
+    ├── Search                   →
+    ├── Detail                   →
+    ├── Create                   →
+    ├── Edit                     →
+    ├── Status                   →
+    └── Delete                   →
 ```
 
 ---
@@ -1308,53 +1107,53 @@ refactor/schedule-calendar-components
 develop
 ```
 
-최근 Commit:
+Commit:
 
 ```text
 4be29e6
-
 refactor(frontend): split schedule calendar into components
 ```
 
 주요 변경:
 
-```text
-CalendarHeader.tsx
-CalendarGrid.tsx
-CalendarDay.tsx
-CalendarEvent.tsx
-ScheduleCalendar.tsx
-calendarUtils.ts
-```
+- CalendarHeader.tsx
+- CalendarGrid.tsx
+- CalendarDay.tsx
+- CalendarEvent.tsx
+- ScheduleCalendar.tsx
+- calendarUtils.ts
 
-변경 내용:
-
-- ScheduleCalendar 책임 축소
-- Calendar Header 분리
-- Calendar Grid 분리
-- Calendar Day 분리
-- Calendar Event 분리
-- Calendar 날짜 Utility 정리
-- Calendar Grid 생성 로직 Utility 분리
-- TypeScript Build 오류 수정
-- Production Build Verification 완료
-
-현재 통합 기준 브랜치는 다음과 같다.
+## Recent Issue Management Integration
 
 ```text
-develop
-```
-
-최근 통합 상태:
-
-```text
-refactor/schedule-calendar-components
+feature/issue-management
+        ↓
+61673d0
+feat: implement issue management domain
         ↓
 Fast-forward Merge
         ↓
 develop
         ↓
 Push origin develop
+```
+
+Issue Domain 주요 변경:
+
+- IssueController
+- IssueService
+- IssueRepository
+- Issue Entity
+- IssuePriority
+- IssueStatus
+- Issue Create / Update / Search / Status Update DTO
+- IssueResponse
+- IssueSpecification
+
+현재 통합 기준 브랜치는 다음과 같다.
+
+```text
+develop
 ```
 
 ---
@@ -1387,32 +1186,36 @@ Integration Test
 Release
 ```
 
-## Schedule Development Flow
+## Issue Development Flow
 
 ```text
-Schedule Backend API
+Issue Design
     ↓
-Swagger Verification ✓
+Issue Entity / Enum ✓
     ↓
-Schedule Frontend UI ✓
+Repository ✓
     ↓
-Frontend API Client ✓
+DTO ✓
     ↓
-Schedule API Integration ✓
+Specification ✓
     ↓
-Production Build ✓
+Service ✓
     ↓
-Calendar UI ✓
+Controller ✓
     ↓
-Calendar API Integration ✓
+Swagger API Verification ✓
     ↓
-Calendar Component Refactoring ✓
+Commit ✓
     ↓
-Schedule / Calendar Browser Verification
+Push ✓
     ↓
-Gantt UI
+Merge to develop ✓
     ↓
-WBS / Schedule Integration
+Frontend Issue UI
+    ↓
+API Integration
+    ↓
+Browser Verification
     ↓
 E2E Verification
 ```
@@ -1429,16 +1232,12 @@ E2E Verification
 - ARCHITECTURE.md
 - PORTFOLIO.md
 
-소스코드 변경이 발생하면 관련 문서를 함께 현행화한다.
+Issue 변경 시 다음 문서를 함께 검토한다.
 
-특히 Schedule 및 Calendar 변경 시 다음 문서를 함께 검토한다.
-
-- Schedule Design
-- Frontend Architecture
-- Frontend Component Architecture
-- Frontend Development History
-- CHANGELOG
-- DEVELOPMENT_ROADMAP
+- ISSUE_DESIGN.md
+- DEVELOPMENT_ROADMAP.md
+- CHANGELOG.md
+- PROJECT_OVERVIEW.md
 
 ---
 
@@ -1452,9 +1251,6 @@ E2E Verification
 - Main 브랜치에는 검증된 코드만 Release한다.
 - Semantic Versioning을 준수한다.
 - Release마다 Git Tag를 생성한다.
-- 증적 관련 변경은 Evidence History에 기록한다.
-- 필수 증적의 누락 상태를 Dashboard에서 추적한다.
-- 검수 결과와 증적 상태를 Report에 반영한다.
 - API Integration 기능은 API Verification과 Browser Verification을 모두 수행한다.
 - Feature Branch Merge 후 `develop` Integration Test를 수행한다.
 - Component Refactoring 후 Production Build를 수행한다.
@@ -1465,78 +1261,55 @@ E2E Verification
 
 | Item | Value |
 |---|---|
-| Last Updated | **2026-09-09** |
-| Roadmap Version | **v1.9** |
+| Last Updated | **2026-09-11** |
+| Roadmap Version | **v1.10** |
 | Current Release | **v0.5.3** |
 | Current Integration Branch | **develop** |
-| Current Sprint | **Sprint 3 - WBS / Schedule Management** |
-| Last Completed Backend Domain | **Schedule Management** |
-| Last Completed Backend Feature | **Schedule CRUD / Search / Calendar API / Swagger Verification** |
+| Current Sprint | **Sprint 4 - Issue / Risk / Change Management** |
+| Last Completed Backend Domain | **Issue Management** |
+| Last Completed Backend Feature | **Issue CRUD / Search / Status Workflow / Swagger Verification** |
 | Last Completed Frontend Domain | **Schedule Calendar Component Refactoring** |
-| Development Stage | **Schedule Backend + Frontend Management UI + Calendar Integration 완료** |
-| Current Next Stage | **Schedule / Calendar Browser Verification 및 Gantt UI** |
-| Next Major Domain | **Issue Management** |
+| Development Stage | **Issue Backend Management 완료 / develop 통합 완료** |
+| Current Next Stage | **Issue Frontend 또는 기존 Schedule Browser Verification / Gantt UI** |
+| Next Backend Domain | **Risk Management** |
 | Evidence Domain | **Planned - Sprint 5** |
 | Maintainer | **Seo Seokhyeon** |
 
 > **Version Note:** `v0.5.3`은 마지막 정식 Release 기준이다.
 >
-> 현재 `develop`에는 Project Frontend CRUD, WBS Management, Schedule Backend Management, Schedule Frontend Management UI, Schedule Calendar Integration 및 Calendar Component Refactoring 변경 사항이 통합되어 있다.
+> 현재 `develop`에는 Project Frontend CRUD, WBS Management, Schedule Backend Management, Schedule Frontend Management UI, Schedule Calendar Integration, Calendar Component Refactoring 및 Issue Management Backend 변경 사항이 통합되어 있다.
 
 ---
 
 # 23. Next Milestone
 
-# Sprint 3 Completion
-
-## Backend
+## Sprint 3 Completion
 
 ```text
-WBS CRUD                       ✓
-WBS Tree Structure             ✓
-WBS Validation                 ✓
-WBS Delete                     ✓
-
-Schedule CRUD                  ✓
-Schedule Search                ✓
-Schedule Pagination            ✓
-Schedule Sorting               ✓
-Schedule Period Search         ✓
-Schedule Validation            ✓
-Schedule Calendar API          ✓
-Schedule Swagger Verification  ✓
-```
-
-## Frontend
-
-```text
-Project CRUD                   ✓
-WBS API Integration            ✓
-WBS UI                         ✓
-WBS Delete                     ✓
-
-Schedule Management UI         ✓
-Schedule List                  ✓
-Schedule Search                ✓
-Schedule Detail                ✓
-Schedule Create                ✓
-Schedule Edit                  ✓
-Schedule Delete                ✓
-Schedule Status                ✓
-Schedule Styling               ✓
-
-Schedule API Integration       ✓
-Calendar UI                    ✓
-Calendar API Integration       ✓
-Calendar Component Refactoring ✓
-Production Build               ✓
-
+WBS Browser Verification       →
+WBS Integration Test           →
 Schedule Browser Verification  →
+Schedule Integration Test      →
 Gantt UI                       →
 Gantt Integration              →
 ```
 
+## Sprint 4 Progress
+
+```text
+Issue Backend                  ✓
+Issue Swagger Verification     ✓
+Issue develop Integration      ✓
+Issue Frontend                 →
+Risk Backend                   →
+Risk Frontend                  →
+Change Backend                 →
+Change Frontend                →
+```
+
 ## Recommended Development Order
+
+### Track A - Sprint 3 Completion
 
 ```text
 WBS Browser Verification
@@ -1554,73 +1327,55 @@ WBS / Schedule Gantt Integration
 Milestone Visualization
         ↓
 Progress Visualization
+```
+
+### Track B - Sprint 4 Domain Expansion
+
+```text
+Issue Frontend
         ↓
-Dashboard API Integration
+Issue API Integration
         ↓
-E2E Verification
+Issue Browser Verification
         ↓
-Issue Management
+Risk Backend
         ↓
-Risk Management
+Risk Frontend
         ↓
-Change Management
+Change Backend
         ↓
-Evidence Management
+Change Frontend
 ```
 
 ---
 
 # 24. Current Development Priority
 
-```text
+현재는 두 개의 작업 흐름이 존재한다.
+
+## Track A - Sprint 3 Completion
+
 1. WBS Browser Verification
-        ↓
 2. WBS Integration Test
-        ↓
 3. Schedule / Calendar Browser Verification
-        ↓
 4. Schedule Integration Test
-        ↓
 5. Gantt UI
-        ↓
 6. WBS / Schedule Gantt Integration
-        ↓
 7. Dashboard API Integration
-        ↓
 8. Dashboard Data Integration
-        ↓
 9. E2E Verification
-        ↓
-10. Issue Management
-        ↓
-11. Risk Management
-        ↓
-12. Change Management
-        ↓
-13. Evidence Management
-```
 
-현재 개발의 중심은 다음과 같다.
+## Track B - Sprint 4 Domain Expansion
 
-```text
-Schedule Management UI
-        ✓
-        ↓
-Schedule API Integration
-        ✓
-        ↓
-Calendar UI / API Integration
-        ✓
-        ↓
-Calendar Component Refactoring
-        ✓
-        ↓
-Browser Verification
-        ↓
-Gantt
-        ↓
-Issue / Risk / Change
-```
+1. Issue Backend ✓
+2. Issue Frontend
+3. Issue API Integration
+4. Issue Browser Verification
+5. Risk Management
+6. Change Management
+7. Evidence Management
+
+현재 Backend Domain 확장 기준으로는 **Issue Management가 완료되어 `develop`에 통합**되었다.
 
 ---
 
@@ -1654,8 +1409,6 @@ Schedule Create                ✓
 Schedule Edit                  ✓
 Schedule Delete                ✓
 Schedule Status                ✓
-Schedule Styling               ✓
-
 Schedule API Client            ✓
 Schedule API Integration       ✓
 Loading / Empty / Error        ✓
@@ -1664,49 +1417,8 @@ Calendar API Integration       ✓
 Calendar Component Separation  ✓
 Calendar Utility Separation    ✓
 Production Build               ✓
-
 Browser Verification           →
 Integration Test               →
-```
-
-## Calendar / Gantt
-
-```text
-Schedule Data
-    ↓
-Calendar                       ✓
-    ↓
-Timeline
-    ↓
-Milestone
-    ↓
-Gantt
-    ↓
-WBS Relationship
-    ↓
-Progress Visualization
-```
-
-Schedule Domain의 최종 완료 기준은 다음과 같다.
-
-```text
-Backend
-    ↓
-Swagger
-    ↓
-Frontend UI
-    ↓
-API Integration
-    ↓
-Calendar
-    ↓
-Browser Verification
-    ↓
-Gantt
-    ↓
-WBS Relationship
-    ↓
-E2E Verification
 ```
 
 ---
@@ -1731,6 +1443,8 @@ E2E Verification
 | v0.9.x | CMDB |
 | v0.10.x | Dashboard & Reporting |
 | v1.0.0 | AI Powered PMIS |
+
+> Issue Management Backend은 현재 `develop`에 통합되어 있으나, 별도 정식 Release Version은 아직 생성하지 않았다.
 
 ---
 
@@ -1803,7 +1517,6 @@ Report
 
 ```text
 Backend
-
 ├─ Common Infrastructure          ✓
 ├─ Security / JWT                 ✓
 ├─ Project CRUD                   ✓
@@ -1816,7 +1529,9 @@ Backend
 ├─ Schedule Validation            ✓
 ├─ Schedule Calendar API          ✓
 ├─ Schedule Swagger Test          ✓
-├─ Issue                          →
+├─ Issue Management               ✓
+├─ Issue Swagger Test             ✓
+├─ Issue develop Integration      ✓
 ├─ Risk                           →
 ├─ Change                         →
 ├─ Evidence                       →
@@ -1825,9 +1540,7 @@ Backend
 ├─ Report                         →
 └─ Spring AI                      →
 
-
 Frontend
-
 ├─ React / Vite / TypeScript      ✓
 ├─ Router / Layout                ✓
 ├─ Common UI Components           ✓
@@ -1837,24 +1550,14 @@ Frontend
 ├─ WBS API Integration            ✓
 ├─ WBS UI                         ✓
 ├─ Schedule Management UI         ✓
-├─ Schedule List UI               ✓
-├─ Schedule Search UI             ✓
-├─ Schedule Detail UI             ✓
-├─ Schedule Create UI             ✓
-├─ Schedule Edit UI               ✓
-├─ Schedule Delete UI             ✓
-├─ Schedule Status UI             ✓
-├─ Schedule Styling               ✓
-├─ Schedule API Client            ✓
 ├─ Schedule API Integration       ✓
 ├─ Calendar UI                    ✓
 ├─ Calendar API Integration       ✓
 ├─ Calendar Component Refactoring ✓
+├─ Issue UI                       →
 └─ Gantt UI                       →
 
-
 Integration
-
 ├─ Project API Integration        ✓
 ├─ Project CRUD Verification      ✓
 ├─ WBS API Integration            ✓
@@ -1866,6 +1569,8 @@ Integration
 ├─ Schedule Production Build      ✓
 ├─ Schedule Browser Verification  →
 ├─ Gantt Integration              →
+├─ Issue API Verification         ✓
+├─ Issue Frontend Integration     →
 ├─ Dashboard API Integration      →
 └─ E2E Verification               →
 ```
@@ -1908,13 +1613,10 @@ Calendar UI / API Integration
 Calendar Component Refactoring
     ✓
     ↓
-Schedule / Calendar Verification
-    →
+Issue Management Backend
+    ✓
     ↓
-Gantt
-    →
-    ↓
-Issue Management
+Issue Frontend
     →
     ↓
 Risk Management
@@ -1927,9 +1629,9 @@ Evidence Management
     →
 ```
 
-현재 개발 단계의 핵심 목표는 **Schedule Domain의 Backend와 Frontend Integration을 Browser 수준에서 검증하고 Gantt Visualization으로 확장하는 것**이다.
+현재 Backend Domain 확장의 핵심 단계는 **Issue Management 완료**이다.
 
-그 이후 PMO 핵심 업무 Domain인 **Issue → Risk → Change**로 확장한다.
+다음 단계는 기존 Schedule Domain의 **Browser Verification / Gantt 확장**과 Sprint 4의 **Issue Frontend → Risk → Change** 작업을 우선순위에 따라 진행한다.
 
 ---
 
@@ -1938,20 +1640,6 @@ Evidence Management
 ## Refactoring Goal
 
 기존 `ScheduleCalendar.tsx`에 집중되어 있던 UI Rendering과 날짜 관련 책임을 분리한다.
-
-## Before
-
-```text
-ScheduleCalendar.tsx
-
-├── Calendar Header
-├── Month Navigation
-├── Calendar Grid 생성
-├── Calendar Day Rendering
-├── Schedule Event Rendering
-├── API 호출
-└── Date Utility Logic
-```
 
 ## After
 
@@ -1993,23 +1681,134 @@ calendarUtils.ts
 
 ---
 
-# 32. Next Recommended Branch
+# 32. Issue Management Integration Record
 
-다음 작업은 기존 Sprint 3 완료 기준에 따라 **Browser Verification 및 Gantt UI**를 진행하는 것을 권장한다.
+## Feature Branch
 
-예상 Branch:
+```text
+feature/issue-management
+```
+
+## Feature Commit
+
+```text
+61673d0
+feat: implement issue management domain
+```
+
+## Integration
+
+```text
+feature/issue-management
+        ↓
+Push origin feature/issue-management
+        ↓
+git checkout develop
+        ↓
+git merge feature/issue-management
+        ↓
+Fast-forward Merge
+        ↓
+git push origin develop
+```
+
+## Implemented Files
+
+```text
+issue/
+├── controller/
+│   └── IssueController.java
+├── dto/
+│   ├── request/
+│   │   ├── IssueCreateRequest.java
+│   │   ├── IssueSearchRequest.java
+│   │   ├── IssueStatusUpdateRequest.java
+│   │   └── IssueUpdateRequest.java
+│   └── response/
+│       └── IssueResponse.java
+├── entity/
+│   ├── Issue.java
+│   ├── IssuePriority.java
+│   └── IssueStatus.java
+├── repository/
+│   └── IssueRepository.java
+├── service/
+│   └── IssueService.java
+└── specification/
+    └── IssueSpecification.java
+```
+
+## Implemented API
+
+```text
+GET    /api/issues/{id}
+GET    /api/projects/{projectId}/issues
+GET    /api/issues
+POST   /api/projects/{projectId}/issues
+PUT    /api/issues/{id}
+PATCH  /api/issues/{id}/status
+DELETE /api/issues/{id}
+```
+
+## Search Conditions
+
+```text
+projectId
+keyword
+status
+priority
+assigneeId
+page
+size
+sortBy
+direction
+```
+
+검색 조건은 `IssueSpecification`에서 동적으로 조합하며 `Specification.allOf()` 기반으로 AND 조건을 구성한다.
+
+---
+
+# 33. Next Recommended Branch
+
+## Option A - Issue Frontend
+
+```text
+feature/frontend-issue
+```
+
+권장 작업:
+
+```text
+Issue API Client
+    ↓
+Issue List
+    ↓
+Issue Search
+    ↓
+Issue Detail
+    ↓
+Issue Registration
+    ↓
+Issue Edit
+    ↓
+Issue Status UI
+    ↓
+Issue Delete
+    ↓
+API Integration
+    ↓
+Browser Verification
+    ↓
+Production Build
+```
+
+## Option B - Schedule Gantt
 
 ```text
 feature/frontend-schedule-gantt
 ```
 
-또는 기존 Branch 정책을 유지한다면:
-
-```text
-feature/frontend-schedule
-```
-
-권장 작업 순서:
+권장 작업:
 
 ```text
 Schedule / Calendar Browser Verification
@@ -2029,10 +1828,40 @@ Progress Visualization
 Browser Verification
         ↓
 Production Build
+```
+
+## Recommended Priority
+
+최근 Backend 구현 흐름과 Sprint 4 진행 상태를 고려하면 다음 순서를 권장한다.
+
+```text
+Issue Frontend
         ↓
-Documentation Update
+Issue API Integration
         ↓
-Commit / Push / Merge
+Issue Browser Verification
+        ↓
+Risk Backend
+        ↓
+Risk Frontend
+        ↓
+Change Backend
+        ↓
+Change Frontend
+```
+
+Sprint 3 완료도를 우선한다면 다음 순서도 가능하다.
+
+```text
+WBS Browser Verification
+        ↓
+Schedule Browser Verification
+        ↓
+Gantt UI
+        ↓
+WBS / Schedule Gantt Integration
+        ↓
+Issue Frontend
 ```
 
 ---
