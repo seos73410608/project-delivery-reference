@@ -1,0 +1,1458 @@
+/**
+ * =====================================================
+ * Issue Management
+ * =====================================================
+ *
+ * Issue Domain Style
+ *
+ * 구성:
+ *
+ * 1. Issue Page
+ * 2. Page Header
+ * 3. Summary
+ * 4. Toolbar
+ * 5. Error
+ * 6. Loading
+ * 7. Content
+ * 8. Issue List
+ * 9. Issue Row
+ * 10. Issue Detail
+ * 11. Issue Form
+ * 12. Responsive
+ */
+
+
+/* =====================================================
+   1. Issue Page
+   ===================================================== */
+
+.issue-page {
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 24px;
+
+}
+
+
+/* =====================================================
+   2. Page Header
+   ===================================================== */
+
+.issue-page__header {
+
+  display: flex;
+
+  align-items: flex-end;
+
+  justify-content: space-between;
+
+  gap: 24px;
+
+}
+
+
+.issue-page__summary {
+
+  display: flex;
+
+  align-items: baseline;
+
+  gap: 8px;
+
+  padding: 16px 20px;
+
+  border: 1px solid var(--color-border);
+
+  border-radius: 10px;
+
+  background: var(--color-surface);
+
+  white-space: nowrap;
+
+}
+
+
+.issue-page__summary-label {
+
+  font-size: 13px;
+
+  font-weight: 600;
+
+  color: var(--color-text-secondary);
+
+}
+
+
+.issue-page__summary-value {
+
+  font-size: 28px;
+
+  font-weight: 700;
+
+  color: var(--color-text-primary);
+
+  line-height: 1;
+
+}
+
+
+.issue-page__summary-unit {
+
+  font-size: 13px;
+
+  color: var(--color-text-secondary);
+
+}
+
+
+/* =====================================================
+   3. Toolbar
+   ===================================================== */
+
+.issue-page__toolbar {
+
+  width: 100%;
+
+}
+
+
+.issue-toolbar {
+
+  display: flex;
+
+  align-items: flex-end;
+
+  justify-content: space-between;
+
+  gap: 20px;
+
+  padding: 20px;
+
+  border: 1px solid var(--color-border);
+
+  border-radius: 10px;
+
+  background: var(--color-surface);
+
+}
+
+
+.issue-toolbar__filters {
+
+  display: flex;
+
+  align-items: flex-end;
+
+  gap: 16px;
+
+  flex: 1;
+
+}
+
+
+.issue-toolbar__field {
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 6px;
+
+}
+
+
+.issue-toolbar__field--keyword {
+
+  min-width: 280px;
+
+  flex: 1;
+
+}
+
+
+.issue-toolbar__field--status {
+
+  min-width: 150px;
+
+}
+
+
+.issue-toolbar__field--priority {
+
+  min-width: 150px;
+
+}
+
+
+.issue-toolbar__search {
+
+  display: flex;
+
+  align-items: flex-end;
+
+}
+
+
+.issue-toolbar__actions {
+
+  display: flex;
+
+  align-items: flex-end;
+
+  justify-content: flex-end;
+
+  white-space: nowrap;
+
+}
+
+
+/* =====================================================
+   4. Error
+   ===================================================== */
+
+.issue-page__error {
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
+
+  padding: 14px 16px;
+
+  border: 1px solid var(--color-danger);
+
+  border-radius: 8px;
+
+  background: var(--color-danger-light);
+
+  color: var(--color-danger);
+
+}
+
+
+.issue-page__error-icon {
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  width: 20px;
+
+  height: 20px;
+
+  border-radius: 50%;
+
+  font-size: 12px;
+
+  font-weight: 700;
+
+  color: #ffffff;
+
+  background: var(--color-danger);
+
+}
+
+
+/* =====================================================
+   5. Loading
+   ===================================================== */
+
+.issue-page__loading {
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 12px;
+
+  min-height: 240px;
+
+  color: var(--color-text-secondary);
+
+}
+
+
+.spinner {
+
+  width: 24px;
+
+  height: 24px;
+
+  border: 3px solid var(--color-border);
+
+  border-top-color: var(--color-primary);
+
+  border-radius: 50%;
+
+  animation: issue-spin 0.8s linear infinite;
+
+}
+
+
+@keyframes issue-spin {
+
+  from {
+
+    transform: rotate(0deg);
+
+  }
+
+
+  to {
+
+    transform: rotate(360deg);
+
+  }
+
+}
+
+
+/* =====================================================
+   6. Issue Content
+   ===================================================== */
+
+.issue-page__content {
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 16px;
+
+}
+
+
+.issue-page__content-header {
+
+  display: flex;
+
+  align-items: flex-end;
+
+  justify-content: space-between;
+
+  gap: 20px;
+
+}
+
+
+.issue-page__content-title {
+
+  margin: 0;
+
+  font-size: 20px;
+
+  font-weight: 700;
+
+  color: var(--color-text-primary);
+
+}
+
+
+.issue-page__content-description {
+
+  margin: 6px 0 0;
+
+  font-size: 14px;
+
+  color: var(--color-text-secondary);
+
+}
+
+
+.issue-page__content-count {
+
+  display: inline-flex;
+
+  align-items: center;
+
+  gap: 4px;
+
+  font-size: 14px;
+
+  color: var(--color-text-secondary);
+
+}
+
+
+.issue-page__content-count strong {
+
+  color: var(--color-text-primary);
+
+}
+
+
+/* =====================================================
+   7. Issue List
+   ===================================================== */
+
+.issue-list {
+
+  overflow: hidden;
+
+}
+
+
+.issue-list__header {
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 20px;
+
+}
+
+
+.issue-list__table-wrapper {
+
+  width: 100%;
+
+  overflow-x: auto;
+
+}
+
+
+.issue-list__table {
+
+  width: 100%;
+
+  border-collapse: collapse;
+
+  min-width: 1050px;
+
+}
+
+
+.issue-list__table th {
+
+  padding: 12px 16px;
+
+  border-bottom: 1px solid var(--color-border);
+
+  background: var(--color-background);
+
+  font-size: 12px;
+
+  font-weight: 600;
+
+  text-align: left;
+
+  color: var(--color-text-secondary);
+
+  white-space: nowrap;
+
+}
+
+
+.issue-list__table td {
+
+  padding: 14px 16px;
+
+  border-bottom: 1px solid var(--color-border-light);
+
+  font-size: 14px;
+
+  color: var(--color-text-primary);
+
+  vertical-align: middle;
+
+}
+
+
+.issue-list__table tbody tr:last-child td {
+
+  border-bottom: none;
+
+}
+
+
+.issue-list__table tbody tr {
+
+  transition:
+    background-color 0.15s ease;
+
+}
+
+
+.issue-list__table tbody tr:hover {
+
+  background: var(--color-background);
+
+}
+
+
+/* =====================================================
+   Empty State
+   ===================================================== */
+
+.issue-list__empty {
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  justify-content: center;
+
+  min-height: 240px;
+
+  padding: 40px 20px;
+
+  text-align: center;
+
+}
+
+
+.issue-list__empty p {
+
+  margin: 0 0 8px;
+
+  font-size: 16px;
+
+  font-weight: 600;
+
+  color: var(--color-text-primary);
+
+}
+
+
+.issue-list__empty span {
+
+  font-size: 14px;
+
+  color: var(--color-text-secondary);
+
+}
+
+
+/* =====================================================
+   8. Issue Row
+   ===================================================== */
+
+.issue-row__key {
+
+  font-family:
+
+    "SFMono-Regular",
+
+    Consolas,
+
+    "Liberation Mono",
+
+    monospace;
+
+  font-size: 13px;
+
+  font-weight: 600;
+
+  color: var(--color-primary);
+
+  white-space: nowrap;
+
+}
+
+
+.issue-row__title {
+
+  min-width: 240px;
+
+}
+
+
+.issue-row__title-button {
+
+  padding: 0;
+
+  border: none;
+
+  background: transparent;
+
+  font: inherit;
+
+  font-weight: 600;
+
+  text-align: left;
+
+  color: var(--color-text-primary);
+
+  cursor: pointer;
+
+}
+
+
+.issue-row__title-button:hover {
+
+  color: var(--color-primary);
+
+  text-decoration: underline;
+
+}
+
+
+.issue-row__date {
+
+  white-space: nowrap;
+
+  color: var(--color-text-secondary);
+
+}
+
+
+.issue-row__assignee {
+
+  white-space: nowrap;
+
+  color: var(--color-text-secondary);
+
+}
+
+
+.issue-row__priority {
+
+  white-space: nowrap;
+
+}
+
+
+.issue-row__status {
+
+  white-space: nowrap;
+
+}
+
+
+.issue-row__actions {
+
+  white-space: nowrap;
+
+}
+
+
+.issue-row__action-group {
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 6px;
+
+}
+
+
+/* =====================================================
+   9. Issue Detail
+   ===================================================== */
+
+.issue-page__detail {
+
+  width: 100%;
+
+}
+
+
+.issue-detail {
+
+  border: 1px solid var(--color-border);
+
+  border-radius: 10px;
+
+  background: var(--color-surface);
+
+  overflow: hidden;
+
+}
+
+
+/* =====================================================
+   Detail Empty
+   ===================================================== */
+
+.issue-detail__empty {
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  min-height: 180px;
+
+  padding: 32px;
+
+  color: var(--color-text-secondary);
+
+  text-align: center;
+
+}
+
+
+.issue-detail__empty p {
+
+  margin: 0;
+
+}
+
+
+/* =====================================================
+   Detail Header
+   ===================================================== */
+
+.issue-detail__header {
+
+  display: flex;
+
+  align-items: flex-start;
+
+  justify-content: space-between;
+
+  gap: 24px;
+
+  padding: 24px;
+
+  border-bottom: 1px solid var(--color-border);
+
+}
+
+
+.issue-detail__header-content {
+
+  flex: 1;
+
+}
+
+
+.issue-detail__eyebrow {
+
+  margin-bottom: 6px;
+
+  font-family:
+
+    "SFMono-Regular",
+
+    Consolas,
+
+    "Liberation Mono",
+
+    monospace;
+
+  font-size: 12px;
+
+  font-weight: 600;
+
+  color: var(--color-primary);
+
+}
+
+
+.issue-detail__title {
+
+  margin: 0;
+
+  font-size: 22px;
+
+  font-weight: 700;
+
+  color: var(--color-text-primary);
+
+}
+
+
+.issue-detail__subtitle {
+
+  margin: 8px 0 0;
+
+  font-size: 14px;
+
+  color: var(--color-text-secondary);
+
+}
+
+
+.issue-detail__badges {
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 8px;
+
+  flex-shrink: 0;
+
+}
+
+
+/* =====================================================
+   Detail Body
+   ===================================================== */
+
+.issue-detail__body {
+
+  padding: 24px;
+
+}
+
+
+.issue-detail__grid {
+
+  display: grid;
+
+  grid-template-columns:
+
+    repeat(
+      3,
+      minmax(0, 1fr)
+    );
+
+  gap: 16px;
+
+  margin: 0;
+
+}
+
+
+.issue-detail__item {
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 6px;
+
+  min-width: 0;
+
+  padding: 14px;
+
+  border: 1px solid var(--color-border-light);
+
+  border-radius: 8px;
+
+  background: var(--color-background);
+
+}
+
+
+.issue-detail__label {
+
+  margin: 0;
+
+  font-size: 12px;
+
+  font-weight: 600;
+
+  color: var(--color-text-secondary);
+
+}
+
+
+.issue-detail__value {
+
+  margin: 0;
+
+  font-size: 14px;
+
+  font-weight: 500;
+
+  color: var(--color-text-primary);
+
+  word-break: break-word;
+
+}
+
+
+/* =====================================================
+   Detail Description
+   ===================================================== */
+
+.issue-detail__description {
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 8px;
+
+  margin-top: 20px;
+
+}
+
+
+.issue-detail__description-label {
+
+  font-size: 13px;
+
+  font-weight: 600;
+
+  color: var(--color-text-secondary);
+
+}
+
+
+.issue-detail__description-content {
+
+  min-height: 120px;
+
+  padding: 16px;
+
+  border: 1px solid var(--color-border-light);
+
+  border-radius: 8px;
+
+  background: var(--color-background);
+
+  font-size: 14px;
+
+  line-height: 1.7;
+
+  color: var(--color-text-primary);
+
+  white-space: pre-wrap;
+
+  word-break: break-word;
+
+}
+
+
+/* =====================================================
+   Detail Actions
+   ===================================================== */
+
+.issue-detail__actions {
+
+  display: flex;
+
+  justify-content: flex-end;
+
+  gap: 8px;
+
+  padding: 16px 24px;
+
+  border-top: 1px solid var(--color-border);
+
+}
+
+
+/* =====================================================
+   10. Issue Form
+   ===================================================== */
+
+.issue-page__form {
+
+  width: 100%;
+
+}
+
+
+.issue-form {
+
+  border: 1px solid var(--color-border);
+
+  border-radius: 10px;
+
+  background: var(--color-surface);
+
+  overflow: hidden;
+
+}
+
+
+/* =====================================================
+   Form Header
+   ===================================================== */
+
+.issue-form__header {
+
+  padding: 24px;
+
+  border-bottom: 1px solid var(--color-border);
+
+}
+
+
+.issue-form__title {
+
+  margin: 0;
+
+  font-size: 20px;
+
+  font-weight: 700;
+
+  color: var(--color-text-primary);
+
+}
+
+
+.issue-form__description {
+
+  margin: 8px 0 0;
+
+  font-size: 14px;
+
+  color: var(--color-text-secondary);
+
+}
+
+
+/* =====================================================
+   Form Body
+   ===================================================== */
+
+.issue-form__body {
+
+  padding: 24px;
+
+}
+
+
+.issue-form__grid {
+
+  display: grid;
+
+  grid-template-columns:
+
+    repeat(
+      2,
+      minmax(0, 1fr)
+    );
+
+  gap: 20px;
+
+}
+
+
+.issue-form__group {
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 8px;
+
+}
+
+
+.issue-form__group--full {
+
+  grid-column: 1 / -1;
+
+}
+
+
+.issue-form__group label {
+
+  font-size: 13px;
+
+  font-weight: 600;
+
+  color: var(--color-text-primary);
+
+}
+
+
+.issue-form__group input,
+
+.issue-form__group select,
+
+.issue-form__group textarea {
+
+  width: 100%;
+
+  box-sizing: border-box;
+
+}
+
+
+.issue-form__group textarea {
+
+  resize: vertical;
+
+  min-height: 120px;
+
+  font-family: inherit;
+
+}
+
+
+/* =====================================================
+   Disabled Field
+   ===================================================== */
+
+.issue-form__group input:disabled {
+
+  cursor: not-allowed;
+
+  color: var(--color-text-secondary);
+
+  background: var(--color-background);
+
+}
+
+
+/* =====================================================
+   Form Error
+   ===================================================== */
+
+.issue-form__error {
+
+  grid-column: 1 / -1;
+
+  padding: 12px 14px;
+
+  border: 1px solid var(--color-danger);
+
+  border-radius: 6px;
+
+  background: var(--color-danger-light);
+
+  font-size: 14px;
+
+  color: var(--color-danger);
+
+}
+
+
+/* =====================================================
+   Form Actions
+   ===================================================== */
+
+.issue-form__actions {
+
+  display: flex;
+
+  justify-content: flex-end;
+
+  gap: 8px;
+
+  margin-top: 24px;
+
+  padding-top: 20px;
+
+  border-top: 1px solid var(--color-border);
+
+}
+
+
+/* =====================================================
+   11. Badge 보정
+   ===================================================== */
+
+.issue-row .badge,
+
+.issue-detail .badge {
+
+  display: inline-flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  min-width: 64px;
+
+  white-space: nowrap;
+
+}
+
+
+/* =====================================================
+   12. Responsive
+   ===================================================== */
+
+@media (
+  max-width: 1200px
+) {
+
+  .issue-toolbar {
+
+    align-items: stretch;
+
+    flex-direction: column;
+
+  }
+
+
+  .issue-toolbar__filters {
+
+    width: 100%;
+
+    flex-wrap: wrap;
+
+  }
+
+
+  .issue-toolbar__field--keyword {
+
+    min-width: 280px;
+
+  }
+
+
+  .issue-toolbar__actions {
+
+    width: 100%;
+
+  }
+
+
+  .issue-detail__grid {
+
+    grid-template-columns:
+
+      repeat(
+        2,
+        minmax(0, 1fr)
+      );
+
+  }
+
+}
+
+
+@media (
+  max-width: 768px
+) {
+
+  /* ================================================
+     Page Header
+     ================================================ */
+
+  .issue-page__header {
+
+    align-items: flex-start;
+
+    flex-direction: column;
+
+  }
+
+
+  .issue-page__summary {
+
+    width: 100%;
+
+  }
+
+
+  /* ================================================
+     Toolbar
+     ================================================ */
+
+  .issue-toolbar {
+
+    padding: 16px;
+
+  }
+
+
+  .issue-toolbar__filters {
+
+    flex-direction: column;
+
+    align-items: stretch;
+
+  }
+
+
+  .issue-toolbar__field,
+
+  .issue-toolbar__field--keyword,
+
+  .issue-toolbar__field--status,
+
+  .issue-toolbar__field--priority {
+
+    width: 100%;
+
+    min-width: 0;
+
+  }
+
+
+  .issue-toolbar__search {
+
+    width: 100%;
+
+  }
+
+
+  .issue-toolbar__search .button {
+
+    width: 100%;
+
+  }
+
+
+  .issue-toolbar__actions {
+
+    width: 100%;
+
+  }
+
+
+  .issue-toolbar__actions .button {
+
+    width: 100%;
+
+  }
+
+
+  /* ================================================
+     Content Header
+     ================================================ */
+
+  .issue-page__content-header {
+
+    align-items: flex-start;
+
+    flex-direction: column;
+
+  }
+
+
+  /* ================================================
+     Issue List
+     ================================================ */
+
+  .issue-list__header {
+
+    align-items: flex-start;
+
+    flex-direction: column;
+
+  }
+
+
+  /* ================================================
+     Detail
+     ================================================ */
+
+  .issue-detail__header {
+
+    flex-direction: column;
+
+  }
+
+
+  .issue-detail__badges {
+
+    width: 100%;
+
+  }
+
+
+  .issue-detail__grid {
+
+    grid-template-columns: 1fr;
+
+  }
+
+
+  .issue-detail__body {
+
+    padding: 16px;
+
+  }
+
+
+  .issue-detail__header {
+
+    padding: 20px 16px;
+
+  }
+
+
+  .issue-detail__actions {
+
+    padding: 16px;
+
+  }
+
+
+  /* ================================================
+     Form
+     ================================================ */
+
+  .issue-form__header {
+
+    padding: 20px 16px;
+
+  }
+
+
+  .issue-form__body {
+
+    padding: 16px;
+
+  }
+
+
+  .issue-form__grid {
+
+    grid-template-columns: 1fr;
+
+  }
+
+
+  .issue-form__group--full {
+
+    grid-column: auto;
+
+  }
+
+
+  .issue-form__actions {
+
+    flex-direction: column-reverse;
+
+  }
+
+
+  .issue-form__actions .button {
+
+    width: 100%;
+
+  }
+
+}
+
+
+@media (
+  max-width: 480px
+) {
+
+  .issue-page {
+
+    gap: 16px;
+
+  }
+
+
+  .issue-page__summary-value {
+
+    font-size: 24px;
+
+  }
+
+
+  .issue-detail__title {
+
+    font-size: 20px;
+
+  }
+
+
+  .issue-detail__description-content {
+
+    min-height: 100px;
+
+  }
+
+}
