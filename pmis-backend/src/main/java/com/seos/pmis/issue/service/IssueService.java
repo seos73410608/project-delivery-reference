@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -135,30 +136,92 @@ public class IssueService {
             );
         }
 
+        System.out.println(
+                "projectId = " + request.getProjectId()
+        );
+
+        System.out.println(
+                "status = " + request.getStatus()
+        );        
+
         validateSearchRequest(request);
 
         Pageable pageable =
                 createPageable(request);
 
+        /*
+         * IssueSpecification은
+         * 검색 조건이 없을 경우 null을 반환할 수 있다.
+         *
+         * List.of(...)는 null을 허용하지 않기 때문에
+         * 검색 조건을 동적으로 추가한다.
+         */
+        List<Specification<Issue>> specifications =
+                new ArrayList<>();
+
+        Specification<Issue> projectSpecification =
+                IssueSpecification.projectId(
+                        request.getProjectId()
+                );
+
+        if (projectSpecification != null) {
+
+            specifications.add(
+                    projectSpecification
+            );
+        }
+
+        Specification<Issue> keywordSpecification =
+                IssueSpecification.keyword(
+                        request.getKeyword()
+                );
+
+        if (keywordSpecification != null) {
+
+            specifications.add(
+                    keywordSpecification
+            );
+        }
+
+        Specification<Issue> statusSpecification =
+                IssueSpecification.status(
+                        request.getStatus()
+                );
+
+        if (statusSpecification != null) {
+
+            specifications.add(
+                    statusSpecification
+            );
+        }
+
+        Specification<Issue> prioritySpecification =
+                IssueSpecification.priority(
+                        request.getPriority()
+                );
+
+        if (prioritySpecification != null) {
+
+            specifications.add(
+                    prioritySpecification
+            );
+        }
+
+        Specification<Issue> assigneeSpecification =
+                IssueSpecification.assigneeId(
+                        request.getAssigneeId()
+                );
+
+        if (assigneeSpecification != null) {
+
+            specifications.add(
+                    assigneeSpecification
+            );
+        }
+
         Specification<Issue> specification =
                 Specification.allOf(
-                        List.of(
-                                IssueSpecification.projectId(
-                                        request.getProjectId()
-                                ),
-                                IssueSpecification.keyword(
-                                        request.getKeyword()
-                                ),
-                                IssueSpecification.status(
-                                        request.getStatus()
-                                ),
-                                IssueSpecification.priority(
-                                        request.getPriority()
-                                ),
-                                IssueSpecification.assigneeId(
-                                        request.getAssigneeId()
-                                )
-                        )
+                        specifications
                 );
 
         return issueRepository
@@ -689,7 +752,7 @@ public class IssueService {
      * - createdAt
      * - updatedAt
      *
-     * @param request 검색 요청
+     * @param request Issue 검색 요청
      * @return Pageable
      */
     private Pageable createPageable(
@@ -906,7 +969,7 @@ public class IssueService {
      * 를 만족해야 한다.
      *
      * @param occurredDate Issue 발생일
-     * @param dueDate 조치 목표일
+     * @param dueDate Issue 조치 목표일
      */
     private void validateDateRange(
             LocalDate occurredDate,
