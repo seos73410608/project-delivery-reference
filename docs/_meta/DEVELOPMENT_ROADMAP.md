@@ -1,8 +1,8 @@
 # PMIS Development Roadmap
 
-> **Version:** **1.10**
+> **Version:** **1.11**
 >
-> **Last Updated:** **2026-09-11**
+> **Last Updated:** **2026-09-14**
 >
 > **Project:** **Project Management Information System (PMIS)**
 
@@ -253,6 +253,7 @@ MAJOR.MINOR.PATCH
 - Schedule Calendar API Integration
 - Schedule Calendar Component Refactoring
 - Issue Management Backend
+- Issue Key Generation Hotfix
 
 ---
 
@@ -275,13 +276,23 @@ security:
 
 ```text
 feat: implement JWT authentication
+
 feat: implement project CRUD
+
 feat: implement WBS CRUD
+
 feat: implement schedule CRUD
+
 feat: implement issue management domain
+
 feat(frontend): implement schedule management UI
+
 feat(frontend): integrate schedule calendar API
+
 refactor(frontend): split schedule calendar into components
+
+fix: add project-based issue key generation
+
 docs: update PMIS development roadmap
 ```
 
@@ -495,6 +506,8 @@ project/controller
 - Status Workflow Validation
 - Issue Delete
 - Swagger API Verification
+- Project-based Issue Key Generation
+- `(project_id, issue_key)` Unique Constraint
 
 ### Issue API
 
@@ -508,8 +521,9 @@ PATCH  /api/issues/{id}/status
 DELETE /api/issues/{id}
 ```
 
-### Issue Frontend Planned
+### Issue Frontend
 
+- Issue API Client
 - Issue List
 - Issue Search
 - Issue Detail
@@ -518,6 +532,7 @@ DELETE /api/issues/{id}
 - Issue Status UI
 - Issue Delete
 - Issue API Integration
+- Issue Key Display
 
 ### Future Enhancement
 
@@ -909,10 +924,12 @@ docs/design/
 - Status Workflow Validation
 - Issue Delete
 - Swagger API Verification
+- Project-based Issue Key Generation
+- Project-scoped Unique Issue Key Constraint
 
 ### Planned
 
-- Issue Frontend
+- Issue Frontend Completion
 - Risk
 - Change
 - Evidence
@@ -985,11 +1002,13 @@ docs/design/
 
 ### Next
 
+- Issue Frontend
+- Issue API Integration
+- Issue Browser Verification
 - Gantt UI
 - WBS / Schedule Gantt Integration
 - Dashboard API Integration
 - Authentication UI
-- Issue Frontend
 
 ---
 
@@ -1070,11 +1089,13 @@ Issue Backend
     ├── Status Update DTO        ✓
     ├── Response DTO             ✓
     ├── Specification            ✓
-    ├── CRUD Service             ✓
+    ├── CRUD Service              ✓
     ├── Search                   ✓
     ├── Status Workflow          ✓
     ├── Controller               ✓
-    └── Swagger Verification     ✓
+    ├── Swagger Verification     ✓
+    ├── Issue Key Generation     ✓
+    └── Project-scoped Unique Key ✓
                 │
                 ▼
 Git Integration
@@ -1092,7 +1113,8 @@ Issue Frontend
     ├── Create                   →
     ├── Edit                     →
     ├── Status                   →
-    └── Delete                   →
+    ├── Delete                   →
+    └── Issue Key Display        →
 ```
 
 ---
@@ -1123,7 +1145,7 @@ refactor(frontend): split schedule calendar into components
 - ScheduleCalendar.tsx
 - calendarUtils.ts
 
-## Recent Issue Management Integration
+## Issue Management Integration
 
 ```text
 feature/issue-management
@@ -1138,23 +1160,25 @@ develop
 Push origin develop
 ```
 
-Issue Domain 주요 변경:
-
-- IssueController
-- IssueService
-- IssueRepository
-- Issue Entity
-- IssuePriority
-- IssueStatus
-- Issue Create / Update / Search / Status Update DTO
-- IssueResponse
-- IssueSpecification
-
-현재 통합 기준 브랜치는 다음과 같다.
+## Issue Key Generation Hotfix
 
 ```text
+hotfix/issue-key-generation
+        ↓
+fix: add project-based issue key generation
+        ↓
 develop
+        ↓
+Push origin develop
 ```
+
+주요 변경:
+
+- `Issue.issueKey` Backend 생성
+- `UNIQUE(project_id, issue_key)` 적용
+- Project별 `ISSUE-001`, `ISSUE-002`, ... 생성 정책
+- Issue Key 수정 불가 정책 유지
+- Frontend는 Issue Key를 입력하지 않고 표시만 수행
 
 ---
 
@@ -1205,9 +1229,11 @@ Controller ✓
     ↓
 Swagger API Verification ✓
     ↓
-Commit ✓
+Project-based Issue Key Generation ✓
     ↓
-Push ✓
+Unique Constraint ✓
+    ↓
+Commit / Push ✓
     ↓
 Merge to develop ✓
     ↓
@@ -1239,6 +1265,8 @@ Issue 변경 시 다음 문서를 함께 검토한다.
 - CHANGELOG.md
 - PROJECT_OVERVIEW.md
 
+문서에는 Backend와 Frontend의 실제 개발 상태 및 Git Integration 상태를 함께 반영한다.
+
 ---
 
 # 21. Maintenance Policy
@@ -1254,6 +1282,7 @@ Issue 변경 시 다음 문서를 함께 검토한다.
 - API Integration 기능은 API Verification과 Browser Verification을 모두 수행한다.
 - Feature Branch Merge 후 `develop` Integration Test를 수행한다.
 - Component Refactoring 후 Production Build를 수행한다.
+- Hotfix는 `hotfix/*` 브랜치에서 수정 후 검증하여 `develop`에 반영한다.
 
 ---
 
@@ -1261,23 +1290,23 @@ Issue 변경 시 다음 문서를 함께 검토한다.
 
 | Item | Value |
 |---|---|
-| Last Updated | **2026-09-11** |
-| Roadmap Version | **v1.10** |
+| Last Updated | **2026-09-14** |
+| Roadmap Version | **v1.11** |
 | Current Release | **v0.5.3** |
 | Current Integration Branch | **develop** |
 | Current Sprint | **Sprint 4 - Issue / Risk / Change Management** |
 | Last Completed Backend Domain | **Issue Management** |
-| Last Completed Backend Feature | **Issue CRUD / Search / Status Workflow / Swagger Verification** |
+| Last Completed Backend Feature | **Issue CRUD / Search / Status Workflow / Project-based Issue Key Generation / Swagger Verification** |
 | Last Completed Frontend Domain | **Schedule Calendar Component Refactoring** |
-| Development Stage | **Issue Backend Management 완료 / develop 통합 완료** |
-| Current Next Stage | **Issue Frontend 또는 기존 Schedule Browser Verification / Gantt UI** |
+| Development Stage | **Issue Backend + Issue Key Hotfix develop 통합 완료** |
+| Current Next Stage | **Issue Frontend UI / API Integration** |
 | Next Backend Domain | **Risk Management** |
 | Evidence Domain | **Planned - Sprint 5** |
 | Maintainer | **Seo Seokhyeon** |
 
 > **Version Note:** `v0.5.3`은 마지막 정식 Release 기준이다.
 >
-> 현재 `develop`에는 Project Frontend CRUD, WBS Management, Schedule Backend Management, Schedule Frontend Management UI, Schedule Calendar Integration, Calendar Component Refactoring 및 Issue Management Backend 변경 사항이 통합되어 있다.
+> 현재 `develop`에는 Project Frontend CRUD, WBS Management, Schedule Backend Management, Schedule Frontend Management UI, Schedule Calendar Integration, Calendar Component Refactoring, Issue Management Backend 및 Project-based Issue Key Generation Hotfix가 통합되어 있다.
 
 ---
 
@@ -1300,6 +1329,7 @@ Gantt Integration              →
 Issue Backend                  ✓
 Issue Swagger Verification     ✓
 Issue develop Integration      ✓
+Issue Key Generation           ✓
 Issue Frontend                 →
 Risk Backend                   →
 Risk Frontend                  →
@@ -1368,14 +1398,15 @@ Change Frontend
 ## Track B - Sprint 4 Domain Expansion
 
 1. Issue Backend ✓
-2. Issue Frontend
-3. Issue API Integration
-4. Issue Browser Verification
-5. Risk Management
-6. Change Management
-7. Evidence Management
+2. Issue Key Generation ✓
+3. Issue Frontend
+4. Issue API Integration
+5. Issue Browser Verification
+6. Risk Management
+7. Change Management
+8. Evidence Management
 
-현재 Backend Domain 확장 기준으로는 **Issue Management가 완료되어 `develop`에 통합**되었다.
+현재 Backend Domain 확장 기준으로는 **Issue Management와 Project-based Issue Key Generation이 완료되어 `develop`에 통합**되었다.
 
 ---
 
@@ -1385,40 +1416,40 @@ Change Frontend
 
 ```text
 Schedule Entity                ✓
-Schedule Repository            ✓
-Schedule Service               ✓
-Schedule Controller            ✓
-Schedule CRUD                  ✓
-Schedule Search                ✓
-Pagination                     ✓
-Sorting                        ✓
-Period Search                  ✓
-Validation                     ✓
-Calendar API                   ✓
-Swagger Verification           ✓
+Schedule Repository             ✓
+Schedule Service                ✓
+Schedule Controller             ✓
+Schedule CRUD                   ✓
+Schedule Search                 ✓
+Pagination                      ✓
+Sorting                         ✓
+Period Search                   ✓
+Validation                      ✓
+Calendar API                    ✓
+Swagger Verification            ✓
 ```
 
 ## Frontend
 
 ```text
-Schedule Management UI         ✓
-Schedule List                  ✓
-Schedule Search                ✓
-Schedule Detail                ✓
-Schedule Create                ✓
-Schedule Edit                  ✓
-Schedule Delete                ✓
-Schedule Status                ✓
-Schedule API Client            ✓
-Schedule API Integration       ✓
-Loading / Empty / Error        ✓
-Calendar UI                    ✓
-Calendar API Integration       ✓
-Calendar Component Separation  ✓
-Calendar Utility Separation    ✓
-Production Build               ✓
-Browser Verification           →
-Integration Test               →
+Schedule Management UI          ✓
+Schedule List                   ✓
+Schedule Search                 ✓
+Schedule Detail                 ✓
+Schedule Create                 ✓
+Schedule Edit                   ✓
+Schedule Delete                 ✓
+Schedule Status                 ✓
+Schedule API Client             ✓
+Schedule API Integration        ✓
+Loading / Empty / Error         ✓
+Calendar UI                     ✓
+Calendar API Integration        ✓
+Calendar Component Separation   ✓
+Calendar Utility Separation     ✓
+Production Build                ✓
+Browser Verification            →
+Integration Test                →
 ```
 
 ---
@@ -1444,7 +1475,7 @@ Integration Test               →
 | v0.10.x | Dashboard & Reporting |
 | v1.0.0 | AI Powered PMIS |
 
-> Issue Management Backend은 현재 `develop`에 통합되어 있으나, 별도 정식 Release Version은 아직 생성하지 않았다.
+> Issue Management Backend 및 Project-based Issue Key Generation은 현재 `develop`에 통합되어 있으나, 별도 정식 Release Version은 아직 생성하지 않았다.
 
 ---
 
@@ -1518,61 +1549,63 @@ Report
 ```text
 Backend
 ├─ Common Infrastructure          ✓
-├─ Security / JWT                 ✓
-├─ Project CRUD                   ✓
-├─ Project Search                 ✓
-├─ Project Dashboard API          ✓
-├─ Project Detail API             ✓
-├─ WBS Management                 ✓
-├─ Schedule CRUD                  ✓
-├─ Schedule Search                ✓
-├─ Schedule Validation            ✓
-├─ Schedule Calendar API          ✓
-├─ Schedule Swagger Test          ✓
-├─ Issue Management               ✓
-├─ Issue Swagger Test             ✓
-├─ Issue develop Integration      ✓
-├─ Risk                           →
-├─ Change                         →
-├─ Evidence                       →
-├─ CMDB                           →
-├─ Dashboard                      →
-├─ Report                         →
-└─ Spring AI                      →
+├─ Security / JWT                ✓
+├─ Project CRUD                  ✓
+├─ Project Search                ✓
+├─ Project Dashboard API         ✓
+├─ Project Detail API            ✓
+├─ WBS Management                ✓
+├─ Schedule CRUD                 ✓
+├─ Schedule Search               ✓
+├─ Schedule Validation           ✓
+├─ Schedule Calendar API         ✓
+├─ Schedule Swagger Test         ✓
+├─ Issue Management              ✓
+├─ Issue Swagger Test            ✓
+├─ Issue develop Integration     ✓
+├─ Issue Key Generation          ✓
+├─ Project-scoped Issue Key      ✓
+├─ Risk                          →
+├─ Change                        →
+├─ Evidence                      →
+├─ CMDB                          →
+├─ Dashboard                    →
+├─ Report                        →
+└─ Spring AI                    →
 
 Frontend
 ├─ React / Vite / TypeScript      ✓
-├─ Router / Layout                ✓
-├─ Common UI Components           ✓
-├─ Dashboard Reference UI         ✓
-├─ Dashboard Components           ✓
-├─ Project CRUD Integration       ✓
-├─ WBS API Integration            ✓
-├─ WBS UI                         ✓
-├─ Schedule Management UI         ✓
-├─ Schedule API Integration       ✓
-├─ Calendar UI                    ✓
-├─ Calendar API Integration       ✓
+├─ Router / Layout               ✓
+├─ Common UI Components          ✓
+├─ Dashboard Reference UI        ✓
+├─ Dashboard Components          ✓
+├─ Project CRUD Integration      ✓
+├─ WBS API Integration           ✓
+├─ WBS UI                       ✓
+├─ Schedule Management UI        ✓
+├─ Schedule API Integration      ✓
+├─ Calendar UI                  ✓
+├─ Calendar API Integration      ✓
 ├─ Calendar Component Refactoring ✓
-├─ Issue UI                       →
-└─ Gantt UI                       →
+├─ Issue UI                     →
+└─ Gantt UI                     →
 
 Integration
-├─ Project API Integration        ✓
-├─ Project CRUD Verification      ✓
-├─ WBS API Integration            ✓
-├─ WBS Browser Verification       →
-├─ WBS Integration Test           →
-├─ Schedule API Verification      ✓
-├─ Schedule API Integration       ✓
-├─ Calendar Integration           ✓
-├─ Schedule Production Build      ✓
-├─ Schedule Browser Verification  →
-├─ Gantt Integration              →
-├─ Issue API Verification         ✓
-├─ Issue Frontend Integration     →
-├─ Dashboard API Integration      →
-└─ E2E Verification               →
+├─ Project API Integration       ✓
+├─ Project CRUD Verification     ✓
+├─ WBS API Integration           ✓
+├─ WBS Browser Verification      →
+├─ WBS Integration Test          →
+├─ Schedule API Verification     ✓
+├─ Schedule API Integration      ✓
+├─ Calendar Integration          ✓
+├─ Schedule Production Build     ✓
+├─ Schedule Browser Verification →
+├─ Gantt Integration             →
+├─ Issue API Verification        ✓
+├─ Issue Frontend Integration    →
+├─ Dashboard API Integration     →
+└─ E2E Verification              →
 ```
 
 ---
@@ -1616,6 +1649,9 @@ Calendar Component Refactoring
 Issue Management Backend
     ✓
     ↓
+Issue Key Generation
+    ✓
+    ↓
 Issue Frontend
     →
     ↓
@@ -1629,9 +1665,9 @@ Evidence Management
     →
 ```
 
-현재 Backend Domain 확장의 핵심 단계는 **Issue Management 완료**이다.
+현재 Backend Domain 확장의 핵심 단계는 **Issue Management + Project-based Issue Key Generation 완료**이다.
 
-다음 단계는 기존 Schedule Domain의 **Browser Verification / Gantt 확장**과 Sprint 4의 **Issue Frontend → Risk → Change** 작업을 우선순위에 따라 진행한다.
+다음 단계는 **Issue Frontend → Issue API Integration → Issue Browser Verification**을 우선 진행하고, 이후 Risk → Change 순으로 확장한다.
 
 ---
 
@@ -1768,7 +1804,79 @@ direction
 
 ---
 
-# 33. Next Recommended Branch
+# 33. Issue Key Generation Hotfix Record
+
+## Hotfix Branch
+
+```text
+hotfix/issue-key-generation
+```
+
+## Purpose
+
+Issue 생성 시 Frontend가 Issue Key를 직접 입력하지 않고 Backend가 프로젝트 단위로 자동 생성하도록 개선한다.
+
+## Generation Policy
+
+```text
+Project A
+├── ISSUE-001
+├── ISSUE-002
+└── ISSUE-003
+
+Project B
+├── ISSUE-001
+├── ISSUE-002
+└── ISSUE-003
+```
+
+Issue Key는 프로젝트별로 독립적인 sequence를 가진다.
+
+## Database Constraint
+
+```text
+UNIQUE(project_id, issue_key)
+```
+
+동일 프로젝트 내에서는 동일한 Issue Key를 생성할 수 없으며, 서로 다른 프로젝트에서는 동일한 Issue Key를 사용할 수 있다.
+
+## Backend Policy
+
+- Issue Key는 Backend에서 생성한다.
+- Create Request에서는 Issue Key를 입력하지 않는다.
+- Update 시 Issue Key는 변경하지 않는다.
+- Frontend는 Issue Key를 표시만 한다.
+- 현재 형식은 `ISSUE-%03d`를 사용한다.
+
+## Repository Support
+
+```java
+Optional<Issue> findTopByProject_IdOrderByIdDesc(Long projectId);
+```
+
+프로젝트 내 최근 Issue를 기준으로 다음 Issue Key sequence를 계산한다.
+
+## Current Status
+
+```text
+Issue Management
+      ✓
+      ↓
+Issue Key Generation
+      ✓
+      ↓
+Project-scoped Unique Constraint
+      ✓
+      ↓
+develop Integration
+      ✓
+```
+
+> 현재 구현은 V1 범위의 단순 project-scoped sequence 방식이다. 향후 고동시성 환경에서는 별도 sequence 관리 또는 동시성 제어 전략을 검토할 수 있다.
+
+---
+
+# 34. Next Recommended Branch
 
 ## Option A - Issue Frontend
 
@@ -1794,6 +1902,8 @@ Issue Edit
 Issue Status UI
     ↓
 Issue Delete
+    ↓
+Issue Key Display
     ↓
 API Integration
     ↓
@@ -1848,20 +1958,6 @@ Risk Frontend
 Change Backend
         ↓
 Change Frontend
-```
-
-Sprint 3 완료도를 우선한다면 다음 순서도 가능하다.
-
-```text
-WBS Browser Verification
-        ↓
-Schedule Browser Verification
-        ↓
-Gantt UI
-        ↓
-WBS / Schedule Gantt Integration
-        ↓
-Issue Frontend
 ```
 
 ---
