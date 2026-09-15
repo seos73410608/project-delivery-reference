@@ -1,5 +1,7 @@
 package com.seos.pmis.issue.service;
 
+import com.seos.pmis.common.exception.BusinessException;
+import com.seos.pmis.common.exception.code.CommonErrorCode;
 import com.seos.pmis.issue.dto.request.IssueCreateRequest;
 import com.seos.pmis.issue.dto.request.IssueSearchRequest;
 import com.seos.pmis.issue.dto.request.IssueStatusUpdateRequest;
@@ -8,6 +10,7 @@ import com.seos.pmis.issue.dto.response.IssueResponse;
 import com.seos.pmis.issue.entity.Issue;
 import com.seos.pmis.issue.entity.IssuePriority;
 import com.seos.pmis.issue.entity.IssueStatus;
+import com.seos.pmis.issue.exception.code.IssueErrorCode;
 import com.seos.pmis.issue.repository.IssueRepository;
 import com.seos.pmis.issue.specification.IssueSpecification;
 import com.seos.pmis.project.entity.Project;
@@ -23,7 +26,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
-
 
 /**
  * Issue Service
@@ -52,6 +54,8 @@ import java.util.List;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class IssueService {
+
+    private static final String ISSUE_KEY_PREFIX = "ISSUE-";
 
     private final IssueRepository issueRepository;
 
@@ -126,8 +130,8 @@ public class IssueService {
 
         if (request == null) {
 
-            throw new IllegalArgumentException(
-                    "Issue search request is required."
+            throw new BusinessException(
+                    CommonErrorCode.INVALID_REQUEST
             );
         }
 
@@ -295,8 +299,8 @@ public class IssueService {
 
         if (request == null) {
 
-            throw new IllegalArgumentException(
-                    "Issue status request is required."
+            throw new BusinessException(
+                    CommonErrorCode.INVALID_REQUEST
             );
         }
 
@@ -397,10 +401,11 @@ public class IssueService {
                         .orElse(0)
                         + 1;
 
-        return String.format(
-                "ISSUE-%03d",
-                nextSequence
-        );
+        return ISSUE_KEY_PREFIX
+                + String.format(
+                        "%03d",
+                        nextSequence
+                );
     }
 
 
@@ -429,11 +434,15 @@ public class IssueService {
                 issueKey.split("-");
 
         if (tokens.length != 2 ||
-                !"ISSUE".equals(tokens[0])) {
+                !ISSUE_KEY_PREFIX
+                        .substring(
+                                0,
+                                ISSUE_KEY_PREFIX.length() - 1
+                        )
+                        .equals(tokens[0])) {
 
-            throw new IllegalArgumentException(
-                    "Invalid Issue Key format: "
-                            + issueKey
+            throw new BusinessException(
+                    IssueErrorCode.ISSUE_DUPLICATE_KEY
             );
         }
 
@@ -445,9 +454,8 @@ public class IssueService {
 
         } catch (NumberFormatException e) {
 
-            throw new IllegalArgumentException(
-                    "Invalid Issue Key format: "
-                            + issueKey
+            throw new BusinessException(
+                    IssueErrorCode.ISSUE_DUPLICATE_KEY
             );
         }
     }
@@ -465,10 +473,11 @@ public class IssueService {
 
         validateIssueId(id);
 
-        return issueRepository.findById(id)
-                .orElseThrow(() ->
-                        new IllegalArgumentException(
-                                "Issue not found: " + id
+        return issueRepository
+                .findById(id)
+                .orElseThrow(
+                        () -> new BusinessException(
+                                IssueErrorCode.ISSUE_NOT_FOUND
                         )
                 );
     }
@@ -484,10 +493,11 @@ public class IssueService {
             Long projectId
     ) {
 
-        return projectRepository.findById(projectId)
-                .orElseThrow(() ->
-                        new IllegalArgumentException(
-                                "Project not found: " + projectId
+        return projectRepository
+                .findById(projectId)
+                .orElseThrow(
+                        () -> new BusinessException(
+                                IssueErrorCode.ISSUE_PROJECT_NOT_FOUND
                         )
                 );
     }
@@ -502,17 +512,11 @@ public class IssueService {
             Long id
     ) {
 
-        if (id == null) {
+        if (id == null ||
+                id <= 0) {
 
-            throw new IllegalArgumentException(
-                    "Issue ID is required."
-            );
-        }
-
-        if (id <= 0) {
-
-            throw new IllegalArgumentException(
-                    "Issue ID must be greater than zero."
+            throw new BusinessException(
+                    CommonErrorCode.INVALID_REQUEST
             );
         }
     }
@@ -527,17 +531,11 @@ public class IssueService {
             Long projectId
     ) {
 
-        if (projectId == null) {
+        if (projectId == null ||
+                projectId <= 0) {
 
-            throw new IllegalArgumentException(
-                    "Project ID is required."
-            );
-        }
-
-        if (projectId <= 0) {
-
-            throw new IllegalArgumentException(
-                    "Project ID must be greater than zero."
+            throw new BusinessException(
+                    CommonErrorCode.INVALID_REQUEST
             );
         }
     }
@@ -554,8 +552,8 @@ public class IssueService {
 
         if (request == null) {
 
-            throw new IllegalArgumentException(
-                    "Issue request is required."
+            throw new BusinessException(
+                    CommonErrorCode.INVALID_REQUEST
             );
         }
 
@@ -597,8 +595,8 @@ public class IssueService {
 
         if (request == null) {
 
-            throw new IllegalArgumentException(
-                    "Issue request is required."
+            throw new BusinessException(
+                    CommonErrorCode.INVALID_REQUEST
             );
         }
 
@@ -655,23 +653,17 @@ public class IssueService {
         if (request.getPage() == null ||
                 request.getPage() < 0) {
 
-            throw new IllegalArgumentException(
-                    "Page must be greater than or equal to zero."
+            throw new BusinessException(
+                    CommonErrorCode.INVALID_REQUEST
             );
         }
 
         if (request.getSize() == null ||
-                request.getSize() < 1) {
+                request.getSize() < 1 ||
+                request.getSize() > 100) {
 
-            throw new IllegalArgumentException(
-                    "Size must be greater than zero."
-            );
-        }
-
-        if (request.getSize() > 100) {
-
-            throw new IllegalArgumentException(
-                    "Size must not exceed 100."
+            throw new BusinessException(
+                    CommonErrorCode.INVALID_REQUEST
             );
         }
     }
@@ -714,10 +706,11 @@ public class IssueService {
                         request.getDirection()
                 );
 
-        Sort sort = Sort.by(
-                direction,
-                sortBy
-        );
+        Sort sort =
+                Sort.by(
+                        direction,
+                        sortBy
+                );
 
         return PageRequest.of(
                 request.getPage(),
@@ -758,9 +751,8 @@ public class IssueService {
                  "updatedAt" -> sortBy;
 
             default ->
-                    throw new IllegalArgumentException(
-                            "Unsupported sort field: "
-                                    + sortBy
+                    throw new BusinessException(
+                            CommonErrorCode.INVALID_REQUEST
                     );
         };
     }
@@ -790,8 +782,8 @@ public class IssueService {
 
         } catch (IllegalArgumentException e) {
 
-            throw new IllegalArgumentException(
-                    "Direction must be ASC or DESC."
+            throw new BusinessException(
+                    CommonErrorCode.INVALID_REQUEST
             );
         }
     }
@@ -807,18 +799,11 @@ public class IssueService {
     ) {
 
         if (title == null ||
-                title.isBlank()) {
+                title.isBlank() ||
+                title.length() > 200) {
 
-            throw new IllegalArgumentException(
-                    "Issue title is required."
-            );
-        }
-
-        if (title.length() > 200) {
-
-            throw new IllegalArgumentException(
-                    "Issue title must not exceed "
-                            + "200 characters."
+            throw new BusinessException(
+                    CommonErrorCode.INVALID_REQUEST
             );
         }
     }
@@ -835,8 +820,8 @@ public class IssueService {
 
         if (status == null) {
 
-            throw new IllegalArgumentException(
-                    "Issue status is required."
+            throw new BusinessException(
+                    IssueErrorCode.ISSUE_INVALID_STATUS
             );
         }
     }
@@ -853,8 +838,8 @@ public class IssueService {
 
         if (priority == null) {
 
-            throw new IllegalArgumentException(
-                    "Issue priority is required."
+            throw new BusinessException(
+                    CommonErrorCode.INVALID_REQUEST
             );
         }
     }
@@ -881,8 +866,8 @@ public class IssueService {
 
         if (assigneeId <= 0) {
 
-            throw new IllegalArgumentException(
-                    "Assignee ID must be greater than zero."
+            throw new BusinessException(
+                    CommonErrorCode.INVALID_REQUEST
             );
         }
     }
@@ -899,17 +884,11 @@ public class IssueService {
             Integer sortOrder
     ) {
 
-        if (sortOrder == null) {
+        if (sortOrder == null ||
+                sortOrder < 1) {
 
-            throw new IllegalArgumentException(
-                    "Sort order is required."
-            );
-        }
-
-        if (sortOrder < 1) {
-
-            throw new IllegalArgumentException(
-                    "Sort order must be greater than zero."
+            throw new BusinessException(
+                    CommonErrorCode.INVALID_REQUEST
             );
         }
     }
@@ -942,8 +921,8 @@ public class IssueService {
 
         if (dueDate.isBefore(occurredDate)) {
 
-            throw new IllegalArgumentException(
-                    "Due date must not be before occurred date."
+            throw new BusinessException(
+                    IssueErrorCode.ISSUE_INVALID_DATE_RANGE
             );
         }
     }
@@ -967,8 +946,6 @@ public class IssueService {
      * ON_HOLD
      * CANCELLED
      *
-     * V1에서는 기본적인 상태 전이 규칙을 적용한다.
-     *
      * @param currentStatus 현재 상태
      * @param newStatus 변경 상태
      */
@@ -980,8 +957,8 @@ public class IssueService {
         if (currentStatus == null ||
                 newStatus == null) {
 
-            throw new IllegalArgumentException(
-                    "Issue status is required."
+            throw new BusinessException(
+                    IssueErrorCode.ISSUE_INVALID_STATUS
             );
         }
 
@@ -990,41 +967,39 @@ public class IssueService {
             return;
         }
 
-        boolean allowed = switch (currentStatus) {
+        boolean allowed =
+                switch (currentStatus) {
 
-            case OPEN ->
-                    newStatus == IssueStatus.IN_PROGRESS ||
-                    newStatus == IssueStatus.ON_HOLD ||
-                    newStatus == IssueStatus.CANCELLED;
+                    case OPEN ->
+                            newStatus == IssueStatus.IN_PROGRESS ||
+                            newStatus == IssueStatus.ON_HOLD ||
+                            newStatus == IssueStatus.CANCELLED;
 
-            case IN_PROGRESS ->
-                    newStatus == IssueStatus.RESOLVED ||
-                    newStatus == IssueStatus.ON_HOLD ||
-                    newStatus == IssueStatus.CANCELLED;
+                    case IN_PROGRESS ->
+                            newStatus == IssueStatus.RESOLVED ||
+                            newStatus == IssueStatus.ON_HOLD ||
+                            newStatus == IssueStatus.CANCELLED;
 
-            case ON_HOLD ->
-                    newStatus == IssueStatus.OPEN ||
-                    newStatus == IssueStatus.IN_PROGRESS ||
-                    newStatus == IssueStatus.CANCELLED;
+                    case ON_HOLD ->
+                            newStatus == IssueStatus.OPEN ||
+                            newStatus == IssueStatus.IN_PROGRESS ||
+                            newStatus == IssueStatus.CANCELLED;
 
-            case RESOLVED ->
-                    newStatus == IssueStatus.CLOSED ||
-                    newStatus == IssueStatus.IN_PROGRESS;
+                    case RESOLVED ->
+                            newStatus == IssueStatus.CLOSED ||
+                            newStatus == IssueStatus.IN_PROGRESS;
 
-            case CLOSED ->
-                    false;
+                    case CLOSED ->
+                            false;
 
-            case CANCELLED ->
-                    false;
-        };
+                    case CANCELLED ->
+                            false;
+                };
 
         if (!allowed) {
 
-            throw new IllegalArgumentException(
-                    "Invalid Issue status transition: "
-                            + currentStatus
-                            + " -> "
-                            + newStatus
+            throw new BusinessException(
+                    IssueErrorCode.ISSUE_INVALID_STATUS
             );
         }
     }
