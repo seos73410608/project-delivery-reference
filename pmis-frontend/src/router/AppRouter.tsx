@@ -27,6 +27,8 @@ import SchedulePage from "../features/schedule/SchedulePage";
 
 import IssuePage from "../features/issue/IssuePage";
 
+import RiskPage from "../features/risk/RiskPage";
+
 
 /**
  * =====================================================
@@ -39,7 +41,7 @@ import IssuePage from "../features/issue/IssuePage";
  *
  * - /                         Dashboard
  * - /login                    Login
- * - /evidence                 Evidence
+ * - /evidence                Evidence
  * - /wbs                      WBS
  * - /project                  Project List
  * - /project/create           Project Create
@@ -47,6 +49,7 @@ import IssuePage from "../features/issue/IssuePage";
  * - /project/:projectId/edit  Project Edit
  * - /schedule                 Schedule
  * - /issue                    Issue
+ * - /risk                     Risk
  */
 function AppRouter() {
 
@@ -185,6 +188,18 @@ function AppRouter() {
             path="/issue"
             element={
               <IssuePage />
+            }
+          />
+
+
+          {/* ===========================================
+              Risk
+              =========================================== */}
+
+          <Route
+            path="/risk"
+            element={
+              <RiskPage />
             }
           />
 
