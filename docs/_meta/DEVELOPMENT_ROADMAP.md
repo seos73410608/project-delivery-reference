@@ -1,8 +1,8 @@
 # PMIS Development Roadmap
 
-> **Version:** **1.11**
+> **Version:** **1.12**
 >
-> **Last Updated:** **2026-09-14**
+> **Last Updated:** **2026-09-17**
 >
 > **Project:** **Project Management Information System (PMIS)**
 
@@ -89,10 +89,12 @@ Evidence Registration
 Evidence Verification
    ↓
 Evidence Status
+
    ├── PRESENT
    ├── MISSING
    ├── PENDING
    └── NOT_REQUIRED
+
    ↓
 Inspection / Approval
    ↓
@@ -121,18 +123,30 @@ Report / Dashboard
 
 ```text
 PMIS Frontend
+
 React + TypeScript + Vite
+
         ↓ REST API
+
 PMIS Backend
+
 Spring Boot + Spring Security + JWT
+
 Controller / Service / Repository
 DTO / Mapper / Specification
+
         ↓
+
 MariaDB
+
         ↓
+
 File / Object Storage (Planned)
+
         ↓
+
 Spring AI
+
 AI Assistant / Analysis / RAG
 ```
 
@@ -254,6 +268,8 @@ MAJOR.MINOR.PATCH
 - Schedule Calendar Component Refactoring
 - Issue Management Backend
 - Issue Key Generation Hotfix
+- Issue Frontend Management UI
+- Risk Management Frontend UI
 
 ---
 
@@ -284,6 +300,8 @@ feat: implement WBS CRUD
 feat: implement schedule CRUD
 
 feat: implement issue management domain
+
+feat: implement risk management UI
 
 feat(frontend): implement schedule management UI
 
@@ -521,7 +539,7 @@ PATCH  /api/issues/{id}/status
 DELETE /api/issues/{id}
 ```
 
-### Issue Frontend
+### Issue Frontend Completed
 
 - Issue API Client
 - Issue List
@@ -533,22 +551,66 @@ DELETE /api/issues/{id}
 - Issue Delete
 - Issue API Integration
 - Issue Key Display
+- Loading / Empty / Error State
+- Production Build Verification
 
-### Future Enhancement
-
-- Assignment UI 고도화
-- Attachment
-- Issue History
-- Comment / Activity
-- Dashboard Integration
-
-### Risk
+### Risk Backend
 
 - Risk CRUD
 - Risk Assessment
 - Probability / Impact
+- Risk Score / Level Calculation
 - Response Strategy
 - Risk Monitoring
+- Project-scoped Risk Key Generation
+- Risk Search / Filter
+- Risk Status Workflow
+- Swagger API Verification
+
+### Risk Frontend Completed
+
+- Risk API Client
+- Risk List
+- Risk Search / Filter
+- Risk Detail
+- Risk Registration
+- Risk Edit
+- Risk Status UI
+- Risk Delete
+- Risk Summary
+- Risk Matrix
+- Risk API Integration
+- Risk Key Display
+- Loading / Empty / Error State
+- Risk Form CSS
+- Production Build Verification
+
+### Risk API
+
+```text
+GET    /api/risks/{id}
+GET    /api/projects/{projectId}/risks
+GET    /api/risks
+POST   /api/projects/{projectId}/risks
+PUT    /api/risks/{id}
+PATCH  /api/risks/{id}/status
+DELETE /api/risks/{id}
+```
+
+### Risk Matrix
+
+```text
+              Impact
+            LOW  MED  HIGH  CRIT
+Probability
+LOW          L    L    M     H
+MED          L    M    H     H
+HIGH         M    H    H     C
+```
+
+Risk Matrix는 Probability × Impact 기반으로 화면에서 계산한다.
+
+Risk Score / Level은 계산 결과이며, V1에서는 별도 DB 저장 없이 조회 및 UI에서 활용한다.
 
 ### Change
 
@@ -569,14 +631,20 @@ DELETE /api/issues/{id}
 
 ```text
 Evidence Item
+
       ↓
+
 Required?
+
 ├── YES → Evidence Exists?
-│          ├── YES → PRESENT → Verification
-│          │                    ├── PENDING
-│          │                    ├── VERIFIED
-│          │                    └── REJECTED
-│          └── NO  → MISSING
+
+│         ├── YES → PRESENT → Verification
+│         │                    ├── PENDING
+│         │                    ├── VERIFIED
+│         │                    └── REJECTED
+│         │
+│         └── NO → MISSING
+
 └── NO → NOT_REQUIRED
 ```
 
@@ -781,19 +849,26 @@ Required?
 
 ```text
 docs/design/
+
 ├── issue/
 │   └── ISSUE_DESIGN.md
+
 ├── project/
 │   ├── PROJECT_DESIGN.md
 │   └── PROJECT_DASHBOARD_DESIGN.md
+
 ├── report/
 │   └── REPORT_DESIGN.md
+
 ├── schedule/
 │   └── SCHEDULE_DESIGN.md
+
 ├── server/
 │   └── SERVER_CONFIGURATION_DESIGN.md
+
 ├── wbs/
 │   └── WBS_DESIGN.md
+
 └── evidence/
     └── EVIDENCE_DESIGN.md
 ```
@@ -927,10 +1002,21 @@ docs/design/
 - Project-based Issue Key Generation
 - Project-scoped Unique Issue Key Constraint
 
+### Risk
+
+- Risk CRUD
+- Project별 Risk 조회
+- Risk Search
+- Dynamic Search / Filter
+- Risk Status Update
+- Risk Status Workflow Validation
+- Risk Delete
+- Risk Score / Level Calculation
+- Project-based Risk Key Generation
+- Swagger API Verification
+
 ### Planned
 
-- Issue Frontend Completion
-- Risk
 - Change
 - Evidence
 - Inspection
@@ -993,22 +1079,53 @@ docs/design/
 - Calendar Utility Separation
 - Production Build Verification
 
-### Current
+### Issue
 
-- WBS Browser Verification
-- WBS Integration Test
-- Schedule Browser Verification
-- Schedule / Calendar Integration Verification
+- Issue API Client
+- Issue List / Search / Detail
+- Issue Registration / Edit / Delete
+- Issue Status UI
+- Issue API Integration
+- Issue Key Display
+
+### Risk
+
+- Risk API Client
+- Risk List
+- Risk Search / Filter
+- Risk Detail
+- Risk Registration / Edit / Delete
+- Risk Status UI
+- Risk API Integration
+- Risk Key Display
+- Risk Summary
+- Risk Matrix
+- Risk Form CSS
+- Loading / Empty / Error State
+
+### Current Integration Verification
+
+- Project API Integration ✓
+- Project CRUD Verification ✓
+- Schedule API Verification ✓
+- Schedule API Integration ✓
+- Calendar Integration ✓
+- Schedule Production Build ✓
+- Issue API Verification ✓
+- Issue Frontend Integration ✓
+- Risk API Verification ✓
+- Risk API Integration ✓
+- Risk Frontend Build Verification ✓
 
 ### Next
 
-- Issue Frontend
-- Issue API Integration
 - Issue Browser Verification
+- Risk Browser Verification
 - Gantt UI
 - WBS / Schedule Gantt Integration
 - Dashboard API Integration
 - Authentication UI
+- Change Management
 
 ---
 
@@ -1016,13 +1133,17 @@ docs/design/
 
 ```text
 WBS Backend
+
     ├── WBS API                  ✓
     ├── WBS CRUD                 ✓
     ├── WBS Validation           ✓
     └── Delete Handling          ✓
+
                 │
                 ▼
+
 WBS Frontend
+
     ├── API Client               ✓
     ├── API Integration          ✓
     ├── Tree                     ✓
@@ -1030,9 +1151,12 @@ WBS Frontend
     ├── Form                     ✓
     ├── Status Form              ✓
     └── Delete                   ✓
+
                 │
                 ▼
+
 Integration Verification
+
     ├── API Integration          ✓
     ├── Browser Verification     →
     └── Integration Test         →
@@ -1044,6 +1168,7 @@ Integration Verification
 
 ```text
 Schedule Backend
+
     ├── CRUD                     ✓
     ├── Search                   ✓
     ├── Pagination               ✓
@@ -1052,25 +1177,34 @@ Schedule Backend
     ├── Validation               ✓
     ├── Calendar API             ✓
     └── Swagger Verification     ✓
+
                 │
                 ▼
+
 Schedule Frontend
+
     ├── Management UI            ✓
     ├── List / Search / Detail   ✓
     ├── Create / Edit / Delete   ✓
     ├── Status UI                ✓
     └── Calendar UI              ✓
+
                 │
                 ▼
+
 API Integration
+
     ├── API Client               ✓
     ├── Schedule Integration     ✓
     ├── Calendar Integration     ✓
     ├── Production Build         ✓
     └── Browser Verification     →
+
                 │
                 ▼
+
 Visualization
+
     ├── Calendar                 ✓
     └── Gantt                    →
 ```
@@ -1081,6 +1215,7 @@ Visualization
 
 ```text
 Issue Backend
+
     ├── Entity                   ✓
     ├── Priority / Status        ✓
     ├── Repository               ✓
@@ -1089,39 +1224,102 @@ Issue Backend
     ├── Status Update DTO        ✓
     ├── Response DTO             ✓
     ├── Specification            ✓
-    ├── CRUD Service              ✓
+    ├── CRUD Service             ✓
     ├── Search                   ✓
     ├── Status Workflow          ✓
     ├── Controller               ✓
     ├── Swagger Verification     ✓
     ├── Issue Key Generation     ✓
     └── Project-scoped Unique Key ✓
+
                 │
                 ▼
+
 Git Integration
-    ├── Feature Commit           ✓
-    ├── Push                     ✓
-    ├── Merge to develop         ✓
-    └── develop Push             ✓
+
+    ├── Feature Commit            ✓
+    ├── Push                      ✓
+    ├── Merge to develop          ✓
+    └── develop Push              ✓
+
                 │
                 ▼
+
 Issue Frontend
-    ├── API Client               →
-    ├── List                     →
-    ├── Search                   →
-    ├── Detail                   →
-    ├── Create                   →
-    ├── Edit                     →
-    ├── Status                   →
-    ├── Delete                   →
-    └── Issue Key Display        →
+
+    ├── API Client                ✓
+    ├── List                      ✓
+    ├── Search                    ✓
+    ├── Detail                    ✓
+    ├── Create                    ✓
+    ├── Edit                      ✓
+    ├── Status                    ✓
+    ├── Delete                    ✓
+    ├── API Integration           ✓
+    └── Issue Key Display         ✓
 ```
 
 ---
 
-# 18. Current Git Development State
+# 18. Current Risk State
 
-## Recent Schedule Calendar Refactoring
+```text
+Risk Backend
+
+    ├── Entity                   ✓
+    ├── Priority / Status        ✓
+    ├── Probability / Impact     ✓
+    ├── Repository               ✓
+    ├── Create / Update DTO      ✓
+    ├── Search DTO               ✓
+    ├── Status Update DTO        ✓
+    ├── Response DTO             ✓
+    ├── Specification            ✓
+    ├── CRUD Service             ✓
+    ├── Search / Filter          ✓
+    ├── Risk Score / Level       ✓
+    ├── Status Workflow          ✓
+    ├── Controller               ✓
+    ├── Swagger Verification     ✓
+    ├── Risk Key Generation      ✓
+    └── Project-scoped Unique Key ✓
+
+                │
+                ▼
+
+Risk Frontend
+
+    ├── API Client                ✓
+    ├── List                      ✓
+    ├── Search / Filter           ✓
+    ├── Summary                   ✓
+    ├── Matrix                    ✓
+    ├── Detail                    ✓
+    ├── Create                    ✓
+    ├── Edit                      ✓
+    ├── Status                    ✓
+    ├── Delete                    ✓
+    ├── API Integration           ✓
+    ├── Risk Key Display          ✓
+    ├── Loading / Empty / Error   ✓
+    └── Production Build         ✓
+
+                │
+                ▼
+
+Git Integration
+
+    ├── Feature Commit            ✓
+    ├── Push                      ✓
+    ├── Merge to develop          ✓
+    └── develop Push              ✓
+```
+
+---
+
+# 19. Current Git Development State
+
+## Schedule Calendar Refactoring
 
 ```text
 refactor/schedule-calendar-components
@@ -1133,6 +1331,7 @@ Commit:
 
 ```text
 4be29e6
+
 refactor(frontend): split schedule calendar into components
 ```
 
@@ -1151,7 +1350,9 @@ refactor(frontend): split schedule calendar into components
 feature/issue-management
         ↓
 61673d0
+
 feat: implement issue management domain
+
         ↓
 Fast-forward Merge
         ↓
@@ -1180,9 +1381,47 @@ Push origin develop
 - Issue Key 수정 불가 정책 유지
 - Frontend는 Issue Key를 입력하지 않고 표시만 수행
 
+## Risk Management Frontend Integration
+
+```text
+feature/risk-management-ui
+        ↓
+85e1b01
+
+feat: implement risk management UI
+
+        ↓
+Push origin feature/risk-management-ui
+        ↓
+Fast-forward Merge
+        ↓
+develop
+        ↓
+Push origin develop
+```
+
+주요 변경:
+
+- Risk Frontend 전체 UI 구현
+- Risk API Client 구현
+- Risk Type / Response Model 구현
+- Risk List / Search / Filter 구현
+- Risk Summary 구현
+- Risk Matrix 구현
+- Risk Detail 구현
+- Risk Create / Edit 구현
+- Risk Status UI 구현
+- Risk Delete 구현
+- Risk Key Display 구현
+- Risk Form CSS 적용
+- `/risk` Router 등록
+- Backend `ApiResponse<PageResponse<RiskResponse>>` 응답 구조 연계
+- Risk API Integration
+- Production Build Verification
+
 ---
 
-# 19. Development Process
+# 20. Development Process
 
 ```text
 Planning
@@ -1237,18 +1476,52 @@ Commit / Push ✓
     ↓
 Merge to develop ✓
     ↓
-Frontend Issue UI
+Frontend Issue UI ✓
     ↓
-API Integration
+API Integration ✓
     ↓
-Browser Verification
+Browser Verification →
     ↓
-E2E Verification
+E2E Verification →
+```
+
+## Risk Development Flow
+
+```text
+Risk Design
+    ↓
+Risk Entity / Enum ✓
+    ↓
+Repository ✓
+    ↓
+DTO ✓
+    ↓
+Specification ✓
+    ↓
+Service ✓
+    ↓
+Controller ✓
+    ↓
+Risk Score / Level Calculation ✓
+    ↓
+Project-based Risk Key Generation ✓
+    ↓
+Swagger API Verification ✓
+    ↓
+Frontend Risk UI ✓
+    ↓
+API Integration ✓
+    ↓
+Production Build ✓
+    ↓
+Browser Verification →
+    ↓
+E2E Verification →
 ```
 
 ---
 
-# 20. Documentation Policy
+# 21. Documentation Policy
 
 다음 문서는 항상 최신 상태를 유지한다.
 
@@ -1258,9 +1531,9 @@ E2E Verification
 - ARCHITECTURE.md
 - PORTFOLIO.md
 
-Issue 변경 시 다음 문서를 함께 검토한다.
+Risk 변경 시 다음 문서를 함께 검토한다.
 
-- ISSUE_DESIGN.md
+- RISK_DESIGN.md
 - DEVELOPMENT_ROADMAP.md
 - CHANGELOG.md
 - PROJECT_OVERVIEW.md
@@ -1269,7 +1542,7 @@ Issue 변경 시 다음 문서를 함께 검토한다.
 
 ---
 
-# 21. Maintenance Policy
+# 22. Maintenance Policy
 
 - 모든 기능은 Feature Branch에서 개발한다.
 - 모든 주요 변경 사항은 CHANGELOG에 기록한다.
@@ -1286,40 +1559,47 @@ Issue 변경 시 다음 문서를 함께 검토한다.
 
 ---
 
-# 22. Current Information
+# 23. Current Information
 
 | Item | Value |
 |---|---|
-| Last Updated | **2026-09-14** |
-| Roadmap Version | **v1.11** |
+| Last Updated | **2026-09-17** |
+| Roadmap Version | **v1.12** |
 | Current Release | **v0.5.3** |
 | Current Integration Branch | **develop** |
 | Current Sprint | **Sprint 4 - Issue / Risk / Change Management** |
-| Last Completed Backend Domain | **Issue Management** |
-| Last Completed Backend Feature | **Issue CRUD / Search / Status Workflow / Project-based Issue Key Generation / Swagger Verification** |
-| Last Completed Frontend Domain | **Schedule Calendar Component Refactoring** |
-| Development Stage | **Issue Backend + Issue Key Hotfix develop 통합 완료** |
-| Current Next Stage | **Issue Frontend UI / API Integration** |
-| Next Backend Domain | **Risk Management** |
+| Last Completed Backend Domain | **Risk Management** |
+| Last Completed Backend Feature | **Risk CRUD / Search / Status Workflow / Risk Score / Risk Key Generation / Swagger Verification** |
+| Last Completed Frontend Domain | **Risk Management UI** |
+| Last Completed Frontend Feature | **Risk UI / API Integration / Matrix / Summary / Form / Status / Delete** |
+| Last Integrated Commit | **85e1b01** |
+| Development Stage | **Issue + Risk Management develop 통합 완료** |
+| Current Next Stage | **Risk Browser Verification / Change Management** |
+| Next Backend Domain | **Change Management** |
 | Evidence Domain | **Planned - Sprint 5** |
 | Maintainer | **Seo Seokhyeon** |
 
 > **Version Note:** `v0.5.3`은 마지막 정식 Release 기준이다.
 >
-> 현재 `develop`에는 Project Frontend CRUD, WBS Management, Schedule Backend Management, Schedule Frontend Management UI, Schedule Calendar Integration, Calendar Component Refactoring, Issue Management Backend 및 Project-based Issue Key Generation Hotfix가 통합되어 있다.
+> 현재 `develop`에는 Project Frontend CRUD, WBS Management, Schedule Backend Management, Schedule Frontend Management UI, Schedule Calendar Integration, Calendar Component Refactoring, Issue Management Backend, Project-based Issue Key Generation Hotfix 및 Risk Management Frontend UI가 통합되어 있다.
 
 ---
 
-# 23. Next Milestone
+# 24. Next Milestone
 
 ## Sprint 3 Completion
 
 ```text
 WBS Browser Verification       →
+
 WBS Integration Test           →
+
 Schedule Browser Verification  →
+
 Schedule Integration Test      →
+
 Gantt UI                       →
+
 Gantt Integration              →
 ```
 
@@ -1327,86 +1607,51 @@ Gantt Integration              →
 
 ```text
 Issue Backend                  ✓
+
 Issue Swagger Verification     ✓
+
 Issue develop Integration      ✓
+
 Issue Key Generation           ✓
-Issue Frontend                 →
-Risk Backend                   →
-Risk Frontend                  →
+
+Issue Frontend                 ✓
+
+Issue API Integration          ✓
+
+Risk Backend                   ✓
+
+Risk Frontend                  ✓
+
+Risk API Integration           ✓
+
+Risk Matrix                    ✓
+
+Risk develop Integration       ✓
+
 Change Backend                 →
+
 Change Frontend                →
 ```
 
 ## Recommended Development Order
 
-### Track A - Sprint 3 Completion
-
 ```text
-WBS Browser Verification
+Issue Browser Verification
         ↓
-WBS Integration Test
-        ↓
-Schedule / Calendar Browser Verification
-        ↓
-Schedule Integration Test
+Risk Browser Verification
         ↓
 Gantt UI
         ↓
 WBS / Schedule Gantt Integration
         ↓
-Milestone Visualization
-        ↓
-Progress Visualization
-```
-
-### Track B - Sprint 4 Domain Expansion
-
-```text
-Issue Frontend
-        ↓
-Issue API Integration
-        ↓
-Issue Browser Verification
-        ↓
-Risk Backend
-        ↓
-Risk Frontend
-        ↓
 Change Backend
         ↓
 Change Frontend
+        ↓
+Evidence Management
+        ↓
+CMDB
 ```
-
----
-
-# 24. Current Development Priority
-
-현재는 두 개의 작업 흐름이 존재한다.
-
-## Track A - Sprint 3 Completion
-
-1. WBS Browser Verification
-2. WBS Integration Test
-3. Schedule / Calendar Browser Verification
-4. Schedule Integration Test
-5. Gantt UI
-6. WBS / Schedule Gantt Integration
-7. Dashboard API Integration
-8. Dashboard Data Integration
-9. E2E Verification
-
-## Track B - Sprint 4 Domain Expansion
-
-1. Issue Backend ✓
-2. Issue Key Generation ✓
-3. Issue Frontend
-4. Issue API Integration
-5. Issue Browser Verification
-6. Risk Management
-7. Change Management
-8. Evidence Management
-
-현재 Backend Domain 확장 기준으로는 **Issue Management와 Project-based Issue Key Generation이 완료되어 `develop`에 통합**되었다.
 
 ---
 
@@ -1445,9 +1690,9 @@ Schedule API Integration        ✓
 Loading / Empty / Error         ✓
 Calendar UI                     ✓
 Calendar API Integration        ✓
-Calendar Component Separation   ✓
-Calendar Utility Separation     ✓
-Production Build                ✓
+Calendar Component Separation  ✓
+Calendar Utility Separation    ✓
+Production Build               ✓
 Browser Verification            →
 Integration Test                →
 ```
@@ -1475,7 +1720,7 @@ Integration Test                →
 | v0.10.x | Dashboard & Reporting |
 | v1.0.0 | AI Powered PMIS |
 
-> Issue Management Backend 및 Project-based Issue Key Generation은 현재 `develop`에 통합되어 있으나, 별도 정식 Release Version은 아직 생성하지 않았다.
+> Issue Management, Project-based Issue Key Generation 및 Risk Management Frontend는 현재 `develop`에 통합되어 있으나, 별도 정식 Release Version은 아직 생성하지 않았다.
 
 ---
 
@@ -1548,6 +1793,7 @@ Report
 
 ```text
 Backend
+
 ├─ Common Infrastructure          ✓
 ├─ Security / JWT                ✓
 ├─ Project CRUD                  ✓
@@ -1565,32 +1811,45 @@ Backend
 ├─ Issue develop Integration     ✓
 ├─ Issue Key Generation          ✓
 ├─ Project-scoped Issue Key      ✓
-├─ Risk                          →
+├─ Risk Management               ✓
+├─ Risk Swagger Test             ✓
+├─ Risk Score / Level            ✓
+├─ Risk Key Generation           ✓
+├─ Risk develop Integration      ✓
 ├─ Change                        →
 ├─ Evidence                      →
 ├─ CMDB                          →
-├─ Dashboard                    →
+├─ Dashboard                     →
 ├─ Report                        →
-└─ Spring AI                    →
+└─ Spring AI                     →
 
 Frontend
-├─ React / Vite / TypeScript      ✓
+
+├─ React / Vite / TypeScript     ✓
 ├─ Router / Layout               ✓
 ├─ Common UI Components          ✓
 ├─ Dashboard Reference UI        ✓
 ├─ Dashboard Components          ✓
 ├─ Project CRUD Integration      ✓
 ├─ WBS API Integration           ✓
-├─ WBS UI                       ✓
+├─ WBS UI                        ✓
 ├─ Schedule Management UI        ✓
 ├─ Schedule API Integration      ✓
-├─ Calendar UI                  ✓
+├─ Calendar UI                   ✓
 ├─ Calendar API Integration      ✓
 ├─ Calendar Component Refactoring ✓
-├─ Issue UI                     →
-└─ Gantt UI                     →
+├─ Issue UI                      ✓
+├─ Issue API Integration         ✓
+├─ Risk UI                       ✓
+├─ Risk API Integration          ✓
+├─ Risk Summary                  ✓
+├─ Risk Matrix                   ✓
+├─ Risk Form / Status UI         ✓
+├─ Risk Production Build         ✓
+└─ Gantt UI                      →
 
 Integration
+
 ├─ Project API Integration       ✓
 ├─ Project CRUD Verification     ✓
 ├─ WBS API Integration           ✓
@@ -1598,14 +1857,18 @@ Integration
 ├─ WBS Integration Test          →
 ├─ Schedule API Verification     ✓
 ├─ Schedule API Integration      ✓
-├─ Calendar Integration          ✓
-├─ Schedule Production Build     ✓
-├─ Schedule Browser Verification →
-├─ Gantt Integration             →
-├─ Issue API Verification        ✓
-├─ Issue Frontend Integration    →
-├─ Dashboard API Integration     →
-└─ E2E Verification              →
+├─ Calendar Integration           ✓
+├─ Schedule Production Build      ✓
+├─ Schedule Browser Verification  →
+├─ Gantt Integration              →
+├─ Issue API Verification         ✓
+├─ Issue Frontend Integration     ✓
+├─ Issue Browser Verification     →
+├─ Risk API Verification          ✓
+├─ Risk Frontend Integration      ✓
+├─ Risk Browser Verification      →
+├─ Dashboard API Integration      →
+└─ E2E Verification               →
 ```
 
 ---
@@ -1653,9 +1916,27 @@ Issue Key Generation
     ✓
     ↓
 Issue Frontend
-    →
+    ✓
     ↓
-Risk Management
+Issue API Integration
+    ✓
+    ↓
+Risk Management Backend
+    ✓
+    ↓
+Risk Management Frontend
+    ✓
+    ↓
+Risk API Integration
+    ✓
+    ↓
+Risk Matrix / Summary
+    ✓
+    ↓
+Risk develop Integration
+    ✓
+    ↓
+Risk Browser Verification
     →
     ↓
 Change Management
@@ -1665,9 +1946,9 @@ Evidence Management
     →
 ```
 
-현재 Backend Domain 확장의 핵심 단계는 **Issue Management + Project-based Issue Key Generation 완료**이다.
+현재 Sprint 4의 핵심 단계는 **Issue Management + Risk Management 완료 및 `develop` 통합**이다.
 
-다음 단계는 **Issue Frontend → Issue API Integration → Issue Browser Verification**을 우선 진행하고, 이후 Risk → Change 순으로 확장한다.
+다음 단계는 **Risk Browser Verification**을 마친 후 **Change Management**로 확장한다.
 
 ---
 
@@ -1681,24 +1962,30 @@ Evidence Management
 
 ```text
 ScheduleCalendar.tsx
+
 ├── State Management
 ├── Calendar API 호출
 ├── Month Navigation
 └── Component Composition
 
 CalendarHeader.tsx
+
 └── Month Navigation UI
 
 CalendarGrid.tsx
+
 └── Calendar Grid Rendering
 
 CalendarDay.tsx
+
 └── Daily Schedule Rendering
 
 CalendarEvent.tsx
+
 └── Schedule Event Rendering
 
 calendarUtils.ts
+
 ├── formatDate()
 ├── parseDate()
 ├── isSameDate()
@@ -1729,6 +2016,7 @@ feature/issue-management
 
 ```text
 61673d0
+
 feat: implement issue management domain
 ```
 
@@ -1752,8 +2040,10 @@ git push origin develop
 
 ```text
 issue/
+
 ├── controller/
 │   └── IssueController.java
+
 ├── dto/
 │   ├── request/
 │   │   ├── IssueCreateRequest.java
@@ -1762,14 +2052,18 @@ issue/
 │   │   └── IssueUpdateRequest.java
 │   └── response/
 │       └── IssueResponse.java
+
 ├── entity/
 │   ├── Issue.java
 │   ├── IssuePriority.java
 │   └── IssueStatus.java
+
 ├── repository/
 │   └── IssueRepository.java
+
 ├── service/
 │   └── IssueService.java
+
 └── specification/
     └── IssueSpecification.java
 ```
@@ -1820,11 +2114,13 @@ Issue 생성 시 Frontend가 Issue Key를 직접 입력하지 않고 Backend가 
 
 ```text
 Project A
+
 ├── ISSUE-001
 ├── ISSUE-002
 └── ISSUE-003
 
 Project B
+
 ├── ISSUE-001
 ├── ISSUE-002
 └── ISSUE-003
@@ -1876,40 +2172,235 @@ develop Integration
 
 ---
 
-# 34. Next Recommended Branch
+# 34. Risk Management Integration Record
 
-## Option A - Issue Frontend
+## Feature Branch
 
 ```text
-feature/frontend-issue
+feature/risk-management-ui
+```
+
+## Feature Commit
+
+```text
+85e1b01
+
+feat: implement risk management UI
+```
+
+## Integration
+
+```text
+feature/risk-management-ui
+        ↓
+Push origin feature/risk-management-ui
+        ↓
+git checkout develop
+        ↓
+git pull origin develop
+        ↓
+git merge feature/risk-management-ui
+        ↓
+Fast-forward Merge
+        ↓
+git push origin develop
+```
+
+## Implemented Frontend Files
+
+```text
+risk/
+
+├── RiskPage.tsx
+│
+├── api/
+│   └── riskApi.ts
+│
+├── components/
+│   ├── RiskDetail.tsx
+│   ├── RiskForm.tsx
+│   ├── RiskList.tsx
+│   ├── RiskMatrix.tsx
+│   ├── RiskRow.tsx
+│   ├── RiskStatusForm.tsx
+│   ├── RiskSummary.tsx
+│   └── RiskToolbar.tsx
+│
+├── styles/
+│   └── Risk.css
+│
+└── types/
+    └── risk.ts
+```
+
+## Implemented Risk Frontend Features
+
+```text
+Risk List
+    ✓
+
+Risk Search / Filter
+    ✓
+
+Risk Summary
+    ✓
+
+Risk Matrix
+    ✓
+
+Risk Detail
+    ✓
+
+Risk Create
+    ✓
+
+Risk Edit
+    ✓
+
+Risk Status
+    ✓
+
+Risk Delete
+    ✓
+
+Risk Key Display
+    ✓
+
+Risk API Integration
+    ✓
+
+Loading / Empty / Error State
+    ✓
+
+Production Build Verification
+    ✓
+```
+
+## Risk API Integration
+
+Backend Response:
+
+```text
+ApiResponse<PageResponse<RiskResponse>>
+```
+
+Project Risk List:
+
+```text
+GET /api/projects/{projectId}/risks
+```
+
+Risk Search:
+
+```text
+GET /api/risks
+```
+
+Risk Detail:
+
+```text
+GET /api/risks/{id}
+```
+
+Risk Create:
+
+```text
+POST /api/projects/{projectId}/risks
+```
+
+Risk Update:
+
+```text
+PUT /api/risks/{id}
+```
+
+Risk Status:
+
+```text
+PATCH /api/risks/{id}/status
+```
+
+Risk Delete:
+
+```text
+DELETE /api/risks/{id}
+```
+
+## Risk Matrix
+
+```text
+              Impact
+            LOW  MED  HIGH  CRIT
+Probability
+LOW          L    L    M     H
+MED          L    M    H     H
+HIGH         M    H    H     C
+```
+
+Risk Matrix는 Probability × Impact 기반으로 계산하며 V1에서는 결과를 DB에 별도 저장하지 않는다.
+
+## Risk Key Policy
+
+- Risk Key는 Backend에서 생성한다.
+- Create Request에서는 Risk Key를 입력하지 않는다.
+- Update 시 Risk Key는 변경하지 않는다.
+- Frontend는 Risk Key를 표시만 한다.
+- Risk Key는 Project 단위로 관리한다.
+- Project별 Risk sequence를 사용한다.
+
+## Current Status
+
+```text
+Risk Frontend
+      ✓
+      ↓
+Risk API Integration
+      ✓
+      ↓
+Risk Matrix / Summary
+      ✓
+      ↓
+Production Build
+      ✓
+      ↓
+Git Integration
+      ✓
+      ↓
+develop
+      ✓
+      ↓
+Browser Verification
+      →
+```
+
+---
+
+# 35. Next Recommended Branch
+
+## Option A - Risk Browser Verification
+
+```text
+feature/frontend-risk
 ```
 
 권장 작업:
 
 ```text
-Issue API Client
-    ↓
-Issue List
-    ↓
-Issue Search
-    ↓
-Issue Detail
-    ↓
-Issue Registration
-    ↓
-Issue Edit
-    ↓
-Issue Status UI
-    ↓
-Issue Delete
-    ↓
-Issue Key Display
-    ↓
-API Integration
-    ↓
-Browser Verification
-    ↓
+Risk Browser Verification
+        ↓
+Risk API / UI Integration Verification
+        ↓
+Risk Create / Edit Verification
+        ↓
+Risk Status Verification
+        ↓
+Risk Delete Verification
+        ↓
+Risk Matrix Verification
+        ↓
 Production Build
+        ↓
+Integration Test
 ```
 
 ## Option B - Schedule Gantt
@@ -1940,24 +2431,54 @@ Browser Verification
 Production Build
 ```
 
-## Recommended Priority
-
-최근 Backend 구현 흐름과 Sprint 4 진행 상태를 고려하면 다음 순서를 권장한다.
+## Option C - Change Management Backend
 
 ```text
-Issue Frontend
+feature/change-management
+```
+
+권장 작업:
+
+```text
+Change Design
         ↓
-Issue API Integration
+Change Entity / Enum
         ↓
-Issue Browser Verification
+Repository
         ↓
-Risk Backend
+DTO
         ↓
-Risk Frontend
+Specification
+        ↓
+Service
+        ↓
+Controller
+        ↓
+Swagger API Verification
+        ↓
+Frontend Change UI
+```
+
+## Recommended Priority
+
+```text
+Risk Browser Verification
+        ↓
+Risk Integration Test
+        ↓
+Schedule Gantt
         ↓
 Change Backend
         ↓
 Change Frontend
+        ↓
+Evidence Management
+        ↓
+CMDB
+        ↓
+Dashboard / Report
+        ↓
+Spring AI
 ```
 
 ---
