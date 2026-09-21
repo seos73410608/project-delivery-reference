@@ -18,6 +18,11 @@ spring:
   application:
     name: pmis
 
+  logging:
+    level:
+      org.hibernate.SQL: DEBUG
+      org.hibernate.orm.jdbc.bind: TRACE  
+
 jwt:
   # Base64 인코딩된 512bit Secret Key
   secret: MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDE=

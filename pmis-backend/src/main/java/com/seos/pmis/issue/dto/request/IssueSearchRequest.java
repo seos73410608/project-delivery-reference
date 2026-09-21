@@ -2,6 +2,7 @@ package com.seos.pmis.issue.dto.request;
 
 import com.seos.pmis.issue.entity.IssuePriority;
 import com.seos.pmis.issue.entity.IssueStatus;
+import lombok.Setter;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -11,6 +12,7 @@ import lombok.NoArgsConstructor;
  * GET /api/issues
  */
 @Getter
+@Setter
 @NoArgsConstructor
 public class IssueSearchRequest {
 

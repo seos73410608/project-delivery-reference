@@ -4,6 +4,7 @@ import com.seos.pmis.wbs.entity.WbsStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.NoArgsConstructor;
 
 /**
@@ -26,6 +27,7 @@ import lombok.NoArgsConstructor;
  * - 페이지 크기
  */
 @Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor

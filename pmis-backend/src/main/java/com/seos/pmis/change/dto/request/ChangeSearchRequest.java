@@ -4,11 +4,13 @@ import com.seos.pmis.change.entity.ChangeImpactLevel;
 import com.seos.pmis.change.entity.ChangePriority;
 import com.seos.pmis.change.entity.ChangeStatus;
 import com.seos.pmis.change.entity.ChangeType;
+import lombok.Setter;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.domain.Sort;
 
 @Getter
+@Setter
 @NoArgsConstructor
 public class ChangeSearchRequest {
 

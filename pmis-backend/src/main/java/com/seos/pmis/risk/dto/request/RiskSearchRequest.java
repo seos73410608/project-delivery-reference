@@ -5,10 +5,12 @@ import com.seos.pmis.risk.entity.RiskPriority;
 import com.seos.pmis.risk.entity.RiskProbability;
 import com.seos.pmis.risk.entity.RiskStatus;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.domain.Sort;
 
 @Getter
+@Setter
 @NoArgsConstructor
 public class RiskSearchRequest {
 

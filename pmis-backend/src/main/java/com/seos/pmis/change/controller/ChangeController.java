@@ -11,6 +11,7 @@ import com.seos.pmis.common.response.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -39,12 +40,14 @@ public class ChangeController {
      *
      * GET /api/changes
      */
-    @GetMapping("/changes")
-    public ApiResponse<Page<ChangeResponse>> searchChanges(
+    @GetMapping
+    public ResponseEntity<ApiResponse<Page<ChangeResponse>>> searchChanges(
             @ModelAttribute ChangeSearchRequest request
     ) {
-        return ApiResponse.success(
-                changeService.searchChanges(request)
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        changeService.searchChanges(request)
+                )
         );
     }
 
