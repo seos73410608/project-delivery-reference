@@ -2,6 +2,7 @@ package com.seos.pmis.issue.service;
 
 import com.seos.pmis.common.exception.BusinessException;
 import com.seos.pmis.common.exception.code.CommonErrorCode;
+import com.seos.pmis.common.search.SearchPageableFactory;
 import com.seos.pmis.issue.dto.request.IssueCreateRequest;
 import com.seos.pmis.issue.dto.request.IssueSearchRequest;
 import com.seos.pmis.issue.dto.request.IssueStatusUpdateRequest;
@@ -17,17 +18,13 @@ import com.seos.pmis.project.entity.Project;
 import com.seos.pmis.project.repository.ProjectRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
-
+import java.util.Set;
 /**
  * Issue Service
  *
@@ -57,6 +54,22 @@ import java.util.List;
 public class IssueService {
 
     private static final String ISSUE_KEY_PREFIX = "ISSUE-";
+
+    private static final String DEFAULT_SORT_BY = "sortOrder";
+
+    private static final Set<String> ALLOWED_SORT_FIELDS = Set.of(
+            "id",
+            "issueKey",
+            "title",
+            "status",
+            "priority",
+            "occurredDate",
+            "dueDate",
+            "resolvedDate",
+            "sortOrder",
+            "createdAt",
+            "updatedAt"
+    );
 
     private final IssueRepository issueRepository;
 
@@ -136,97 +149,22 @@ public class IssueService {
             );
         }
 
-        System.out.println(
-                "projectId = " + request.getProjectId()
-        );
-
-        System.out.println(
-                "status = " + request.getStatus()
-        );        
-
         validateSearchRequest(request);
 
         Pageable pageable =
-                createPageable(request);
-
-        /*
-         * IssueSpecification은
-         * 검색 조건이 없을 경우 null을 반환할 수 있다.
-         *
-         * List.of(...)는 null을 허용하지 않기 때문에
-         * 검색 조건을 동적으로 추가한다.
-         */
-        List<Specification<Issue>> specifications =
-                new ArrayList<>();
-
-        Specification<Issue> projectSpecification =
-                IssueSpecification.projectId(
-                        request.getProjectId()
-                );
-
-        if (projectSpecification != null) {
-
-            specifications.add(
-                    projectSpecification
-            );
-        }
-
-        Specification<Issue> keywordSpecification =
-                IssueSpecification.keyword(
-                        request.getKeyword()
-                );
-
-        if (keywordSpecification != null) {
-
-            specifications.add(
-                    keywordSpecification
-            );
-        }
-
-        Specification<Issue> statusSpecification =
-                IssueSpecification.status(
-                        request.getStatus()
-                );
-
-        if (statusSpecification != null) {
-
-            specifications.add(
-                    statusSpecification
-            );
-        }
-
-        Specification<Issue> prioritySpecification =
-                IssueSpecification.priority(
-                        request.getPriority()
-                );
-
-        if (prioritySpecification != null) {
-
-            specifications.add(
-                    prioritySpecification
-            );
-        }
-
-        Specification<Issue> assigneeSpecification =
-                IssueSpecification.assigneeId(
-                        request.getAssigneeId()
-                );
-
-        if (assigneeSpecification != null) {
-
-            specifications.add(
-                    assigneeSpecification
-            );
-        }
-
-        Specification<Issue> specification =
-                Specification.allOf(
-                        specifications
+                SearchPageableFactory.create(
+                        request.getPage(),
+                        request.getSize(),
+                        request.getSortBy(),
+                        request.getDirection(),
+                        DEFAULT_SORT_BY,
+                        org.springframework.data.domain.Sort.Direction.ASC,
+                        ALLOWED_SORT_FIELDS
                 );
 
         return issueRepository
                 .findAll(
-                        specification,
+                        IssueSpecification.search(request),
                         pageable
                 )
                 .map(IssueResponse::from);
@@ -724,126 +662,6 @@ public class IssueService {
         if (request.getSize() == null ||
                 request.getSize() < 1 ||
                 request.getSize() > 100) {
-
-            throw new BusinessException(
-                    CommonErrorCode.INVALID_REQUEST
-            );
-        }
-    }
-
-
-    /**
-     * Pageable 생성
-     *
-     * 기본 정렬은
-     * sortOrder ASC이다.
-     *
-     * 허용 정렬 필드:
-     *
-     * - id
-     * - issueKey
-     * - title
-     * - status
-     * - priority
-     * - occurredDate
-     * - dueDate
-     * - resolvedDate
-     * - sortOrder
-     * - createdAt
-     * - updatedAt
-     *
-     * @param request Issue 검색 요청
-     * @return Pageable
-     */
-    private Pageable createPageable(
-            IssueSearchRequest request
-    ) {
-
-        String sortBy =
-                normalizeSortBy(
-                        request.getSortBy()
-                );
-
-        Sort.Direction direction =
-                parseDirection(
-                        request.getDirection()
-                );
-
-        Sort sort =
-                Sort.by(
-                        direction,
-                        sortBy
-                );
-
-        return PageRequest.of(
-                request.getPage(),
-                request.getSize(),
-                sort
-        );
-    }
-
-
-    /**
-     * 정렬 필드 Validation
-     *
-     * @param sortBy 정렬 필드
-     * @return 허용된 정렬 필드
-     */
-    private String normalizeSortBy(
-            String sortBy
-    ) {
-
-        if (sortBy == null ||
-                sortBy.isBlank()) {
-
-            return "sortOrder";
-        }
-
-        return switch (sortBy) {
-
-            case "id",
-                 "issueKey",
-                 "title",
-                 "status",
-                 "priority",
-                 "occurredDate",
-                 "dueDate",
-                 "resolvedDate",
-                 "sortOrder",
-                 "createdAt",
-                 "updatedAt" -> sortBy;
-
-            default ->
-                    throw new BusinessException(
-                            CommonErrorCode.INVALID_REQUEST
-                    );
-        };
-    }
-
-
-    /**
-     * 정렬 방향 Validation
-     *
-     * @param direction 정렬 방향
-     * @return Sort Direction
-     */
-    private Sort.Direction parseDirection(
-            String direction
-    ) {
-
-        if (direction == null ||
-                direction.isBlank()) {
-
-            return Sort.Direction.ASC;
-        }
-
-        try {
-
-            return Sort.Direction.fromString(
-                    direction
-            );
-
-        } catch (IllegalArgumentException e) {
 
             throw new BusinessException(
                     CommonErrorCode.INVALID_REQUEST

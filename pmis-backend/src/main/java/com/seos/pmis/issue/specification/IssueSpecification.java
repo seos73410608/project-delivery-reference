@@ -173,7 +173,15 @@ public final class IssueSpecification {
      * OR
      * description LIKE %keyword%
      *
-     * 대소문자를 구분하지 않는다.
+     * MariaDB의 현재 Collation
+     * (utf8mb4_uca1400_ai_ci)이
+     * case-insensitive 비교를 지원하므로
+     * lower() 함수를 사용하지 않는다.
+     *
+     * 특히 description은 @Lob으로 매핑되어
+     * MariaDB LONGTEXT로 저장되므로
+     * Hibernate의 lower() 함수 적용 시
+     * CLOB 타입 오류가 발생할 수 있다.
      *
      * @param keyword 검색 Keyword
      * @return Keyword Specification
@@ -191,7 +199,7 @@ public final class IssueSpecification {
 
         String searchKeyword =
                 "%" +
-                keyword.trim().toLowerCase() +
+                keyword.trim() +
                 "%";
 
 
@@ -199,20 +207,12 @@ public final class IssueSpecification {
                 criteriaBuilder.or(
 
                         criteriaBuilder.like(
-
-                                criteriaBuilder.lower(
-                                        root.get("title")
-                                ),
-
+                                root.get("title"),
                                 searchKeyword
                         ),
 
                         criteriaBuilder.like(
-
-                                criteriaBuilder.lower(
-                                        root.get("description")
-                                ),
-
+                                root.get("description"),
                                 searchKeyword
                         )
                 );
