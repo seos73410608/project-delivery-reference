@@ -1,5 +1,6 @@
 package com.seos.pmis.schedule.service;
 
+import com.seos.pmis.common.search.SearchPageableFactory;
 import com.seos.pmis.project.entity.Project;
 import com.seos.pmis.project.repository.ProjectRepository;
 import com.seos.pmis.schedule.dto.request.ScheduleCalendarRequest;
@@ -16,7 +17,6 @@ import com.seos.pmis.wbs.entity.Wbs;
 import com.seos.pmis.wbs.repository.WbsRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -24,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Schedule Service
@@ -50,6 +51,21 @@ import java.util.List;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class ScheduleService {
+
+    /**
+     * Schedule 검색에서 허용하는 정렬 필드
+     *
+     * Entity의 실제 필드명만 허용한다.
+     */
+    private static final Set<String> ALLOWED_SORT_FIELDS = Set.of(
+            "id",
+            "scheduleName",
+            "startDate",
+            "endDate",
+            "sortOrder",
+            "createdAt",
+            "updatedAt"
+    );
 
     private final ScheduleRepository scheduleRepository;
 
@@ -258,16 +274,6 @@ public class ScheduleService {
      *
      * Calendar의 핵심 조건은
      * 요청 기간과 Schedule 기간이 겹치는지 여부이다.
-     *
-     * 예:
-     *
-     * 요청 기간
-     * 2026-08-01 ~ 2026-08-31
-     *
-     * Schedule
-     * 2026-07-25 ~ 2026-08-05
-     *
-     * 위 일정은 요청 기간과 겹치므로 조회된다.
      *
      * @param projectId Project ID
      * @param request Calendar 조회 조건
@@ -668,6 +674,9 @@ public class ScheduleService {
 
     /**
      * Schedule 검색 요청 Validation
+     *
+     * Page / Size / SortBy / Direction 검증은
+     * SearchPageableFactory에서 공통 처리한다.
      */
     private void validateSearchRequest(
             ScheduleSearchRequest request
@@ -684,36 +693,16 @@ public class ScheduleService {
                     request.getWbsId()
             );
         }
-
-        if (request.getPage() == null ||
-                request.getPage() < 0) {
-
-            throw new IllegalArgumentException(
-                    "Page must be greater than or equal to zero."
-            );
-        }
-
-        if (request.getSize() == null ||
-                request.getSize() < 1) {
-
-            throw new IllegalArgumentException(
-                    "Size must be greater than zero."
-            );
-        }
-
-        if (request.getSize() > 100) {
-
-            throw new IllegalArgumentException(
-                    "Size must not exceed 100."
-            );
-        }
     }
 
 
     /**
      * Pageable 생성
      *
-     * 기본 정렬은 sortOrder ASC이다.
+     * 공통 검색 Pageable Factory를 사용한다.
+     *
+     * 기본 정렬:
+     * - sortOrder ASC
      *
      * 허용 정렬 필드:
      * - id
@@ -728,85 +717,15 @@ public class ScheduleService {
             ScheduleSearchRequest request
     ) {
 
-        String sortBy = normalizeSortBy(
-                request.getSortBy()
-        );
-
-        Sort.Direction direction =
-                parseDirection(
-                        request.getDirection()
-                );
-
-        Sort sort = Sort.by(
-                direction,
-                sortBy
-        );
-
-        return PageRequest.of(
+        return SearchPageableFactory.create(
                 request.getPage(),
                 request.getSize(),
-                sort
+                request.getSortBy(),
+                request.getDirection(),
+                "sortOrder",
+                Sort.Direction.ASC,
+                ALLOWED_SORT_FIELDS
         );
-    }
-
-
-    /**
-     * 정렬 필드 Validation
-     */
-    private String normalizeSortBy(
-            String sortBy
-    ) {
-
-        if (sortBy == null ||
-                sortBy.isBlank()) {
-
-            return "sortOrder";
-        }
-
-        return switch (sortBy) {
-
-            case "id",
-                 "scheduleName",
-                 "startDate",
-                 "endDate",
-                 "sortOrder",
-                 "createdAt",
-                 "updatedAt" ->
-                    sortBy;
-
-            default ->
-                    throw new IllegalArgumentException(
-                            "Unsupported sort field: " + sortBy
-                    );
-        };
-    }
-
-
-    /**
-     * 정렬 방향 Validation
-     */
-    private Sort.Direction parseDirection(
-            String direction
-    ) {
-
-        if (direction == null ||
-                direction.isBlank()) {
-
-            return Sort.Direction.ASC;
-        }
-
-        try {
-
-            return Sort.Direction.fromString(
-                    direction
-            );
-
-        } catch (IllegalArgumentException e) {
-
-            throw new IllegalArgumentException(
-                    "Direction must be ASC or DESC."
-            );
-        }
     }
 
 
