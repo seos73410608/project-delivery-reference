@@ -1,6 +1,7 @@
 package com.seos.pmis.risk.service;
 
 import com.seos.pmis.common.exception.BusinessException;
+import com.seos.pmis.common.search.SearchPageableFactory;
 import com.seos.pmis.risk.dto.request.RiskCreateRequest;
 import com.seos.pmis.risk.dto.request.RiskSearchRequest;
 import com.seos.pmis.risk.dto.request.RiskStatusUpdateRequest;
@@ -14,13 +15,13 @@ import com.seos.pmis.risk.repository.RiskRepository;
 import com.seos.pmis.risk.specification.RiskSpecification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +29,24 @@ import java.time.LocalDate;
 public class RiskService {
 
     private static final String RISK_KEY_PREFIX = "RISK-";
+
+    private static final Set<String> ALLOWED_SORT_FIELDS = Set.of(
+            "id",
+            "riskKey",
+            "title",
+            "status",
+            "priority",
+            "probability",
+            "impact",
+            "assigneeId",
+            "reporterId",
+            "identifiedDate",
+            "dueDate",
+            "mitigatedDate",
+            "sortOrder",
+            "createdAt",
+            "updatedAt"
+    );
 
     private final RiskRepository riskRepository;
     private final RiskMapper riskMapper;
@@ -260,43 +279,25 @@ public class RiskService {
     }
 
     /**
-     * Pageable 생성
+     * 공통 Pageable 생성
+     *
+     * Risk 기본 정렬:
+     * id DESC
      */
     private Pageable createPageable(
             RiskSearchRequest request
     ) {
 
-        int page = Math.max(
+        return SearchPageableFactory.create(
                 request.getPage(),
-                0
-        );
-
-        int size = Math.min(
-                Math.max(
-                        request.getSize(),
-                        1
-                ),
-                100
-        );
-
-        String sortBy = request.getSortBy();
-
-        if (sortBy == null || sortBy.isBlank()) {
-            sortBy = "id";
-        }
-
-        Sort.Direction direction =
+                request.getSize(),
+                request.getSortBy(),
                 request.getDirection() != null
-                        ? request.getDirection()
-                        : Sort.Direction.DESC;
-
-        return PageRequest.of(
-                page,
-                size,
-                Sort.by(
-                        direction,
-                        sortBy
-                )
+                        ? request.getDirection().name()
+                        : null,
+                "id",
+                Sort.Direction.DESC,
+                ALLOWED_SORT_FIELDS
         );
     }
 }
