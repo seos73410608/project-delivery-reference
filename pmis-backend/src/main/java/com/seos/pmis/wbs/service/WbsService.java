@@ -1,5 +1,6 @@
 package com.seos.pmis.wbs.service;
 
+import com.seos.pmis.common.search.SearchPageableFactory;
 import com.seos.pmis.project.entity.Project;
 import com.seos.pmis.project.repository.ProjectRepository;
 import com.seos.pmis.wbs.dto.request.WbsCreateRequest;
@@ -13,7 +14,6 @@ import com.seos.pmis.wbs.repository.WbsRepository;
 import com.seos.pmis.wbs.specification.WbsSpecification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * WBS Service
@@ -47,6 +48,17 @@ import java.util.Map;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class WbsService {
+
+    private static final Set<String> ALLOWED_SORT_FIELDS = Set.of(
+            "id",
+            "wbsCode",
+            "wbsName",
+            "level",
+            "sortOrder",
+            "status",
+            "createdAt",
+            "updatedAt"
+    );
 
     private final WbsRepository wbsRepository;
     private final ProjectRepository projectRepository;
@@ -157,6 +169,8 @@ public class WbsService {
     public Page<WbsResponse> search(
             WbsSearchRequest request
     ) {
+
+        validateSearchRequest(request);
 
         Pageable pageable = createPageable(request);
 
@@ -433,9 +447,7 @@ public class WbsService {
             /*
              * 하위 WBS의 Level도 함께 재계산한다.
              */
-            updateChildrenLevel(
-                    wbs
-            );
+            updateChildrenLevel(wbs);
         }
 
         return WbsResponse.from(wbs);
@@ -695,20 +707,6 @@ public class WbsService {
      * 현재 WBS의 Level이 변경되면
      * 모든 하위 WBS의 Level도 함께 변경한다.
      *
-     * 예:
-     *
-     * 기존:
-     *
-     * 1       level 1
-     * └─ 1.1  level 2
-     *    └─ 1.1.1 level 3
-     *
-     * 부모 이동 후:
-     *
-     * 2       level 1
-     * └─ 2.1  level 2
-     *    └─ 2.1.1 level 3
-     *
      * @param parent 현재 WBS
      */
     private void updateChildrenLevel(
@@ -766,7 +764,27 @@ public class WbsService {
     }
 
     /**
+     * 검색 요청 검증
+     *
+     * @param request WBS 검색 요청
+     */
+    private void validateSearchRequest(
+            WbsSearchRequest request
+    ) {
+
+        if (request == null) {
+
+            throw new IllegalArgumentException(
+                    "WBS search request is required."
+            );
+        }
+    }
+
+    /**
      * Pageable 생성
+     *
+     * 공통 검색 페이징 규칙을 적용한다.
+     * 정렬 필드는 허용 목록으로 제한한다.
      *
      * @param request WBS 검색 요청
      * @return Pageable
@@ -775,88 +793,14 @@ public class WbsService {
             WbsSearchRequest request
     ) {
 
-        if (request == null) {
-
-            return PageRequest.of(
-                    0,
-                    20,
-                    Sort.by(
-                            Sort.Direction.ASC,
-                            "sortOrder"
-                    )
-            );
-        }
-
-        Sort.Direction direction =
-                parseDirection(
-                        request.getDirection()
-                );
-
-        String sortBy =
-                normalizeSortBy(
-                        request.getSortBy()
-                );
-
-        return PageRequest.of(
+        return SearchPageableFactory.create(
                 request.getPage(),
                 request.getSize(),
-                Sort.by(direction, sortBy)
+                request.getSortBy(),
+                request.getDirection(),
+                "sortOrder",
+                Sort.Direction.ASC,
+                ALLOWED_SORT_FIELDS
         );
-    }
-
-    /**
-     * 정렬 방향 변환
-     *
-     * @param direction 정렬 방향
-     * @return Sort.Direction
-     */
-    private Sort.Direction parseDirection(
-            String direction
-    ) {
-
-        if ("DESC".equalsIgnoreCase(direction)) {
-            return Sort.Direction.DESC;
-        }
-
-        return Sort.Direction.ASC;
-    }
-
-    /**
-     * 정렬 필드 검증
-     *
-     * 허용되지 않은 필드는
-     * 기본값 sortOrder를 사용한다.
-     *
-     * @param sortBy 정렬 필드
-     * @return Entity 필드명
-     */
-    private String normalizeSortBy(
-            String sortBy
-    ) {
-
-        if (sortBy == null || sortBy.isBlank()) {
-            return "sortOrder";
-        }
-
-        return switch (sortBy) {
-
-            case "wbsCode" ->
-                    "wbsCode";
-
-            case "wbsName" ->
-                    "wbsName";
-
-            case "sortOrder" ->
-                    "sortOrder";
-
-            case "createdAt" ->
-                    "createdAt";
-
-            case "level" ->
-                    "level";
-
-            default ->
-                    "sortOrder";
-        };
     }
 }
