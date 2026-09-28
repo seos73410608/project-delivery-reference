@@ -13,15 +13,16 @@ import com.seos.pmis.change.mapper.ChangeMapper;
 import com.seos.pmis.change.repository.ChangeRepository;
 import com.seos.pmis.change.specification.ChangeSpecification;
 import com.seos.pmis.common.exception.BusinessException;
+import com.seos.pmis.common.search.SearchPageableFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -29,6 +30,28 @@ import java.time.LocalDate;
 public class ChangeService {
 
     private static final String CHANGE_KEY_PREFIX = "CHG-";
+
+    private static final Set<String> ALLOWED_SORT_FIELDS = Set.of(
+            "id",
+            "changeKey",
+            "title",
+            "status",
+            "priority",
+            "changeType",
+            "impactLevel",
+            "requesterId",
+            "assigneeId",
+            "identifiedDate",
+            "requestedDate",
+            "dueDate",
+            "approvedDate",
+            "implementedDate",
+            "verifiedDate",
+            "closedDate",
+            "sortOrder",
+            "createdAt",
+            "updatedAt"
+    );
 
     private final ChangeRepository changeRepository;
     private final ChangeMapper changeMapper;
@@ -50,6 +73,8 @@ public class ChangeService {
             ChangeSearchRequest request
     ) {
 
+        validateSearchRequest(request);
+
         Pageable pageable = createPageable(request);
 
         return changeRepository
@@ -67,6 +92,8 @@ public class ChangeService {
             Long projectId,
             ChangeSearchRequest request
     ) {
+
+        validateSearchRequest(request);
 
         Pageable pageable = createPageable(request);
 
@@ -564,47 +591,40 @@ public class ChangeService {
     }
 
     /**
+     * 검색 요청 검증
+     */
+    private void validateSearchRequest(
+            ChangeSearchRequest request
+    ) {
+
+        if (request == null) {
+
+            throw new IllegalArgumentException(
+                    "Change search request is required."
+            );
+        }
+    }
+
+    /**
      * Pageable 생성
+     *
+     * 공통 검색 페이징 규칙을 사용하며,
+     * 허용되지 않은 정렬 필드는 예외 처리한다.
      */
     private Pageable createPageable(
             ChangeSearchRequest request
     ) {
 
-        int page =
-                Math.max(
-                        request.getPage(),
-                        0
-                );
-
-        int size =
-                Math.min(
-                        Math.max(
-                                request.getSize(),
-                                1
-                        ),
-                        100
-                );
-
-        String sortBy = request.getSortBy();
-
-        if (sortBy == null
-                || sortBy.isBlank()) {
-
-            sortBy = "id";
-        }
-
-        Sort.Direction direction =
+        return SearchPageableFactory.create(
+                request.getPage(),
+                request.getSize(),
+                request.getSortBy(),
                 request.getDirection() != null
-                        ? request.getDirection()
-                        : Sort.Direction.DESC;
-
-        return PageRequest.of(
-                page,
-                size,
-                Sort.by(
-                        direction,
-                        sortBy
-                )
+                        ? request.getDirection().name()
+                        : null,
+                "id",
+                Sort.Direction.DESC,
+                ALLOWED_SORT_FIELDS
         );
     }
 }
