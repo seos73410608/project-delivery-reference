@@ -1,0 +1,1261 @@
+/* =========================================================
+ * PMIS - Change Management
+ * Feature-specific styles
+ *
+ * Common styles:
+ * - common.css
+ * - button.css
+ * - form.css
+ * - state.css
+ * - badge.css
+ * ========================================================= */
+
+
+/* =========================================================
+ * Change Page
+ * ========================================================= */
+
+.change-page {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    min-width: 0;
+}
+
+.change-page__content {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    min-width: 0;
+}
+
+
+/* =========================================================
+ * Change Summary
+ * ========================================================= */
+
+.change-summary {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 12px;
+    width: 100%;
+}
+
+.change-summary__card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-width: 0;
+    padding: 16px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #ffffff;
+}
+
+.change-summary__card > div:first-child {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.change-summary__card strong {
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1.2;
+    font-variant-numeric: tabular-nums;
+}
+
+.change-summary__card > span {
+    color: #64748b;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.change-summary__card > div:last-child {
+    width: 100%;
+    height: 3px;
+    overflow: hidden;
+    border-radius: 999px;
+}
+
+.change-summary__card > div:last-child > div {
+    height: 100%;
+    border-radius: 999px;
+}
+
+
+/* =========================================================
+ * Change Toolbar
+ * ========================================================= */
+
+.change-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    min-width: 0;
+}
+
+.change-toolbar__filters {
+    display: flex;
+    flex: 1 1 600px;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-width: 0;
+}
+
+.change-toolbar__search,
+.change-toolbar__select {
+    height: 40px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    background: #ffffff;
+    color: #111827;
+    font-size: 13px;
+    outline: none;
+}
+
+.change-toolbar__search {
+    flex: 1 1 240px;
+    min-width: 200px;
+    max-width: 360px;
+    padding: 0 12px;
+}
+
+.change-toolbar__select {
+    min-width: 120px;
+    padding: 0 32px 0 10px;
+}
+
+.change-toolbar__search:hover,
+.change-toolbar__select:hover {
+    border-color: #94a3b8;
+}
+
+.change-toolbar__search:focus,
+.change-toolbar__select:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.change-toolbar__reset,
+.change-toolbar__create {
+    height: 40px;
+    padding: 0 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.change-toolbar__reset {
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    color: #475569;
+}
+
+.change-toolbar__reset:hover {
+    border-color: #94a3b8;
+    background: #f8fafc;
+}
+
+.change-toolbar__create {
+    flex-shrink: 0;
+    border: 1px solid #2563eb;
+    background: #2563eb;
+    color: #ffffff;
+}
+
+.change-toolbar__create:hover {
+    border-color: #1d4ed8;
+    background: #1d4ed8;
+}
+
+
+/* =========================================================
+ * Change List
+ * ========================================================= */
+
+.change-list {
+    width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #ffffff;
+}
+
+.change-list__header {
+    display: grid;
+    align-items: center;
+    min-width: 1000px;
+    padding: 12px 16px;
+    border-bottom: 1px solid #e2e8f0;
+    background: #f8fafc;
+    color: #64748b;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1.4;
+
+    grid-template-columns:
+        minmax(220px, 2.5fr)
+        minmax(100px, 1fr)
+        minmax(90px, 0.8fr)
+        minmax(100px, 0.9fr)
+        minmax(110px, 1fr)
+        minmax(100px, 1fr)
+        minmax(110px, 1fr);
+}
+
+.change-list__header > div {
+    min-width: 0;
+}
+
+.change-list__row {
+    display: grid;
+    align-items: center;
+    min-width: 1000px;
+    gap: 12px;
+    padding: 14px 16px;
+    border-bottom: 1px solid #f1f5f9;
+    background: #ffffff;
+    transition: background-color 0.15s ease;
+
+    grid-template-columns:
+        minmax(220px, 2.5fr)
+        minmax(100px, 1fr)
+        minmax(90px, 0.8fr)
+        minmax(100px, 0.9fr)
+        minmax(110px, 1fr)
+        minmax(100px, 1fr)
+        minmax(110px, 1fr);
+}
+
+.change-list__row:last-child {
+    border-bottom: 0;
+}
+
+.change-list__row:hover {
+    background: #f8fafc;
+}
+
+.change-list__key {
+    color: #2563eb;
+    font-size: 12px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.change-list__title-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.change-list__title-link {
+    overflow: hidden;
+    color: #111827;
+    font-size: 13px;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.change-list__title-link:hover {
+    color: #2563eb;
+    text-decoration: underline;
+}
+
+.change-list__assignee {
+    color: #6b7280;
+}
+
+.change-list__date {
+    color: #64748b;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+}
+
+.change-list__actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+}
+
+
+/* =========================================================
+ * Actual Change Row
+ * ========================================================= */
+
+.change-row {
+    display: grid;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    min-width: 1000px;
+    padding: 14px 16px;
+    border-bottom: 1px solid #f1f5f9;
+    background: #ffffff;
+    transition: background-color 0.15s ease;
+
+    grid-template-columns:
+        minmax(90px, 0.8fr)
+        minmax(220px, 2.5fr)
+        minmax(100px, 1fr)
+        minmax(90px, 0.8fr)
+        minmax(100px, 0.9fr)
+        minmax(110px, 1fr)
+        minmax(110px, 1fr);
+}
+
+.change-row:hover {
+    background: #f8fafc;
+}
+
+.change-row:last-child {
+    border-bottom: 0;
+}
+
+.change-row__key {
+    color: #2563eb;
+    font-size: 12px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.change-row__title {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #111827;
+    text-align: left;
+    cursor: pointer;
+}
+
+.change-row__title > span:first-child {
+    width: 100%;
+    overflow: hidden;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.4;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.change-row__title > span:last-child {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    color: #64748b;
+    font-size: 11px;
+    line-height: 1.4;
+}
+
+.change-row__title:hover > span:first-child {
+    color: #2563eb;
+}
+
+
+/* =========================================================
+ * Change Detail
+ * ========================================================= */
+
+.change-detail {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    min-width: 0;
+}
+
+.change-detail__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    min-width: 0;
+}
+
+.change-detail__heading {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+}
+
+.change-detail__key {
+    color: #2563eb;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+
+.change-detail__title {
+    margin: 0;
+    color: #111827;
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+}
+
+.change-detail__badges {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.change-detail__badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 24px;
+    padding: 4px 8px;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+
+.change-detail__badge--status-requested {
+    background: #eff6ff;
+    color: #2563eb;
+}
+
+.change-detail__badge--status-analyzing {
+    background: #f0f9ff;
+    color: #0369a1;
+}
+
+.change-detail__badge--status-pending_approval {
+    background: #fffbeb;
+    color: #b45309;
+}
+
+.change-detail__badge--status-approved {
+    background: #f0fdf4;
+    color: #15803d;
+}
+
+.change-detail__badge--status-rejected {
+    background: #fef2f2;
+    color: #dc2626;
+}
+
+.change-detail__badge--status-implementing {
+    background: #eff6ff;
+    color: #1d4ed8;
+}
+
+.change-detail__badge--status-verified {
+    background: #ecfdf5;
+    color: #047857;
+}
+
+.change-detail__badge--status-closed {
+    background: #f1f5f9;
+    color: #475569;
+}
+
+.change-detail__badge--status-cancelled {
+    background: #fef2f2;
+    color: #b91c1c;
+}
+
+.change-detail__badge--priority-low {
+    background: #f1f5f9;
+    color: #64748b;
+}
+
+.change-detail__badge--priority-medium {
+    background: #eff6ff;
+    color: #2563eb;
+}
+
+.change-detail__badge--priority-high {
+    background: #fff7ed;
+    color: #c2410c;
+}
+
+.change-detail__badge--priority-critical {
+    background: #fef2f2;
+    color: #dc2626;
+}
+
+.change-detail__close {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    background: #ffffff;
+    color: #64748b;
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.change-detail__close:hover {
+    background: #f8fafc;
+    color: #111827;
+}
+
+.change-detail__section {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    min-width: 0;
+    padding: 20px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    background: #ffffff;
+}
+
+.change-detail__section--status {
+    gap: 16px;
+}
+
+.change-detail__section-title {
+    margin: 0;
+    color: #111827;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.4;
+}
+
+.change-detail__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px 24px;
+    margin: 0;
+}
+
+.change-detail__item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+    margin: 0;
+}
+
+.change-detail__item--full {
+    grid-column: 1 / -1;
+}
+
+.change-detail__label {
+    color: #6b7280;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.change-detail__value {
+    margin: 0;
+    color: #111827;
+    font-size: 13px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+.change-detail__paragraph {
+    margin: 0;
+    color: #374151;
+    font-size: 13px;
+    line-height: 1.7;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.change-detail__overdue {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    padding: 3px 7px;
+    border-radius: 999px;
+    background: #fef2f2;
+    color: #dc2626;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+
+/* =========================================================
+ * Change Dialog
+ * ========================================================= */
+
+.change-dialog__backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(15, 23, 42, 0.48);
+}
+
+.change-dialog {
+    display: flex;
+    flex-direction: column;
+    width: min(720px, calc(100vw - 32px));
+    max-height: calc(100vh - 48px);
+    overflow: hidden;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background: #ffffff;
+    box-shadow: 0 20px 50px rgba(15, 23, 42, 0.18);
+}
+
+.change-dialog--wide {
+    width: min(900px, calc(100vw - 32px));
+}
+
+.change-dialog__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 20px 24px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.change-dialog__header > div {
+    min-width: 0;
+}
+
+.change-dialog__title {
+    margin: 0;
+    color: #111827;
+    font-size: 17px;
+    font-weight: 700;
+    line-height: 1.4;
+}
+
+.change-dialog__description {
+    margin: 5px 0 0;
+    color: #6b7280;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.change-dialog__close {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    background: #ffffff;
+    color: #64748b;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.change-dialog__close:hover {
+    background: #f8fafc;
+    color: #111827;
+}
+
+.change-dialog__content {
+    min-height: 0;
+    padding: 24px;
+    overflow-y: auto;
+}
+
+.change-dialog__error {
+    margin-bottom: 16px;
+    padding: 10px 12px;
+    border: 1px solid #fecaca;
+    border-radius: 6px;
+    background: #fef2f2;
+    color: #b91c1c;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+
+/* =========================================================
+ * Change Form
+ * ========================================================= */
+
+.change-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.change-form__body {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.change-form__field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+}
+
+.change-form__field--full {
+    grid-column: 1 / -1;
+}
+
+.change-form__field label {
+    color: #374151;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.change-form__field input,
+.change-form__field select,
+.change-form__field textarea {
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    background: #ffffff;
+    color: #111827;
+    font-size: 13px;
+    outline: none;
+}
+
+.change-form__field input,
+.change-form__field select {
+    min-height: 40px;
+    padding: 8px 10px;
+}
+
+.change-form__field textarea {
+    min-height: 100px;
+    padding: 10px;
+    resize: vertical;
+    line-height: 1.6;
+}
+
+.change-form__field input:hover,
+.change-form__field select:hover,
+.change-form__field textarea:hover {
+    border-color: #94a3b8;
+}
+
+.change-form__field input:focus,
+.change-form__field select:focus,
+.change-form__field textarea:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.change-form__error {
+    padding: 10px 12px;
+    border: 1px solid #fecaca;
+    border-radius: 6px;
+    background: #fef2f2;
+    color: #b91c1c;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.change-form__actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    padding-top: 16px;
+    border-top: 1px solid #e5e7eb;
+}
+
+.change-form__button {
+    min-height: 40px;
+    padding: 0 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.change-form__button--primary {
+    border: 1px solid #2563eb;
+    background: #2563eb;
+    color: #ffffff;
+}
+
+.change-form__button--primary:hover {
+    background: #1d4ed8;
+}
+
+.change-form__button--secondary {
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    color: #475569;
+}
+
+.change-form__button--secondary:hover {
+    background: #f8fafc;
+}
+
+
+/* =========================================================
+ * Change Status Form
+ * ========================================================= */
+
+.change-status-form {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.change-status-form__current {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 12px 14px;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    background: #f8fafc;
+}
+
+.change-status-form__label {
+    color: #6b7280;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.change-status-form__current-value {
+    color: #111827;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.change-status-form__field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.change-status-form__field label {
+    color: #374151;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.change-status-form__field select {
+    width: 100%;
+    min-height: 40px;
+    padding: 8px 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    background: #ffffff;
+    color: #111827;
+    font-size: 13px;
+    outline: none;
+}
+
+.change-status-form__field select:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.change-status-form__error {
+    padding: 10px 12px;
+    border: 1px solid #fecaca;
+    border-radius: 6px;
+    background: #fef2f2;
+    color: #b91c1c;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.change-status-form__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding-top: 16px;
+    border-top: 1px solid #e5e7eb;
+}
+
+.change-status-form__button {
+    min-height: 40px;
+    padding: 0 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.change-status-form__button--primary {
+    border: 1px solid #2563eb;
+    background: #2563eb;
+    color: #ffffff;
+}
+
+.change-status-form__button--primary:hover:not(:disabled) {
+    background: #1d4ed8;
+}
+
+.change-status-form__button--secondary {
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    color: #475569;
+}
+
+.change-status-form__button--secondary:hover:not(:disabled) {
+    background: #f8fafc;
+}
+
+
+/* =========================================================
+ * Change Approval Form
+ * ========================================================= */
+
+.change-approval-form {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.change-approval-form__summary {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 12px 14px;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    background: #f8fafc;
+}
+
+.change-approval-form__label {
+    color: #6b7280;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.change-approval-form__title {
+    color: #111827;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+.change-approval-form__decision {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+.change-approval-form__decision legend {
+    width: 100%;
+    margin-bottom: 2px;
+    padding: 0;
+}
+
+.change-approval-form__option {
+    display: flex;
+    flex: 1 1 180px;
+    align-items: center;
+    gap: 10px;
+    min-height: 48px;
+    padding: 12px 14px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #374151;
+    cursor: pointer;
+    transition:
+        border-color 0.15s ease,
+        background-color 0.15s ease;
+}
+
+.change-approval-form__option:hover {
+    border-color: #9ca3af;
+    background: #f9fafb;
+}
+
+.change-approval-form__option input {
+    flex-shrink: 0;
+    margin: 0;
+    accent-color: #2563eb;
+}
+
+.change-approval-form__option span {
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.change-approval-form__field {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.change-approval-form__field label {
+    color: #374151;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.change-approval-form__field textarea {
+    width: 100%;
+    box-sizing: border-box;
+    min-height: 100px;
+    padding: 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    background: #ffffff;
+    color: #111827;
+    font-size: 13px;
+    line-height: 1.6;
+    resize: vertical;
+    outline: none;
+}
+
+.change-approval-form__field textarea:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.change-approval-form__counter {
+    align-self: flex-end;
+    color: #94a3b8;
+    font-size: 11px;
+    line-height: 1.4;
+    font-variant-numeric: tabular-nums;
+}
+
+.change-approval-form__error {
+    padding: 10px 12px;
+    border: 1px solid #fecaca;
+    border-radius: 6px;
+    background: #fef2f2;
+    color: #b91c1c;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.change-approval-form__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding-top: 16px;
+    border-top: 1px solid #e5e7eb;
+}
+
+.change-approval-form__button {
+    min-height: 40px;
+    padding: 0 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.change-approval-form__button--primary {
+    border: 1px solid #2563eb;
+    background: #2563eb;
+    color: #ffffff;
+}
+
+.change-approval-form__button--primary:hover:not(:disabled) {
+    background: #1d4ed8;
+}
+
+.change-approval-form__button--secondary {
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    color: #475569;
+}
+
+.change-approval-form__button--secondary:hover:not(:disabled) {
+    background: #f8fafc;
+}
+
+
+/* =========================================================
+ * Disabled
+ * ========================================================= */
+
+.change-form__button:disabled,
+.change-status-form__button:disabled,
+.change-approval-form__button:disabled,
+.change-toolbar__reset:disabled,
+.change-toolbar__create:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+
+/* =========================================================
+ * Change State
+ * ========================================================= */
+
+.change-page__state {
+    width: 100%;
+}
+
+.change-list__empty {
+    padding: 40px 20px;
+    color: #64748b;
+    text-align: center;
+}
+
+
+/* =========================================================
+ * Responsive
+ * ========================================================= */
+
+@media (max-width: 1200px) {
+    .change-summary {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 900px) {
+    .change-summary {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .change-toolbar {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .change-toolbar__filters {
+        flex-basis: auto;
+    }
+
+    .change-toolbar__create {
+        align-self: flex-start;
+    }
+
+    .change-detail__header {
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 640px) {
+    .change-page,
+    .change-page__content {
+        gap: 16px;
+    }
+
+    .change-summary {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .change-summary__card {
+        padding: 14px;
+        border-radius: 8px;
+    }
+
+    .change-toolbar {
+        gap: 10px;
+        padding: 0;
+    }
+
+    .change-toolbar__filters {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .change-toolbar__search,
+    .change-toolbar__select {
+        width: 100%;
+        max-width: none;
+        min-width: 0;
+        flex-basis: auto;
+    }
+
+    .change-toolbar__reset,
+    .change-toolbar__create {
+        width: 100%;
+    }
+
+    .change-list {
+        border-radius: 8px;
+    }
+
+    .change-detail__title {
+        font-size: 18px;
+    }
+
+    .change-detail__section {
+        gap: 12px;
+        padding: 16px;
+        border-radius: 8px;
+    }
+
+    .change-detail__grid {
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+
+    .change-detail__item--full {
+        grid-column: auto;
+    }
+
+    .change-dialog__backdrop {
+        padding: 10px;
+    }
+
+    .change-dialog,
+    .change-dialog--wide {
+        width: calc(100vw - 20px);
+        max-height: calc(100vh - 24px);
+        border-radius: 10px;
+    }
+
+    .change-dialog__header {
+        padding: 16px;
+    }
+
+    .change-dialog__content {
+        padding: 16px;
+    }
+
+    .change-form__body {
+        grid-template-columns: 1fr;
+    }
+
+    .change-form__field--full {
+        grid-column: auto;
+    }
+
+    .change-form__actions,
+    .change-status-form__actions,
+    .change-approval-form__actions {
+        flex-wrap: wrap;
+    }
+
+    .change-form__button,
+    .change-status-form__button,
+    .change-approval-form__button {
+        flex: 1 1 120px;
+    }
+
+    .change-approval-form__decision {
+        flex-direction: column;
+    }
+
+    .change-approval-form__option {
+        flex-basis: auto;
+    }
+}

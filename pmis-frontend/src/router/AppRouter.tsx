@@ -14,20 +14,17 @@ import WbsPage from "../features/wbs/pages/WbsPage";
 
 import LoginPage from "../features/auth/pages/LoginPage";
 
-
 import ProjectPage from "../features/project/pages/ProjectPage";
-
 import ProjectDetailPage from "../features/project/pages/ProjectDetailPage";
-
 import ProjectFormPage from "../features/project/pages/ProjectFormPage";
 
-
 import SchedulePage from "../features/schedule/SchedulePage";
-
 
 import IssuePage from "../features/issue/IssuePage";
 
 import RiskPage from "../features/risk/RiskPage";
+
+import ChangePage from "../features/change/ChangePage";
 
 
 /**
@@ -39,20 +36,20 @@ import RiskPage from "../features/risk/RiskPage";
  *
  * 주요 Route:
  *
- * - /                         Dashboard
- * - /login                    Login
- * - /evidence                Evidence
- * - /wbs                      WBS
- * - /project                  Project List
- * - /project/create           Project Create
- * - /project/:projectId/detail Project Detail
- * - /project/:projectId/edit  Project Edit
- * - /schedule                 Schedule
- * - /issue                    Issue
- * - /risk                     Risk
+ * - /                              Dashboard
+ * - /login                         Login
+ * - /evidence                      Evidence
+ * - /wbs                           WBS
+ * - /project                       Project List
+ * - /project/create                Project Create
+ * - /project/:projectId/detail     Project Detail
+ * - /project/:projectId/edit       Project Edit
+ * - /schedule                      Schedule
+ * - /issue                         Issue
+ * - /risk                          Risk
+ * - /project/:projectId/change     Change Management
  */
 function AppRouter() {
-
 
   return (
 
@@ -204,12 +201,56 @@ function AppRouter() {
           />
 
 
+          {/* ===========================================
+              Change Management
+              =========================================== */}
+
+          <Route
+            path="/project/:projectId/change"
+            element={
+              <ProjectChangePage />
+            }
+          />
+
+
         </Route>
 
       </Routes>
 
     </BrowserRouter>
 
+  );
+
+}
+
+
+/**
+ * =====================================================
+ * Project Change Route
+ * =====================================================
+ *
+ * React Router의 projectId parameter를
+ * ChangePage의 projectId prop으로 전달한다.
+ */
+function ProjectChangePage() {
+
+  return (
+    <ProjectChangePageContent />
+  );
+
+}
+
+
+function ProjectChangePageContent() {
+
+  const projectId = Number(
+    window.location.pathname.split("/")[2]
+  );
+
+  return (
+    <ChangePage
+      projectId={projectId}
+    />
   );
 
 }
