@@ -262,6 +262,34 @@ function ProjectDetailPage() {
 
   /**
    * =====================================================
+   * 변경 관리 페이지 이동
+   * =====================================================
+   *
+   * Frontend Route:
+   *
+   * /project/{projectId}/change
+   *
+   * ChangePage
+   *     ↓
+   * GET /api/projects/{projectId}/changes
+   */
+
+  const handleChangeManagement = () => {
+
+    if (!project) {
+      return;
+    }
+
+
+    navigate(
+      `/project/${project.id}/change`,
+    );
+
+  };
+
+
+  /**
+   * =====================================================
    * 프로젝트 삭제
    * =====================================================
    *
@@ -552,11 +580,23 @@ function ProjectDetailPage() {
           className="project-detail-page__header-actions"
         >
 
-          {/* Edit */}
+          {/* Change Management */}
 
           <button
             type="button"
             className="button button--primary"
+            onClick={handleChangeManagement}
+            disabled={deleting}
+          >
+            변경 관리
+          </button>
+
+
+          {/* Edit */}
+
+          <button
+            type="button"
+            className="button button--secondary"
             onClick={handleEdit}
             disabled={deleting}
           >
