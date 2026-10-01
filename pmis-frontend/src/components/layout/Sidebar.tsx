@@ -37,10 +37,6 @@ const menuItems: MenuItem[] = [
     path: "/risk",
   },
   {
-    label: "Change",
-    path: "/change",
-  },
-  {
     label: "Evidence",
     path: "/evidence",
   },
