@@ -20,6 +20,7 @@ interface ChangeDetailProps {
   onStatusSubmit?: (
     request: ChangeStatusUpdateRequest,
   ) => void | Promise<void>;
+  onEdit?: () => void;
   onClose?: () => void;
 }
 
@@ -62,6 +63,7 @@ export default function ChangeDetail({
   change,
   loading = false,
   onStatusSubmit,
+  onEdit,
   onClose,
 }: ChangeDetailProps) {
   return (
@@ -72,7 +74,9 @@ export default function ChangeDetail({
             {displayText(change.changeKey)}
           </div>
 
-          <h2 className="change-detail__title">{change.title}</h2>
+          <h2 className="change-detail__title">
+            {change.title}
+          </h2>
 
           <div className="change-detail__badges">
             <span
@@ -89,20 +93,36 @@ export default function ChangeDetail({
           </div>
         </div>
 
-        {onClose && (
-          <button
-            type="button"
-            className="change-detail__close"
-            onClick={onClose}
-            aria-label="상세 정보 닫기"
-          >
-            ×
-          </button>
-        )}
+        <div className="change-detail__actions">
+          {onEdit && (
+            <button
+              type="button"
+              className="change-detail__edit"
+              onClick={onEdit}
+              disabled={loading}
+            >
+              수정
+            </button>
+          )}
+
+          {onClose && (
+            <button
+              type="button"
+              className="change-detail__close"
+              onClick={onClose}
+              disabled={loading}
+              aria-label="상세 정보 닫기"
+            >
+              ×
+            </button>
+          )}
+        </div>
       </header>
 
       <section className="change-detail__section">
-        <h3 className="change-detail__section-title">요청 정보</h3>
+        <h3 className="change-detail__section-title">
+          요청 정보
+        </h3>
 
         <dl className="change-detail__grid">
           <DetailItem label="변경 유형">
@@ -151,7 +171,9 @@ export default function ChangeDetail({
 
           <DetailItem label="기한 초과">
             {change.overdue ? (
-              <span className="change-detail__overdue">초과</span>
+              <span className="change-detail__overdue">
+                초과
+              </span>
             ) : (
               "아니요"
             )}
@@ -160,35 +182,50 @@ export default function ChangeDetail({
       </section>
 
       <section className="change-detail__section">
-        <h3 className="change-detail__section-title">변경 요청 내용</h3>
+        <h3 className="change-detail__section-title">
+          변경 요청 내용
+        </h3>
+
         <p className="change-detail__paragraph">
           {displayText(change.description)}
         </p>
       </section>
 
       <section className="change-detail__section">
-        <h3 className="change-detail__section-title">영향 분석</h3>
+        <h3 className="change-detail__section-title">
+          영향 분석
+        </h3>
+
         <p className="change-detail__paragraph">
           {displayText(change.impactAnalysis)}
         </p>
       </section>
 
       <section className="change-detail__section">
-        <h3 className="change-detail__section-title">구현 계획</h3>
+        <h3 className="change-detail__section-title">
+          구현 계획
+        </h3>
+
         <p className="change-detail__paragraph">
           {displayText(change.implementationPlan)}
         </p>
       </section>
 
       <section className="change-detail__section">
-        <h3 className="change-detail__section-title">검증 결과</h3>
+        <h3 className="change-detail__section-title">
+          검증 결과
+        </h3>
+
         <p className="change-detail__paragraph">
           {displayText(change.verificationResult)}
         </p>
       </section>
 
       <section className="change-detail__section">
-        <h3 className="change-detail__section-title">승인 의견</h3>
+        <h3 className="change-detail__section-title">
+          승인 의견
+        </h3>
+
         <p className="change-detail__paragraph">
           {displayText(change.approvalComment)}
         </p>
@@ -196,7 +233,9 @@ export default function ChangeDetail({
 
       {onStatusSubmit && (
         <section className="change-detail__section change-detail__section--status">
-          <h3 className="change-detail__section-title">진행 상태 변경</h3>
+          <h3 className="change-detail__section-title">
+            진행 상태 변경
+          </h3>
 
           <ChangeStatusForm
             change={change}
