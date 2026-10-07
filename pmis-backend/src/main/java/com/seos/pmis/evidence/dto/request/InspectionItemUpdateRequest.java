@@ -5,13 +5,15 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 /**
- * Inspection Item 생성 요청 DTO
+ * Inspection Item 수정 요청 DTO
  *
- * Inspection에서 검사할 Evidence Requirement를
- * Inspection Item으로 등록할 때 사용한다.
+ * 기존 Inspection Item의 검사 대상 및 기본 정보를 수정할 때 사용한다.
  *
- * API:
- * POST /api/inspections/{inspectionId}/items
+ * Client 수정 가능 필드:
+ * - requirementId
+ * - evidenceId
+ * - remark
+ * - sortOrder
  *
  * Backend 관리 필드:
  * - id
@@ -20,29 +22,21 @@ import lombok.NoArgsConstructor;
  * - createdAt
  * - updatedAt
  *
- * inspectionId는 PathVariable로 전달받는다.
- *
- * Inspection Item의 검사 결과는 생성 시
- * PENDING으로 초기화한다.
+ * Inspection Item의 검사 결과(result)는
+ * 별도의 결과 변경 로직을 통해 처리한다.
  */
 @Getter
 @NoArgsConstructor
-public class InspectionItemCreateRequest {
+public class InspectionItemUpdateRequest {
 
     /**
      * 검사 대상 Evidence Requirement ID
-     *
-     * Inspection에서 어떤 Requirement를
-     * 검사할 것인지 지정한다.
      */
     @NotNull(message = "Evidence Requirement ID는 필수입니다.")
     private Long requirementId;
 
     /**
-     * 검사 시 사용할 Evidence ID
-     *
-     * 해당 Requirement에 등록된 Evidence가 있는 경우
-     * 특정 Evidence를 검사 대상으로 연결할 수 있다.
+     * 검사 대상 Evidence ID
      *
      * 선택 사항이다.
      */
@@ -50,8 +44,6 @@ public class InspectionItemCreateRequest {
 
     /**
      * Inspection Item 비고
-     *
-     * 검사 대상에 대한 사전 메모 또는 참고사항을 기록한다.
      */
     private String remark;
 
