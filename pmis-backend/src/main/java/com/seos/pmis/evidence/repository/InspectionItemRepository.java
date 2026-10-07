@@ -54,6 +54,19 @@ public interface InspectionItemRepository
     );
 
     /**
+     * Evidence별 Inspection Item 존재 여부
+     *
+     * Evidence가 Inspection에서 사용 중인 경우
+     * 해당 Evidence를 삭제하지 않도록 검증하는 데 사용한다.
+     *
+     * @param evidenceId Evidence ID
+     * @return Inspection Item 사용 여부
+     */
+    boolean existsByEvidenceId(
+            Long evidenceId
+    );
+
+    /**
      * Inspection + 결과별 점검 항목 조회
      *
      * 예:
@@ -76,5 +89,7 @@ public interface InspectionItemRepository
      * @param inspectionId Inspection ID
      * @return 점검 항목 존재 여부
      */
-    boolean existsByInspectionId(Long inspectionId);
+    boolean existsByInspectionId(
+            Long inspectionId
+    );
 }
