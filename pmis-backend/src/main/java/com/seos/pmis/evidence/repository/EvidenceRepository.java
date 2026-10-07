@@ -40,6 +40,17 @@ public interface EvidenceRepository
     List<Evidence> findAllByRequirementId(Long requirementId);
 
     /**
+     * Requirement별 Evidence 존재 여부
+     *
+     * Evidence가 등록된 Evidence Requirement는
+     * 삭제하지 않도록 검증하는 데 사용한다.
+     *
+     * @param requirementId Evidence Requirement ID
+     * @return Evidence 존재 여부
+     */
+    boolean existsByRequirementId(Long requirementId);
+
+    /**
      * 프로젝트 + Evidence Key 조회
      *
      * Evidence Key는 프로젝트 내부에서 유일하다.

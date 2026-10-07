@@ -137,6 +137,17 @@ public class InspectionItem extends BaseEntity {
     }
 
     /**
+     * Evidence Requirement 변경
+     *
+     * 검사 대상 요구사항을 변경한다.
+     */
+    public void changeRequirement(
+            EvidenceRequirement requirement
+    ) {
+        this.requirement = requirement;
+    }
+
+    /**
      * Evidence 연결
      */
     public void changeEvidence(Evidence evidence) {
