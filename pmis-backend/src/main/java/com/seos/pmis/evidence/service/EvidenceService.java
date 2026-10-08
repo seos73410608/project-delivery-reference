@@ -49,6 +49,13 @@ public class EvidenceService {
 
     private final EvidenceMapper evidenceMapper;
 
+    /*
+     * Evidence 생성/삭제 후
+     * 연결된 Evidence Requirement의 상태를
+     * 다시 계산하기 위해 사용한다.
+     */
+    private final EvidenceRequirementService evidenceRequirementService;
+
     /**
      * =========================================================================
      * 조회
@@ -185,6 +192,9 @@ public class EvidenceService {
      *
      * Requirement를 기준으로 Project를 결정한다.
      * 현재 로그인 사용자를 submittedBy로 기록한다.
+     *
+     * Evidence 생성 후 연결된 Requirement의 상태를
+     * 다시 계산한다.
      */
     @Transactional
     public EvidenceResponse create(
@@ -229,6 +239,18 @@ public class EvidenceService {
 
         Evidence saved =
                 evidenceRepository.save(evidence);
+
+        /*
+         * Evidence 생성으로 인해
+         * Requirement 상태가 변경될 수 있으므로
+         * 상태를 다시 계산한다.
+         *
+         * 예:
+         * PENDING → PRESENT
+         */
+        evidenceRequirementService.refreshStatus(
+                requirement.getId()
+        );
 
         return evidenceMapper.toResponse(saved);
     }
@@ -281,6 +303,9 @@ public class EvidenceService {
      * Evidence 삭제
      *
      * Inspection Item에서 사용 중인 Evidence는 삭제할 수 없다.
+     *
+     * Evidence 삭제 후 연결된 Requirement의 상태를
+     * 다시 계산한다.
      */
     @Transactional
     public void delete(
@@ -297,7 +322,27 @@ public class EvidenceService {
             );
         }
 
+        /*
+         * Evidence 삭제 후에도
+         * Requirement 상태를 다시 계산해야 하므로
+         * Requirement ID를 먼저 확보한다.
+         */
+        Long requirementId =
+                evidence.getRequirement().getId();
+
         evidenceRepository.delete(evidence);
+
+        /*
+         * Evidence 삭제로 인해
+         * Requirement 상태가 변경될 수 있다.
+         *
+         * 예:
+         * PRESENT → PENDING
+         * PRESENT → MISSING
+         */
+        evidenceRequirementService.refreshStatus(
+                requirementId
+        );
     }
 
     /**

@@ -1,110 +1,163 @@
 # Evidence & Inspection Frontend ↔ Backend API Contract
 
-> Version: **1.0**  
-> Domain: **Evidence & Inspection**  
-> Status: **Ready for Implementation**  
-> Last Updated: **2026-10-06**  
+> Version: **1.1**\
+> Domain: **Evidence & Inspection**\
+> Status: **Backend Swagger Verification Completed / Frontend Ready**\
+> Last Updated: **2026-10-08**\
 > Git Branch: `feature/evidence-management`
 
 ## 1. Purpose
 
-PMIS Evidence & Inspection Domain의 Frontend ↔ Backend API 계약을 정의한다.
+PMIS Evidence & Inspection Domain의 Frontend ↔ Backend API 계약을
+정의한다.
 
 핵심 흐름:
 
-```text
+``` text
 Project → WBS / Task → Evidence Requirement → Evidence
 → Verification → Inspection → Report / Dashboard
 ```
 
-Frontend와 Backend는 본 계약을 기준으로 API, TypeScript Type, 화면, 검증 및 E2E를 구현한다.
+본 문서는 초기 계약에 실제 Backend 구현 및 2026-10-08 Swagger 검증
+결과를 반영한 갱신본이다.
+
+------------------------------------------------------------------------
 
 ## 2. API Base Path
 
-```text
+``` text
 /api
 ```
 
 ## 3. Domain Relationship
 
-```text
+``` text
 Project
  │
  ├── WBS
- │   └── EvidenceRequirement
- │        └── Evidence
- │             └── Verification
+ │    └── EvidenceRequirement
+ │         └── Evidence
+ │              └── Verification
  │
  └── Inspection
       └── InspectionItem
-           └── EvidenceRequirement / Evidence
+           ├── EvidenceRequirement
+           └── Evidence
 ```
 
-- Project 1:N EvidenceRequirement
-- Project 1:N Evidence
-- EvidenceRequirement 1:N Evidence
-- Project 1:N Inspection
-- Inspection 1:N InspectionItem
-- EvidenceRequirement의 WBS 연결은 선택적
-- Evidence는 반드시 EvidenceRequirement에 연결
-- Evidence와 Requirement의 Project는 동일해야 한다.
+-   Project 1:N EvidenceRequirement
+-   Project 1:N Evidence
+-   EvidenceRequirement 1:N Evidence
+-   Project 1:N Inspection
+-   Inspection 1:N InspectionItem
+-   EvidenceRequirement의 WBS 연결은 선택적
+-   Evidence는 반드시 EvidenceRequirement에 연결
+-   Evidence와 Requirement의 Project는 동일해야 한다.
+-   InspectionItem의 Evidence는 선택적이다.
+-   Inspection에서 사용 중인 Evidence는 삭제할 수 없다.
 
-## 4. API Inventory
+------------------------------------------------------------------------
 
-### Evidence Requirement
+# 4. API Inventory
 
-| Method | URI | Description |
-|---|---|---|
-| GET | `/api/projects/{projectId}/evidence-requirements` | 프로젝트별 조회 |
-| POST | `/api/projects/{projectId}/evidence-requirements` | 생성 |
-| GET | `/api/evidence-requirements/{id}` | 상세 |
-| PUT | `/api/evidence-requirements/{id}` | 수정 |
-| DELETE | `/api/evidence-requirements/{id}` | 삭제 |
-| GET | `/api/evidence-requirements` | 검색 |
+## 4.1 Evidence Requirement
 
-### Evidence
+  ---------------------------------------------------------------------------------------------------
+  Method                  URI                                                 Description
+  ----------------------- --------------------------------------------------- -----------------------
+  GET                     `/api/projects/{projectId}/evidence-requirements`   프로젝트별 조회
 
-| Method | URI | Description |
-|---|---|---|
-| GET | `/api/evidence-requirements/{requirementId}/evidence` | Requirement별 조회 |
-| POST | `/api/evidence-requirements/{requirementId}/evidence` | 등록 |
-| GET | `/api/evidence/{id}` | 상세 |
-| PUT | `/api/evidence/{id}` | 수정 |
-| DELETE | `/api/evidence/{id}` | 삭제 |
-| GET | `/api/evidence` | 검색 |
-| PATCH | `/api/evidence/{id}/verification` | Verification |
+  POST                    `/api/projects/{projectId}/evidence-requirements`   생성
 
-### Inspection
+  GET                     `/api/evidence-requirements/{id}`                   상세
 
-| Method | URI | Description |
-|---|---|---|
-| GET | `/api/projects/{projectId}/inspections` | 목록 |
-| POST | `/api/projects/{projectId}/inspections` | 생성 |
-| GET | `/api/inspections/{id}` | 상세 |
-| PUT | `/api/inspections/{id}` | 수정 |
-| POST | `/api/inspections/{inspectionId}/items` | Item 등록 |
-| PATCH | `/api/inspections/{id}/status` | 상태 변경 |
+  PUT                     `/api/evidence-requirements/{id}`                   수정
 
-### Summary
+  DELETE                  `/api/evidence-requirements/{id}`                   삭제
 
-```http
+  GET                     `/api/evidence-requirements`                        검색
+  ---------------------------------------------------------------------------------------------------
+
+## 4.2 Evidence
+
+  -------------------------------------------------------------------------------------------------------
+  Method                  URI                                                     Description
+  ----------------------- ------------------------------------------------------- -----------------------
+  GET                     `/api/projects/{projectId}/evidence`                    프로젝트별 조회
+
+  GET                     `/api/evidence-requirements/{requirementId}/evidence`   Requirement별 조회
+
+  POST                    `/api/evidence-requirements/{requirementId}/evidence`   등록
+
+  GET                     `/api/evidence/{id}`                                    상세
+
+  PUT                     `/api/evidence/{id}`                                    수정
+
+  DELETE                  `/api/evidence/{id}`                                    삭제
+
+  GET                     `/api/evidence`                                         검색
+
+  GET                     `/api/projects/{projectId}/wbs/{wbsId}/evidence`        Project + WBS별 조회
+
+  PATCH                   `/api/evidence/{id}/verification`                       Verification
+  -------------------------------------------------------------------------------------------------------
+
+## 4.3 Inspection
+
+  ---------------------------------------------------------------------------------------------------------
+  Method                  URI                                                       Description
+  ----------------------- --------------------------------------------------------- -----------------------
+  GET                     `/api/projects/{projectId}/inspections`                   프로젝트별 목록
+
+  GET                     `/api/projects/{projectId}/inspections/status/{status}`   상태별 목록
+
+  POST                    `/api/projects/{projectId}/inspections`                   생성
+
+  GET                     `/api/inspections/{id}`                                   상세
+
+  PUT                     `/api/inspections/{id}`                                   수정
+
+  PATCH                   `/api/inspections/{id}/status`                            상태 변경
+
+  GET                     `/api/inspections/{inspectionId}/items`                   Item 목록
+
+  POST                    `/api/inspections/{inspectionId}/items`                   Item 등록
+
+  GET                     `/api/inspection-items/{itemId}`                          Item 상세
+
+  PUT                     `/api/inspection-items/{itemId}`                          Item 수정
+
+  PATCH                   `/api/inspection-items/{itemId}/result`                   Item 결과 변경
+  ---------------------------------------------------------------------------------------------------------
+
+## 4.4 Summary
+
+설계 Endpoint:
+
+``` http
 GET /api/projects/{projectId}/evidence-summary
 ```
 
-## 5. Enum Contract
+> Summary DTO는 존재하지만 2026-10-08 현재 실제 Controller/Swagger 응답
+> 검증은 별도 완료 대상이다. Frontend Summary 구현 전에 실제 Response를
+> 확정한다.
 
-### RequirementStatus
+------------------------------------------------------------------------
 
-```text
+# 5. Enum Contract
+
+## RequirementStatus
+
+``` text
 PENDING
 PRESENT
 MISSING
 NOT_REQUIRED
 ```
 
-### RequirementType
+## RequirementType
 
-```text
+``` text
 INSTALLATION
 CONFIGURATION
 ACCOUNT
@@ -117,30 +170,30 @@ SECURITY
 OTHER
 ```
 
-### EvidenceType
+## EvidenceType --- 실제 Backend Enum
 
-```text
-DOCUMENT
-IMAGE
-SCREENSHOT
-LOG
-CONFIGURATION
-REPORT
-TEST_RESULT
+``` text
 OTHER
+LOG
+SCREENSHOT
+TEST_RESULT
+IMAGE
+REPORT
+CONFIGURATION
+DOCUMENT
 ```
 
-### VerificationStatus
+## VerificationStatus
 
-```text
+``` text
 PENDING
 APPROVED
 REJECTED
 ```
 
-### InspectionStatus
+## InspectionStatus
 
-```text
+``` text
 PLANNED
 IN_PROGRESS
 PASSED
@@ -148,20 +201,22 @@ FAILED
 CLOSED
 ```
 
-### InspectionItemResult
+## InspectionItemResult
 
-```text
+``` text
 PENDING
 PASSED
 FAILED
 NOT_APPLICABLE
 ```
 
-## 6. Evidence Requirement Contract
+------------------------------------------------------------------------
+
+# 6. Evidence Requirement Contract
 
 주요 필드:
 
-```text
+``` text
 id
 projectId
 wbsId
@@ -179,37 +234,45 @@ updatedAt
 
 Requirement Key는 Backend가 생성한다.
 
-```text
+``` text
 EVR-001
 EVR-002
 EVR-003
 ...
 ```
 
-프로젝트별 `(projectId, requirementKey)`는 unique해야 한다.
+DB Unique:
 
-## 7. Requirement Create API
+``` text
+(projectId, requirementKey)
+```
 
-```http
+------------------------------------------------------------------------
+
+# 7. Requirement Create API
+
+``` http
 POST /api/projects/{projectId}/evidence-requirements
 Content-Type: application/json
 ```
 
-```json
+Request:
+
+``` json
 {
-  "wbsId": 101,
-  "title": "서버 OS 설치 결과",
-  "description": "대상 서버의 OS 설치 결과 증적",
+  "wbsId": 1,
+  "title": "서버 설치 결과 증적",
+  "description": "서버 설치 및 기본 설정 결과를 확인할 수 있는 증적",
   "requirementType": "INSTALLATION",
   "required": true,
-  "dueDate": "2026-10-15",
+  "dueDate": "2026-10-20",
   "sortOrder": 1
 }
 ```
 
-Backend Managed Fields:
+Backend Managed:
 
-```text
+``` text
 id
 projectId
 requirementKey
@@ -218,19 +281,95 @@ createdAt
 updatedAt
 ```
 
-생성 시 `requirementKey = EVR-XXX`, `status = PENDING`.
+생성 시:
 
-## 8. Requirement Update API
+``` text
+requirementKey = EVR-001
+status = PENDING
+```
 
-```http
+실제 Swagger:
+
+``` text
+Project ID = 2
+WBS ID = 1
+Requirement ID = 1
+Requirement Key = EVR-001
+Initial Status = PENDING
+```
+
+------------------------------------------------------------------------
+
+# 8. Requirement Status Policy
+
+Backend Service가 관리한다.
+
+  조건                                                Status
+  --------------------------------------------------- ----------------
+  `required = false`                                  `NOT_REQUIRED`
+  Evidence \>= 1                                      `PRESENT`
+  `required = true` + Evidence = 0 + dueDate 경과     `MISSING`
+  `required = true` + Evidence = 0 + dueDate 미경과   `PENDING`
+
+``` text
+required=false
+    → NOT_REQUIRED
+
+Evidence >= 1
+    → PRESENT
+
+Evidence = 0 + overdue
+    → MISSING
+
+Evidence = 0 + not overdue
+    → PENDING
+```
+
+Frontend는 자체 계산하지 않는다.
+
+### Evidence 생성/삭제 연동
+
+Evidence 생성 후:
+
+``` java
+evidenceRequirementService.refreshStatus(requirementId);
+```
+
+Evidence 삭제 후에도 동일하게 Requirement Status를 재계산한다.
+
+실제 검증:
+
+``` text
+EVD-001 삭제
+→ Evidence 재등록
+→ EVR-001 = PRESENT
+```
+
+------------------------------------------------------------------------
+
+# 9. Requirement Update / Detail / Search
+
+## Update
+
+``` http
 PUT /api/evidence-requirements/{id}
 ```
 
-수정 가능한 업무 필드만 전달한다.
+수정 가능:
+
+``` text
+wbsId
+title
+description
+requirementType
+required
+dueDate
+sortOrder
+```
 
 수정 불가:
 
-```text
+``` text
 id
 projectId
 requirementKey
@@ -239,43 +378,24 @@ createdAt
 updatedAt
 ```
 
-Evidence가 존재하는 Requirement는 V1에서 hard delete하지 않는다.
+Evidence가 존재하는 Requirement 삭제는 Backend 무결성 정책에 의해
+제한된다.
 
-## 9. Requirement Detail API
+## Detail
 
-```http
+``` http
 GET /api/evidence-requirements/{id}
 ```
 
-Response 예시:
+## Search
 
-```json
-{
-  "id": 1,
-  "projectId": 10,
-  "wbsId": 101,
-  "requirementKey": "EVR-001",
-  "title": "서버 OS 설치 결과",
-  "description": "대상 서버의 OS 설치 결과 증적",
-  "requirementType": "INSTALLATION",
-  "required": true,
-  "dueDate": "2026-10-15",
-  "status": "PRESENT",
-  "sortOrder": 1,
-  "createdAt": "2026-10-02T10:00:00",
-  "updatedAt": "2026-10-02T11:00:00"
-}
-```
-
-## 10. Requirement Search API
-
-```http
+``` http
 GET /api/evidence-requirements
 ```
 
 Query:
 
-```text
+``` text
 projectId
 wbsId
 keyword
@@ -290,28 +410,34 @@ direction
 
 예:
 
-```http
-GET /api/evidence-requirements?projectId=10&status=MISSING&page=0&size=20&sortBy=dueDate&direction=ASC
+``` http
+GET /api/evidence-requirements?projectId=2&status=MISSING&page=0&size=20&sortBy=dueDate&direction=ASC
 ```
 
-기존 PMIS `SearchPageableFactory` 정책을 따른다.
+Paging은 기존 `SearchPageableFactory` 정책을 따른다.
 
-## 11. Evidence Key Contract
+------------------------------------------------------------------------
 
-Evidence Key는 Backend가 생성한다.
+# 10. Evidence Contract
 
-```text
+## Key
+
+``` text
 EVD-001
 EVD-002
 EVD-003
 ...
 ```
 
-프로젝트별 `(projectId, evidenceKey)`는 unique해야 한다.
+DB Unique:
 
-## 12. Evidence Fields
+``` text
+(projectId, evidenceKey)
+```
 
-```text
+## Fields
+
+``` text
 id
 projectId
 requirementId
@@ -322,40 +448,48 @@ title
 description
 fileName
 filePath
-submittedBy
+submittedById
+submittedByName
 submittedAt
 verificationStatus
-verifiedBy
+verifiedById
+verifiedByName
 verifiedAt
 verificationRemark
 createdAt
 updatedAt
 ```
 
-## 13. Evidence Create API
+------------------------------------------------------------------------
 
-```http
+# 11. Evidence Create / Update / Detail
+
+## Create
+
+``` http
 POST /api/evidence-requirements/{requirementId}/evidence
 ```
 
-```json
+Request:
+
+``` json
 {
+  "wbsId": 1,
   "evidenceType": "DOCUMENT",
-  "title": "서버 OS 설치 결과서",
-  "description": "OS 설치 완료 결과 문서",
-  "fileName": "server-os-install.pdf",
-  "filePath": "/evidence/2026/10/server-os-install.pdf"
+  "title": "서버 설치 결과 확인서",
+  "description": "서버 설치 및 기본 설정 완료 결과",
+  "fileName": "server-install-result.pdf",
+  "filePath": "/evidence/2026/10/server-install-result.pdf"
 }
 ```
 
-Backend Managed Fields:
+Backend Managed:
 
-```text
+``` text
 id
 projectId
 requirementId
 evidenceKey
-wbsId
 submittedBy
 submittedAt
 verificationStatus
@@ -366,20 +500,50 @@ createdAt
 updatedAt
 ```
 
-생성 시 `verificationStatus = PENDING`.
+생성 시:
 
-Evidence가 등록되면 Requirement 상태는 원칙적으로 `PRESENT`.
+``` text
+verificationStatus = PENDING
+```
 
-## 14. Evidence Update / Detail API
+실제 Swagger:
 
-```http
+``` text
+Evidence ID = 2
+Evidence Key = EVD-001
+Evidence Type = DOCUMENT
+Verification Status = PENDING
+Submitted By = 관리자
+```
+
+Evidence 생성 후 Requirement는 자동으로 `PRESENT`가 된다.
+
+## Update
+
+``` http
 PUT /api/evidence/{id}
+```
+
+수정 가능:
+
+``` text
+wbsId
+evidenceType
+title
+description
+fileName
+filePath
+```
+
+## Detail
+
+``` http
 GET /api/evidence/{id}
 ```
 
 수정 불가:
 
-```text
+``` text
 id
 projectId
 requirementId
@@ -392,118 +556,129 @@ createdAt
 updatedAt
 ```
 
-## 15. Requirement별 Evidence API
+------------------------------------------------------------------------
 
-```http
-GET  /api/evidence-requirements/{requirementId}/evidence
-POST /api/evidence-requirements/{requirementId}/evidence
+# 12. Evidence Query APIs
+
+``` http
+GET /api/projects/{projectId}/evidence
+
+GET /api/evidence-requirements/{requirementId}/evidence
+
+GET /api/projects/{projectId}/wbs/{wbsId}/evidence
 ```
 
-Requirement ID는 URL Path로 전달하고 Body에 중복 전달하지 않는다.
+Search:
 
-## 16. Evidence Search API
-
-```http
+``` http
 GET /api/evidence
 ```
 
 Query:
 
-```text
+``` text
 projectId
 requirementId
 wbsId
 keyword
 evidenceType
 verificationStatus
-submittedBy
 page
 size
 sortBy
 direction
 ```
 
-## 17. Verification API
+> 현재 실제 `EvidenceSearchRequest`에는 `submittedBy` 필드가 없으므로
+> Frontend Search Contract에서는 제외한다.
 
-```http
+------------------------------------------------------------------------
+
+# 13. Verification API
+
+``` http
 PATCH /api/evidence/{id}/verification
 Content-Type: application/json
 ```
 
 승인:
 
-```json
+``` json
 {
   "status": "APPROVED",
-  "remark": "설치 결과 및 설정값 확인 완료"
+  "remark": "서버 설치 결과 및 기본 설정 확인 완료"
 }
 ```
 
 반려:
 
-```json
+``` json
 {
   "status": "REJECTED",
   "remark": "설치 로그 일부가 누락되어 재제출 필요"
 }
 ```
 
-Backend가 관리:
+Backend Managed:
 
-```text
+``` text
 verificationStatus
 verifiedBy
 verifiedAt
 verificationRemark
 ```
 
-규칙:
+Rules:
 
-- APPROVED → `verifiedAt = now()`
-- REJECTED → `verifiedAt = now()`
-- REJECTED는 remark 필수
-- verifiedBy는 현재 인증 사용자
-- Frontend가 verifier ID를 임의 지정하지 않는다.
+``` text
+APPROVED → verifiedAt = now()
+REJECTED → verifiedAt = now()
+REJECTED → remark 필수
+verifiedBy → 현재 인증 사용자
+verifiedAt → Backend 현재 시각
+```
 
-핵심 원칙:
+핵심:
 
-```text
+``` text
 PRESENT != APPROVED
 ```
 
-## 18. Requirement Status Policy
+실제 Swagger:
 
-| 조건 | Status |
-|---|---|
-| required = false | NOT_REQUIRED |
-| evidence = 0, dueDate 미경과 | PENDING |
-| required = true, evidence = 0, dueDate 경과 | MISSING |
-| evidence >= 1 | PRESENT |
-
-```text
-Evidence 0
- ├─ required=false → NOT_REQUIRED
- ├─ required=true + overdue → MISSING
- └─ otherwise → PENDING
-
-Evidence >= 1 → PRESENT
+``` text
+EVD-001
+PENDING
+  ↓
+PATCH /api/evidence/2/verification
+  ↓
+APPROVED
 ```
 
-Service Layer가 관리하며 Frontend는 자체 계산하지 않는다.
+결과:
 
-## 19. Inspection Contract
+``` text
+verificationStatus = APPROVED
+verifiedById = 1
+verifiedByName = 관리자
+verifiedAt = Backend current time
+verificationRemark = 서버 설치 결과 및 기본 설정 확인 완료
+```
 
-Inspection은 프로젝트 또는 단계 수준의 공식 점검을 관리한다.
+------------------------------------------------------------------------
 
-```text
+# 14. Inspection Contract
+
+``` text
 Inspection
- └── InspectionItem
-      └── EvidenceRequirement / Evidence
+  └── InspectionItem
+       ├── EvidenceRequirement
+       └── Evidence
 ```
 
-상태:
+Status:
 
-```text
+``` text
 PLANNED
 IN_PROGRESS
 PASSED
@@ -511,100 +686,301 @@ FAILED
 CLOSED
 ```
 
-## 20. Inspection Create / Detail / Update
+------------------------------------------------------------------------
 
-생성:
+# 15. Inspection Create / Detail / Update
 
-```http
+Create:
+
+``` http
 POST /api/projects/{projectId}/inspections
 ```
 
-```json
+Request:
+
+``` json
 {
-  "title": "서버 인프라 설치 검수",
-  "description": "서버 OS 및 WAS 설치 결과 검수",
-  "inspectionDate": "2026-10-20"
+  "title": "서버 설치 결과 검수",
+  "description": "서버 설치 및 기본 설정 결과 검수",
+  "inspectionDate": "2026-10-08",
+  "inspectorName": "PMO 담당자",
+  "resultRemark": ""
 }
 ```
 
-초기 상태는 `PLANNED`.
+Initial:
 
-상세:
+``` text
+PLANNED
+```
 
-```http
+실제 Swagger:
+
+``` text
+Inspection ID = 1
+Project ID = 2
+Status = PLANNED
+Inspector = PMO 담당자
+```
+
+Detail:
+
+``` http
 GET /api/inspections/{id}
 ```
 
-수정:
+Update:
 
-```http
+``` http
 PUT /api/inspections/{id}
 ```
 
-상태와 식별자는 Backend 관리 영역이다.
+수정 가능:
 
-## 21. Inspection Item Contract
+``` text
+title
+description
+inspectionDate
+inspectorName
+resultRemark
+```
+
+Backend Managed:
+
+``` text
+id
+projectId
+status
+startedAt
+completedAt
+createdAt
+updatedAt
+```
+
+------------------------------------------------------------------------
+
+# 16. Inspection Item Contract
 
 주요 필드:
 
-```text
+``` text
 id
 inspectionId
 requirementId
+requirementKey
+requirementTitle
 evidenceId
+evidenceKey
+evidenceTitle
 result
 remark
+sortOrder
 createdAt
 updatedAt
 ```
 
 Result:
 
-```text
+``` text
 PENDING
 PASSED
 FAILED
 NOT_APPLICABLE
 ```
 
-## 22. Inspection Item Create API
+Create:
 
-```http
+``` http
 POST /api/inspections/{inspectionId}/items
 ```
 
-```json
+Request:
+
+``` json
 {
   "requirementId": 1,
-  "evidenceId": 1001
+  "evidenceId": 2,
+  "remark": "",
+  "sortOrder": 1
 }
 ```
 
-초기 결과는 `PENDING`.
+Evidence를 전달하는 경우 Backend는 다음을 검증한다.
 
-## 23. Inspection Status API
+``` text
+Inspection Project = Evidence Project
+Evidence Requirement = Request Requirement
+```
 
-```http
+초기:
+
+``` text
+PENDING
+```
+
+실제 Swagger:
+
+``` text
+Inspection Item ID = 1
+Inspection ID = 1
+Requirement = EVR-001
+Evidence = EVD-001
+Result = PENDING
+```
+
+------------------------------------------------------------------------
+
+# 17. Inspection Item APIs
+
+``` http
+GET /api/inspections/{inspectionId}/items
+
+GET /api/inspection-items/{itemId}
+
+PUT /api/inspection-items/{itemId}
+
+PATCH /api/inspection-items/{itemId}/result
+```
+
+결과 변경 Request:
+
+``` json
+{
+  "result": "PASSED",
+  "remark": "증적 및 서버 설치 결과 확인 완료"
+}
+```
+
+실제:
+
+``` text
+PENDING → PASSED
+```
+
+------------------------------------------------------------------------
+
+# 18. Inspection Status Transition
+
+허용:
+
+``` text
+PLANNED
+  ↓
+IN_PROGRESS
+
+IN_PROGRESS
+  ↓
+PASSED / FAILED
+
+PASSED
+  ↓
+CLOSED
+
+FAILED
+  ↓
+CLOSED
+```
+
+`CLOSED`는 Terminal State다.
+
+실제 Swagger:
+
+``` text
+PLANNED
+  ↓
+IN_PROGRESS
+  ↓
+PASSED
+  ↓
+CLOSED
+```
+
+------------------------------------------------------------------------
+
+# 19. Inspection Status API
+
+``` http
 PATCH /api/inspections/{id}/status
 ```
 
-```json
+예:
+
+``` json
 {
-  "status": "PASSED"
+  "status": "IN_PROGRESS",
+  "resultRemark": ""
 }
 ```
 
-Backend는 Inspection Item 결과를 검증한 후 상태 변경을 허용한다.
+``` json
+{
+  "status": "PASSED",
+  "resultRemark": "서버 설치 결과 검수 완료"
+}
+```
 
-## 24. Evidence Summary API
+``` json
+{
+  "status": "CLOSED"
+}
+```
 
-```http
+Backend가 상태 전이를 검증한다.
+
+------------------------------------------------------------------------
+
+# 20. Inspection Item Result Transition
+
+허용:
+
+``` text
+PENDING
+  ├─ PASSED
+  ├─ FAILED
+  └─ NOT_APPLICABLE
+
+PASSED
+  └─ PENDING
+
+FAILED
+  └─ PENDING
+
+NOT_APPLICABLE
+  └─ PENDING
+```
+
+동일 결과 변경은 허용된다.
+
+------------------------------------------------------------------------
+
+# 21. Evidence Summary Contract
+
+Endpoint:
+
+``` http
 GET /api/projects/{projectId}/evidence-summary
 ```
 
-Response:
+현재 확인된 `EvidenceSummaryResponse`:
 
-```json
+``` text
+totalRequirements
+requiredRequirements
+presentRequirements
+missingRequirements
+pendingRequirements
+notRequiredRequirements
+verificationPending
+verificationApproved
+verificationRejected
+overdueRequirements
+evidenceCompletionRate
+verificationApprovalRate
+```
+
+예:
+
+``` json
 {
   "totalRequirements": 10,
   "requiredRequirements": 9,
@@ -613,114 +989,161 @@ Response:
   "pendingRequirements": 1,
   "notRequiredRequirements": 1,
   "verificationPending": 2,
-  "approvedEvidence": 5,
-  "rejectedEvidence": 1,
+  "verificationApproved": 5,
+  "verificationRejected": 1,
   "overdueRequirements": 1,
-  "totalInspections": 2,
-  "plannedInspections": 0,
-  "inProgressInspections": 1,
-  "passedInspections": 0,
-  "failedInspections": 1,
-  "closedInspections": 1
+  "evidenceCompletionRate": 77.78,
+  "verificationApprovalRate": 62.5
 }
 ```
 
-Frontend는 Summary API를 기준으로 KPI를 표시한다.
+> Summary Controller/Swagger 응답은 아직 별도 검증 대상이다. Frontend
+> Summary UI 전에 실제 API를 확정한다.
 
-## 25. Integrity Contract
+------------------------------------------------------------------------
 
-Backend가 다음을 검증한다.
+# 22. Integrity Contract
 
-- Project 존재
-- WBS 존재
-- WBS와 Project 일치
-- Requirement 존재
-- Requirement와 Project 일치
-- Evidence와 Requirement Project 일치
-- Inspection과 연결 대상 Project 일치
+Backend가 검증:
+
+``` text
+Project 존재
+WBS 존재
+WBS ↔ Project 일치
+Requirement 존재
+Requirement ↔ Project 일치
+Evidence ↔ Requirement Project 일치
+Evidence ↔ Requirement 일치
+Inspection ↔ 연결 대상 Project 일치
+```
 
 Frontend는 최종 무결성을 판단하지 않는다.
 
-## 26. Error Contract
+------------------------------------------------------------------------
 
-| Code | Description |
-|---|---|
-| EVIDENCE_001 | Requirement not found |
-| EVIDENCE_002 | Evidence not found |
-| EVIDENCE_003 | Inspection not found |
-| EVIDENCE_004 | Project not found |
-| EVIDENCE_005 | WBS not found |
-| EVIDENCE_006 | Invalid requirement status |
-| EVIDENCE_007 | Invalid verification request |
-| EVIDENCE_008 | Invalid inspection transition |
-| EVIDENCE_009 | Project/requirement/evidence mismatch |
-| EVIDENCE_010 | Cannot delete requirement with evidence |
-| EVIDENCE_011 | Rejected verification remark required |
-| EVIDENCE_012 | Duplicate requirement key |
-| EVIDENCE_013 | Duplicate evidence key |
-| EVIDENCE_014 | Invalid inspection item |
+# 23. Error Contract
+
+실제 Backend `EvidenceErrorCode` 기준:
+
+  ---------------------------------------------------------------------------------------------------
+  Code                                                                  HTTP Description
+  --------------------------------------------- ---------------------------- ------------------------
+  `EVIDENCE_REQUIREMENT_NOT_FOUND`                                       404 Requirement not found
+
+  `EVIDENCE_REQUIREMENT_DELETE_NOT_ALLOWED`                              409 Evidence가 등록된
+                                                                             Requirement 삭제 제한
+
+  `EVIDENCE_NOT_FOUND`                                                   404 Evidence not found
+
+  `EVIDENCE_DELETE_NOT_ALLOWED`                                          409 Inspection에서 사용 중인
+                                                                             Evidence 삭제 제한
+
+  `INSPECTION_NOT_FOUND`                                                 404 Inspection not found
+
+  `INSPECTION_ITEM_NOT_FOUND`                                            404 Inspection Item not
+                                                                             found
+
+  `PROJECT_NOT_FOUND`                                                    404 Project not found
+
+  `WBS_NOT_FOUND`                                                        404 WBS not found
+
+  `WBS_PROJECT_MISMATCH`                                                 400 WBS/Project mismatch
+
+  `EVIDENCE_WBS_PROJECT_MISMATCH`                                        400 Evidence WBS/Project
+                                                                             mismatch
+
+  `EVIDENCE_VERIFICATION_NOT_ALLOWED`                                    400 Invalid verification
+                                                                             request
+
+  `EVIDENCE_VERIFICATION_REMARK_REQUIRED`                                400 REJECTED remark required
+
+  `INSPECTION_REQUIREMENT_PROJECT_MISMATCH`                              400 Inspection/Requirement
+                                                                             mismatch
+
+  `INSPECTION_EVIDENCE_PROJECT_MISMATCH`                                 400 Inspection/Evidence
+                                                                             mismatch
+
+  `INSPECTION_EVIDENCE_REQUIREMENT_MISMATCH`                             400 Evidence/Requirement
+                                                                             mismatch
+
+  `INSPECTION_INVALID_STATUS_TRANSITION`                                 400 Invalid inspection
+                                                                             transition
+
+  `INSPECTION_ITEM_INVALID_RESULT_TRANSITION`                            400 Invalid item result
+                                                                             transition
+  ---------------------------------------------------------------------------------------------------
 
 HTTP:
 
-```text
+``` text
 400 Bad Request
 404 Not Found
 409 Conflict
 ```
 
-기존 PMIS `ApiResponse` 및 `GlobalExceptionHandler` 정책을 따른다.
+------------------------------------------------------------------------
 
-## 27. Backend Swagger Test Contract
+# 24. ApiResponse Contract
 
-최소 검증:
+Success:
 
-- Requirement 목록/생성/상세/수정/삭제/검색
-- Pagination/Sorting
-- Evidence 목록/생성/상세/수정/삭제/검색
-- Requirement/Project mismatch
-- Verification APPROVED
-- Verification REJECTED
-- REJECTED without remark
-- Inspection 생성/상세/수정
-- Inspection Item 등록/결과
-- Inspection 상태 변경
-- 잘못된 상태 전이
-- Summary 집계
+``` json
+{
+  "success": true,
+  "code": "SUCCESS",
+  "data": {}
+}
+```
 
-## 28. Frontend Integration Contract
+Failure:
 
-```text
+``` json
+{
+  "success": false,
+  "code": "ERROR_CODE",
+  "message": "오류 메시지"
+}
+```
+
+기존 PMIS `ApiResponse` / `GlobalExceptionHandler` 정책을 따른다.
+
+------------------------------------------------------------------------
+
+# 25. Frontend Integration Architecture
+
+``` text
 Page
- ↓
+  ↓
 Component
- ↓
+  ↓
 API Client
- ↓
+  ↓
 Backend REST API
 ```
 
-권장 구조:
+권장:
 
-```text
+``` text
 evidence/
 ├── pages/
-│   └── EvidencePage
+│   └── EvidencePage.tsx
 ├── components/
-│   ├── EvidenceRequirementSummary
-│   ├── EvidenceRequirementToolbar
-│   ├── EvidenceRequirementList
-│   ├── EvidenceRequirementRow
-│   ├── EvidenceList
-│   ├── EvidenceDetail
-│   ├── RequirementDialog
-│   ├── EvidenceDialog
-│   ├── VerificationDialog
-│   ├── InspectionList
-│   └── InspectionDetail
+│   ├── EvidenceRequirementSummary.tsx
+│   ├── EvidenceRequirementToolbar.tsx
+│   ├── EvidenceRequirementList.tsx
+│   ├── EvidenceRequirementRow.tsx
+│   ├── EvidenceList.tsx
+│   ├── EvidenceDetail.tsx
+│   ├── RequirementDialog.tsx
+│   ├── EvidenceDialog.tsx
+│   ├── VerificationDialog.tsx
+│   ├── InspectionList.tsx
+│   └── InspectionDetail.tsx
 ├── api/
 │   ├── evidenceRequirementApi.ts
 │   ├── evidenceApi.ts
-│   └── inspectionApi.ts
+│   ├── inspectionApi.ts
+│   └── evidenceSummaryApi.ts
 ├── types/
 │   ├── evidenceRequirement.ts
 │   ├── evidence.ts
@@ -729,51 +1152,55 @@ evidence/
     └── evidenceStatus.ts
 ```
 
-## 29. Frontend API Client Contract
+------------------------------------------------------------------------
 
-```text
-evidenceRequirementApi.ts
-evidenceApi.ts
-inspectionApi.ts
-evidenceSummaryApi.ts
-```
+# 26. Frontend API Client Contract
 
-```ts
+``` ts
 export const evidenceRequirementApi = {
   getList: async (params) => {},
   getById: async (id) => {},
   create: async (projectId, request) => {},
   update: async (id, request) => {},
-  delete: async (id) => {}
+  delete: async (id) => {},
 };
-```
 
-```ts
 export const evidenceApi = {
   getList: async (params) => {},
   getById: async (id) => {},
-  getByRequirement: async (requirementId, params) => {},
+  getByRequirement: async (requirementId) => {},
+  getByProject: async (projectId) => {},
+  getByProjectAndWbs: async (projectId, wbsId) => {},
   create: async (requirementId, request) => {},
   update: async (id, request) => {},
   delete: async (id) => {},
-  verify: async (id, request) => {}
+  verify: async (id, request) => {},
 };
-```
 
-```ts
 export const inspectionApi = {
-  getList: async (projectId, params) => {},
+  getList: async (projectId) => {},
+  getListByStatus: async (projectId, status) => {},
   getById: async (id) => {},
   create: async (projectId, request) => {},
   update: async (id, request) => {},
+  getItems: async (inspectionId) => {},
+  getItemById: async (itemId) => {},
   addItem: async (inspectionId, request) => {},
-  updateStatus: async (id, request) => {}
+  updateItem: async (itemId, request) => {},
+  updateItemResult: async (itemId, request) => {},
+  updateStatus: async (id, request) => {},
+};
+
+export const evidenceSummaryApi = {
+  getByProject: async (projectId) => {},
 };
 ```
 
-## 30. Frontend TypeScript Contract
+------------------------------------------------------------------------
 
-```ts
+# 27. Frontend TypeScript Contract
+
+``` ts
 export type RequirementStatus =
   | 'PENDING'
   | 'PRESENT'
@@ -791,9 +1218,13 @@ export type InspectionStatus =
   | 'PASSED'
   | 'FAILED'
   | 'CLOSED';
-```
 
-```ts
+export type InspectionItemResult =
+  | 'PENDING'
+  | 'PASSED'
+  | 'FAILED'
+  | 'NOT_APPLICABLE';
+
 export type RequirementType =
   | 'INSTALLATION'
   | 'CONFIGURATION'
@@ -817,62 +1248,65 @@ export type EvidenceType =
   | 'OTHER';
 ```
 
-## 31. Frontend Responsibility
+------------------------------------------------------------------------
 
-Frontend 책임:
+# 28. Frontend / Backend Responsibility
 
-- 화면 렌더링
-- 검색 조건 입력
-- Pagination/Sorting UI
-- Form Validation
-- API 호출
-- Loading/Error 상태
-- Dialog/Modal
-- Verification UI
-- Inspection UI
-- 상태 표시
+## Frontend
+
+-   화면 렌더링
+-   검색/필터
+-   Pagination/Sorting UI
+-   Form Validation
+-   API 호출
+-   Loading/Error
+-   Dialog/Modal
+-   Verification UI
+-   Inspection UI
+-   상태 표시
 
 Frontend가 하지 않는 것:
 
-- EVR/EVD Key 생성
-- Requirement Status 임의 계산
-- Verification 승인 여부 임의 결정
-- Verified By 임의 지정
-- Inspection 상태 전이 임의 결정
-- Project/Requirement 최종 무결성 판단
-- Backend 관리 날짜 임의 생성
+-   EVR/EVD Key 생성
+-   Requirement Status 계산
+-   Verification 승인 여부 결정
+-   Verified By 지정
+-   Inspection 상태 전이 결정
+-   최종 무결성 판단
+-   Backend 관리 날짜 생성
 
-## 32. Backend Responsibility
+## Backend
 
-Backend 책임:
+-   Key 생성
+-   상태 관리
+-   상태 전이 검증
+-   인증 사용자 식별
+-   날짜/시간 기록
+-   Project/WBS/Requirement 무결성
+-   Duplicate Key 검증
+-   Requirement Status 계산
+-   Verification 처리
+-   Inspection 처리
+-   Summary 집계
+-   권한/보안
+-   Error Response
 
-- Key 생성
-- 상태 관리 및 상태 전이 검증
-- 인증 사용자 식별
-- 날짜/시간 기록
-- Project/WBS/Requirement 무결성
-- Duplicate Key 검증
-- Requirement Status 계산
-- Verification 처리
-- Inspection 결과 검증
-- Summary 집계
-- 권한/보안 검증
-- 공통 Error Response
+------------------------------------------------------------------------
 
-## 33. File Storage Contract
+# 29. File Storage Contract
 
 V1에서는 실제 Binary Storage를 구현하지 않는다.
 
 관리:
 
-```text
+``` text
 fileName
 filePath
 ```
 
 제외:
 
-```text
+``` text
 S3
 MinIO
 NAS
@@ -883,423 +1317,614 @@ Object Storage
 
 향후:
 
-```text
-Local Storage → Object Storage → S3 / MinIO / NAS
+``` text
+Local Storage
+→ Object Storage
+→ S3 / MinIO / NAS
 ```
 
-## 34. Frontend E2E Contract
+------------------------------------------------------------------------
 
-### Normal
+# 30. Backend Swagger Verification Result
 
-```text
+2026-10-08 기준 실제 검증 완료:
+
+## Requirement
+
+-   생성 ✅
+-   목록 조회 ✅
+-   Status 확인 ✅
+-   Project/WBS 연결 확인 ✅
+
+## Evidence
+
+-   생성 ✅
+-   Project별 조회 ✅
+-   Requirement별 조회 ✅
+-   Key 생성 확인 ✅
+-   Enum 검증 ✅
+-   삭제 후 재등록 ✅
+-   Requirement 자동 Status Refresh ✅
+
+## Verification
+
+-   PENDING 확인 ✅
+-   APPROVED 처리 ✅
+-   verifiedBy 자동 기록 ✅
+-   verifiedAt 자동 기록 ✅
+-   remark 기록 ✅
+
+## Inspection
+
+-   생성 ✅
+-   PLANNED 확인 ✅
+-   Item 생성 ✅
+-   Requirement 연결 ✅
+-   Evidence 연결 ✅
+-   PLANNED → IN_PROGRESS ✅
+-   Item PENDING → PASSED ✅
+-   IN_PROGRESS → PASSED ✅
+-   PASSED → CLOSED ✅
+
+------------------------------------------------------------------------
+
+# 31. Verified E2E Data
+
+``` text
 Project
- ↓
+  ID = 2
+
+WBS
+  ID = 1
+
+Evidence Requirement
+  ID = 1
+  Key = EVR-001
+  Status = PRESENT
+
+Evidence
+  ID = 2
+  Key = EVD-001
+  Verification = APPROVED
+
+Inspection
+  ID = 1
+  Status = CLOSED
+
+Inspection Item
+  ID = 1
+  Result = PASSED
+```
+
+전체 흐름:
+
+``` text
+EVR-001
+  ↓
+PRESENT
+  ↓
+EVD-001
+  ↓
+APPROVED
+  ↓
+Inspection #1
+  ↓
+Item #1 = PASSED
+  ↓
+Inspection #1 = CLOSED
+```
+
+------------------------------------------------------------------------
+
+# 32. Frontend E2E Contract
+
+## Normal
+
+``` text
+Project
+  ↓
 WBS Task
- ↓
+  ↓
 Requirement 생성
- ↓
+  ↓
 Evidence 등록
- ↓
+  ↓
 Requirement = PRESENT
- ↓
+  ↓
 Evidence = PENDING
- ↓
+  ↓
 Verification APPROVED
- ↓
+  ↓
 Inspection 생성
- ↓
+  ↓
 Inspection Item 등록
- ↓
+  ↓
 Inspection Item PASSED
- ↓
+  ↓
 Inspection PASSED
- ↓
+  ↓
 Inspection CLOSED
 ```
 
-### Reject
+## Reject
 
-```text
+``` text
 Evidence 등록
- ↓
+  ↓
 Verification REJECTED
- ↓
+  ↓
 Remark 확인
- ↓
+  ↓
 Evidence 수정 / 재등록
- ↓
+  ↓
 Verification APPROVED
 ```
 
-### Missing
+## Missing
 
-```text
+``` text
 Required Requirement
- ↓
+  ↓
 Evidence 없음
- ↓
+  ↓
 Due Date 경과
- ↓
+  ↓
 Requirement = MISSING
 ```
 
-### Inspection Failed
+## Inspection Failed
 
-```text
+``` text
 Inspection
- ↓
+  ↓
 Item FAILED
- ↓
+  ↓
 Inspection FAILED
+  ↓
+CLOSED
 ```
 
-## 35. Traceability Contract
+------------------------------------------------------------------------
 
-```text
+# 33. Traceability
+
+``` text
 Project
- ↓
+  ↓
 WBS
- ↓
+  ↓
 Task
- ↓
+  ↓
 Deliverable
- ↓
+  ↓
 Evidence Requirement
- ↓
+  ↓
 Evidence
- ↓
+  ↓
 Verification
- ↓
+  ↓
 Inspection
 ```
 
-사용자는 다음 질문에 답할 수 있어야 한다.
+사용자가 확인할 수 있어야 하는 질문:
 
-1. Project에 필요한 증적은 무엇인가?
-2. 어떤 WBS/Task에 연결되어 있는가?
-3. 아직 제출되지 않은 증적은 무엇인가?
-4. 제출된 Evidence는 무엇인가?
-5. 어떤 Evidence가 승인되었는가?
-6. 어떤 Evidence가 반려되었는가?
-7. 반려 사유는 무엇인가?
-8. 어떤 증적이 검수 대상인가?
-9. 검수 결과는 무엇인가?
+1.  Project에 필요한 증적은 무엇인가?
+2.  어떤 WBS/Task에 연결되어 있는가?
+3.  아직 제출되지 않은 증적은 무엇인가?
+4.  제출된 Evidence는 무엇인가?
+5.  어떤 Evidence가 승인되었는가?
+6.  어떤 Evidence가 반려되었는가?
+7.  반려 사유는 무엇인가?
+8.  어떤 증적이 검수 대상인가?
+9.  검수 결과는 무엇인가?
 10. Project의 최종 Evidence 상태는 어떠한가?
 
-## 36. Contract Change Procedure
+------------------------------------------------------------------------
 
-```text
-Requirement 변경
- ↓
-Domain Design 변경
- ↓
-API Contract 변경
- ↓
-Backend 구현
- ↓
-Swagger 검증
- ↓
-Frontend Type 변경
- ↓
-Frontend API Client 변경
- ↓
-Frontend UI 변경
- ↓
-E2E 검증
- ↓
-Documentation 업데이트
+# 34. Implementation Order
+
+Backend 핵심 Workflow가 검증 완료되었으므로 Frontend 단계로 전환한다.
+
+``` text
+1. TypeScript Types
+2. API Client
+3. Requirement UI
+4. Evidence UI
+5. Verification UI
+6. Inspection UI
+7. Summary UI
+8. API Integration
+9. Browser Verification
+10. Frontend E2E
+11. Documentation
+12. Commit
+13. Push
+14. PR / Review
+15. develop Integration Test
 ```
 
-Frontend만 임의로 API Contract를 변경하지 않는다.
+핵심:
 
-## 37. Implementation Order
-
-```text
-1. Entity / Enum
-2. Repository
-3. Request DTO
-4. Response DTO
-5. Mapper
-6. Specification
-7. Service
-8. Controller
-9. Requirement API
-10. Evidence API
-11. Verification API
-12. Inspection API
-13. Summary API
-14. Swagger
-15. Frontend TypeScript Types
-16. Frontend API Client
-17. Requirement UI
-18. Evidence UI
-19. Verification UI
-20. Inspection UI
-21. API Integration
-22. Browser Verification
-23. E2E
-24. Documentation
-25. Commit
-26. Push
-27. PR / Review
-28. develop Integration Test
+``` text
+Requirement
+  → Evidence
+  → Verification
+  → Inspection
 ```
 
-핵심 순서:
+------------------------------------------------------------------------
 
-```text
-Requirement → Evidence → Verification → Inspection
-```
-
-## 38. Recommended Git Commit Contract
+# 35. Recommended Git Commit Contract
 
 Branch:
 
-```text
+``` text
 feature/evidence-management
 ```
 
-```text
-feat: implement evidence domain entities
-feat: implement evidence requirement api
-feat: implement evidence api
-feat: implement evidence verification workflow
-feat: implement inspection api
-feat: implement evidence summary api
+권장:
+
+``` text
 feat: implement evidence management ui
 feat: implement evidence verification ui
 feat: implement inspection ui
-test: add evidence domain tests
+feat: implement evidence summary ui
+test: verify evidence frontend workflow
 test: verify evidence workflow e2e
-docs: update evidence domain documentation
+docs: update evidence api contract
 ```
 
 작업 단위:
 
-```text
-Develop → Build / Test → Verify → Commit
+``` text
+Develop
+  → Build
+  → Browser Verify
+  → Commit
 ```
 
-## 39. Definition of Done
+------------------------------------------------------------------------
 
-### Backend
+# 36. Definition of Done
 
-- Entity / Enum / Repository / DTO / Mapper / Specification / Service / Controller 완료
-- Requirement CRUD/Search 완료
-- Evidence CRUD/Search 완료
-- Verification 완료
-- Inspection 완료
-- Summary 완료
-- Validation 완료
-- Swagger 검증 완료
-- Build 성공
+## Backend
 
-### Frontend
+-   [x] Entity / Enum
+-   [x] Repository
+-   [x] Request DTO
+-   [x] Response DTO
+-   [x] Mapper
+-   [x] Specification
+-   [x] Service
+-   [x] Controller
+-   [x] Requirement API
+-   [x] Evidence API
+-   [x] Verification API
+-   [x] Inspection API
+-   [ ] Summary API 실제 Swagger 검증
+-   [x] Validation
+-   [x] 핵심 Swagger Workflow 검증
+-   [x] Build 성공
 
-- TypeScript Type 완료
-- API Client 완료
-- Requirement List/Search/Filter 완료
-- Requirement Create/Update/Detail 완료
-- Evidence List/Create/Update/Detail 완료
-- Verification UI 완료
-- Inspection UI 완료
-- Summary UI 완료
-- API Integration 완료
-- Browser Verification 완료
-- E2E 완료
-- Build 성공
+## Frontend
 
-### Documentation
+-   [ ] TypeScript Type
+-   [ ] API Client
+-   [ ] Requirement List/Search/Filter
+-   [ ] Requirement Create/Update/Detail
+-   [ ] Evidence List/Create/Update/Detail
+-   [ ] Verification UI
+-   [ ] Inspection UI
+-   [ ] Summary UI
+-   [ ] API Integration
+-   [ ] Browser Verification
+-   [ ] E2E
+-   [ ] Build 성공
 
-- Domain Design
-- API Contract
-- Development History
-- Changelog
-- Roadmap
+## Documentation
 
-## 40. Implementation Status
+-   [x] Domain Design
+-   [x] API Contract
+-   [ ] Development History
+-   [ ] Changelog
+-   [ ] Roadmap
 
-| Area | Status |
-|---|---|
-| Evidence Domain Design | DONE |
-| Entity / Enum | TODO |
-| Repository | TODO |
-| Request DTO | TODO |
-| Response DTO | TODO |
-| Mapper | TODO |
-| Specification | TODO |
-| Service | TODO |
-| Controller | TODO |
-| Requirement API | TODO |
-| Evidence API | TODO |
-| Verification API | TODO |
-| Inspection API | TODO |
-| Summary API | TODO |
-| Swagger Test | TODO |
-| Frontend Type | TODO |
-| Frontend API Client | TODO |
-| Requirement UI | TODO |
-| Evidence UI | TODO |
-| Verification UI | TODO |
-| Inspection UI | TODO |
-| Browser Verification | TODO |
-| E2E | TODO |
-| Documentation | TODO |
+------------------------------------------------------------------------
 
-## 41. V1 Scope
+# 37. V1 Scope
 
-### Included
+## Included
 
-- Evidence Requirement CRUD
-- Evidence Requirement Search/Filter/Pagination/Sorting
-- Evidence CRUD
-- Evidence Search/Filter/Pagination/Sorting
-- Requirement ↔ Evidence linkage
-- Project/WBS linkage
-- Requirement Status
-- Evidence Verification
-- Inspection
-- Inspection Item
-- Evidence Summary
-- Swagger
-- Frontend UI
-- API Integration
-- Browser Verification
-- E2E
-- Documentation
+-   Evidence Requirement CRUD
+-   Requirement Search/Filter/Pagination/Sorting
+-   Evidence CRUD
+-   Evidence Search/Filter/Pagination/Sorting
+-   Requirement ↔ Evidence linkage
+-   Project/WBS linkage
+-   Requirement Status
+-   Evidence Verification
+-   Inspection
+-   Inspection Item
+-   Evidence Summary
+-   Swagger
+-   Frontend UI
+-   API Integration
+-   Browser Verification
+-   E2E
+-   Documentation
 
-### Excluded
+## Excluded
 
-- Binary file storage
-- Object Storage
-- S3
-- MinIO
-- Multi-level approval
-- Email/Notification
-- SLA
-- Automatic Evidence generation
-- AI classification
-- AI summary/recommendation
-- Automatic Risk/Issue/Change generation
-- Automatic Schedule change
-- Complex audit history
-- E-approval
-- External DMS
+-   Binary file storage
+-   Object Storage
+-   S3
+-   MinIO
+-   Multi-level approval
+-   Email/Notification
+-   SLA
+-   Automatic Evidence generation
+-   AI classification
+-   AI summary/recommendation
+-   Automatic Risk/Issue/Change generation
+-   Automatic Schedule change
+-   Complex audit history
+-   E-approval
+-   External DMS
 
-## 42. Core Contract Principles
+------------------------------------------------------------------------
 
-### Requirement and Evidence are separate
+# 38. Core Contract Principles
 
-```text
+``` text
 Requirement = What must exist?
 Evidence    = What was actually submitted?
-```
 
-### PRESENT does not mean APPROVED
+PRESENT != APPROVED
 
-```text
-PRESENT ≠ APPROVED
-```
-
-### Backend owns business state
-
-```text
 Frontend = Request / Display
 Backend  = Validation / State / Business Rule
-```
 
-### Missing Evidence is a managed state
-
-```text
 Evidence = 0
-+
-Required
-+
-Due Date Passed
-=
-MISSING
++ Required
++ Due Date Passed
+= MISSING
+
+Requirement
+  → Evidence
+  → Verification
+  → Inspection
 ```
 
-### Inspection is downstream
+API Contract는 Frontend와 Backend의 통합 경계다.
 
-```text
-Requirement → Evidence → Verification → Inspection
+Frontend와 Backend는 동일한:
+
+``` text
+Enum
+Request
+Response
+Error
+State Transition
 ```
 
-### API Contract is the integration boundary
+을 사용한다.
 
-Frontend와 Backend는 Contract를 기준으로 독립 개발하되 동일한 Enum, Request, Response, Error 및 상태 전이를 사용한다.
+------------------------------------------------------------------------
 
-## 43. Version History
+# 39. Known Contract Notes
 
-| Version | Date | Description |
-|---|---|---|
-| 1.0 | 2026-10-02 | Initial Evidence & Inspection Frontend ↔ Backend API Contract |
+## 39.1 Evidence submittedAt
 
-## Appendix. Recommended Development Sequence
+현재 Create DTO에서 `submittedAt`을 전달할 수 있으나 업무 의미상 Backend
+Managed Field로 정의되어 있다.
 
-현재 `feature/evidence-management`에서:
+향후 권장:
 
-```text
-Phase 1: Evidence Domain Foundation
- ├─ RequirementStatus
- ├─ RequirementType
- ├─ EvidenceType
- ├─ VerificationStatus
- ├─ InspectionStatus
- ├─ InspectionItemResult
- ├─ EvidenceRequirement
- └─ Evidence
-
-Phase 2: Evidence Requirement Backend
- ├─ Repository
- ├─ DTO
- ├─ Mapper
- ├─ Specification
- ├─ Service
- ├─ Controller
- └─ Swagger Verification
-
-Phase 3: Evidence Backend
- ├─ Repository
- ├─ DTO
- ├─ Mapper
- ├─ Specification
- ├─ Service
- ├─ Controller
- └─ Swagger Verification
-
-Phase 4: Verification Workflow
- └─ PATCH /api/evidence/{id}/verification
-
-Phase 5: Inspection Backend
- ├─ Inspection
- ├─ InspectionItem
- ├─ Status Transition
- └─ Swagger Verification
-
-Phase 6: Summary
- └─ GET /api/projects/{projectId}/evidence-summary
-
-Phase 7: Frontend
- ├─ Requirement
- ├─ Evidence
- ├─ Verification
- └─ Inspection
-
-Phase 8: Integration
- ├─ Browser Verification
- ├─ E2E
- ├─ Documentation
- └─ develop Integration Test
+``` text
+Client submittedAt 제거
+Backend LocalDateTime.now() 사용
 ```
 
-**Immediate implementation target:**
+## 39.2 Evidence Update submittedAt
 
-```text
-Evidence Domain Foundation
-→ Entity / Enum
-→ Build
-→ Commit
-→ Requirement Backend
+현재 Update DTO에 존재하지만 실제 Entity Update에는 반영되지 않는다.
+
+Frontend Update Type에서는 제외한다.
+
+## 39.3 Evidence Delete
+
+현재 실제 삭제 제한은 InspectionItem에서 Evidence가 사용 중인지 여부를
+검사한다.
+
+Frontend 메시지:
+
+``` text
+Inspection에서 사용 중인 Evidence는 삭제할 수 없습니다.
 ```
+
+## 39.4 Summary
+
+Summary DTO는 존재하지만 실제 Controller/Swagger 응답 검증이 필요하다.
+
+## 39.5 Inspection Item Delete
+
+현재 Backend에 Delete API가 없으므로 Frontend에서도 Delete 기능을
+제공하지 않는다.
+
+------------------------------------------------------------------------
+
+# 40. Final Implementation Status
+
+``` text
+Backend Evidence & Inspection
+        │
+        ├─ Requirement        DONE
+        ├─ Evidence           DONE
+        ├─ Verification       DONE
+        ├─ Inspection         DONE
+        ├─ Inspection Item    DONE
+        ├─ Core E2E Workflow  DONE
+        ├─ Build              DONE
+        └─ Summary Swagger    TODO
+                 │
+                 ▼
+        Frontend Implementation
+                 │
+                 ├─ TypeScript Types
+                 ├─ API Client
+                 ├─ Requirement UI
+                 ├─ Evidence UI
+                 ├─ Verification UI
+                 ├─ Inspection UI
+                 └─ Summary UI
+```
+
+------------------------------------------------------------------------
+
+# 41. Version History
+
+  -----------------------------------------------------------------------
+  Version                 Date                    Description
+  ----------------------- ----------------------- -----------------------
+  1.0                     2026-10-02              Initial Evidence &
+                                                  Inspection API Contract
+
+  1.1                     2026-10-08              Actual Backend
+                                                  implementation 및
+                                                  Swagger E2E
+                                                  verification 결과 반영
+  -----------------------------------------------------------------------
+
+------------------------------------------------------------------------
+
+# Appendix. Verified E2E Scenario
+
+## 1. Requirement
+
+``` http
+POST /api/projects/2/evidence-requirements
+```
+
+``` text
+EVR-001
+status = PENDING
+```
+
+## 2. Evidence
+
+``` http
+POST /api/evidence-requirements/1/evidence
+```
+
+``` text
+EVD-001
+verificationStatus = PENDING
+```
+
+Requirement 자동 갱신:
+
+``` text
+EVR-001
+PENDING → PRESENT
+```
+
+## 3. Verification
+
+``` http
+PATCH /api/evidence/2/verification
+```
+
+``` json
+{
+  "status": "APPROVED",
+  "remark": "서버 설치 결과 및 기본 설정 확인 완료"
+}
+```
+
+결과:
+
+``` text
+EVD-001
+PENDING → APPROVED
+```
+
+## 4. Inspection
+
+``` http
+POST /api/projects/2/inspections
+```
+
+``` text
+Inspection #1 = PLANNED
+```
+
+## 5. Inspection Item
+
+``` http
+POST /api/inspections/1/items
+```
+
+``` text
+InspectionItem #1 = PENDING
+```
+
+## 6. Inspection Start
+
+``` http
+PATCH /api/inspections/1/status
+```
+
+``` json
+{
+  "status": "IN_PROGRESS"
+}
+```
+
+## 7. Item Pass
+
+``` http
+PATCH /api/inspection-items/1/result
+```
+
+``` json
+{
+  "result": "PASSED",
+  "remark": "증적 및 서버 설치 결과 확인 완료"
+}
+```
+
+## 8. Inspection Pass
+
+``` http
+PATCH /api/inspections/1/status
+```
+
+``` json
+{
+  "status": "PASSED",
+  "resultRemark": "서버 설치 결과 검수 완료"
+}
+```
+
+## 9. Inspection Close
+
+``` http
+PATCH /api/inspections/1/status
+```
+
+``` json
+{
+  "status": "CLOSED"
+}
+```
+
+최종:
+
+``` text
+EVR-001 = PRESENT
+EVD-001 = APPROVED
+Inspection #1 = CLOSED
+InspectionItem #1 = PASSED
+```
+
+**Evidence & Inspection Backend V1 핵심 E2E Workflow 검증 완료.**
