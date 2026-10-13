@@ -8,9 +8,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
-
     show-sql: true
-
     properties:
       hibernate:
         format_sql: true
@@ -18,14 +16,17 @@ spring:
   application:
     name: pmis
 
-  logging:
-    level:
-      org.hibernate.SQL: DEBUG
-      org.hibernate.orm.jdbc.bind: TRACE  
+logging:
+  level:
+    org.hibernate.SQL: DEBUG
+    org.hibernate.orm.jdbc.bind: TRACE
 
 jwt:
-  # Base64 인코딩된 512bit Secret Key
-  secret: MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDE=
-
+  # 기존 JWT 설정 유지
+  secret: ${JWT_SECRET:MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDE=}
   access-token-expiration: 3600000
   refresh-token-expiration: 1209600000
+
+runtime:
+  api:
+    base-url: ${RUNTIME_API_BASE_URL:http://127.0.0.1:8000}

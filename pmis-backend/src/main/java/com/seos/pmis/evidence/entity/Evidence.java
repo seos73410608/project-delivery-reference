@@ -32,6 +32,11 @@ import java.time.LocalDateTime;
  *
  * V1에서는 Verification을 별도 Entity로 분리하지 않고
  * Evidence Entity 내부의 검증 정보로 관리한다.
+ *
+ * Automation Runtime:
+ *   Runtime에서 생성된 결과 파일을 외부 식별자로 연결한다.
+ *   기존 수동 등록 증적과의 호환성을 위해
+ *   Runtime 연동 필드는 nullable로 관리한다.
  */
 @Getter
 @Entity
@@ -63,9 +68,7 @@ public class Evidence extends BaseEntity {
      * 소속 프로젝트
      *
      * 하나의 Evidence는 반드시 하나의 프로젝트에 속한다.
-     *
-     * EvidenceRequirement의 프로젝트와 반드시 동일해야 하며,
-     * 이 정합성 검증은 Service에서 수행한다.
+     * Requirement와 프로젝트의 정합성은 Service에서 검증한다.
      */
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(
@@ -89,8 +92,7 @@ public class Evidence extends BaseEntity {
     /**
      * 연결된 WBS
      *
-     * Requirement와 동일하게 특정 WBS에 연결되지 않을 수 있으므로
-     * 선택적으로 관리한다.
+     * 특정 WBS에 연결되지 않을 수 있으므로 선택적으로 관리한다.
      */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "wbs_id")
@@ -141,8 +143,9 @@ public class Evidence extends BaseEntity {
     /**
      * 파일명
      *
-     * V1에서는 실제 Binary Storage를 관리하지 않고
-     * 파일명과 파일 경로만 관리한다.
+     * 수동 등록 증적의 파일명을 저장한다.
+     * Runtime 연동 파일은 Runtime 메타데이터에
+     * 실제 파일명이 제공되는지 확인한 후 설정한다.
      */
     @Column(
             name = "file_name",
@@ -153,14 +156,52 @@ public class Evidence extends BaseEntity {
     /**
      * 파일 경로
      *
-     * 향후 Local Storage / Object Storage / S3 / MinIO 등으로
-     * 확장할 수 있도록 경로 정보만 관리한다.
+     * 기존 수동 등록 증적의 호환성을 위해 유지한다.
+     *
+     * Runtime 연동 증적은 내부 파일 경로를 저장하거나
+     * 외부에 노출하지 않고 Runtime 콘텐츠 API를 통해 접근한다.
      */
     @Column(
             name = "file_path",
             length = 1000
     )
     private String filePath;
+
+    /**
+     * Automation Runtime 파일 ID
+     *
+     * Runtime의 tb_output_file.file_id를 저장한다.
+     * 수동 등록 증적에서는 null이다.
+     */
+    @Column(
+            name = "source_file_id",
+            length = 64
+    )
+    private String sourceFileId;
+
+    /**
+     * Automation Runtime 실행 UUID
+     *
+     * 해당 파일을 생성한 실행을 식별한다.
+     * 수동 등록 증적에서는 null이다.
+     */
+    @Column(
+            name = "execution_uuid",
+            length = 64
+    )
+    private String executionUuid;
+
+    /**
+     * Automation Runtime Job ID
+     *
+     * 해당 파일을 생성한 자동화 Job을 식별한다.
+     * 수동 등록 증적에서는 null이다.
+     */
+    @Column(
+            name = "source_job_id",
+            length = 64
+    )
+    private String sourceJobId;
 
     /**
      * 증적 제출자
@@ -184,10 +225,8 @@ public class Evidence extends BaseEntity {
     /**
      * 검증 상태
      *
-     * 기본값은 PENDING이다.
-     *
-     * Evidence가 등록되었다고 해서
-     * 검증이 완료된 것은 아니다.
+     * 증적 등록 시 기본값은 PENDING이다.
+     * 등록 자체가 검증 완료를 의미하지는 않는다.
      */
     @Enumerated(EnumType.STRING)
     @Column(
@@ -196,7 +235,8 @@ public class Evidence extends BaseEntity {
             length = 30
     )
     @Builder.Default
-    private VerificationStatus verificationStatus = VerificationStatus.PENDING;
+    private VerificationStatus verificationStatus =
+            VerificationStatus.PENDING;
 
     /**
      * 검증 담당자
@@ -210,19 +250,13 @@ public class Evidence extends BaseEntity {
     /**
      * 검증 일시
      *
-     * APPROVED / REJECTED 처리 시 기록한다.
+     * APPROVED 또는 REJECTED 처리 시 기록한다.
      */
     @Column(name = "verified_at")
     private LocalDateTime verifiedAt;
 
     /**
-     * 검증 의견
-     *
-     * APPROVED:
-     * 검증 완료 의견
-     *
-     * REJECTED:
-     * 반려 사유
+     * 검증 의견 및 반려 사유
      */
     @Lob
     @Column(name = "verification_remark")
@@ -232,9 +266,8 @@ public class Evidence extends BaseEntity {
      * Evidence 수정
      *
      * 프로젝트, Requirement, Evidence Key,
-     * Verification 정보는 수정 대상에서 제외한다.
-     *
-     * Verification 정보는 별도의 검증 처리 메서드에서 변경한다.
+     * Runtime 연결 정보 및 Verification 정보는
+     * 일반 수정 대상에서 제외한다.
      */
     public void update(
             Wbs wbs,
@@ -253,9 +286,33 @@ public class Evidence extends BaseEntity {
     }
 
     /**
+     * Automation Runtime 파일 연결
+     *
+     * Runtime API에서 파일 메타데이터를 조회하고
+     * Service 계층에서 유효성을 검증한 후 호출한다.
+     *
+     * 이 메서드 자체는 Runtime API를 호출하거나
+     * 파일의 존재 여부를 검증하지 않는다.
+     *
+     * @param sourceFileId Runtime 파일 ID
+     * @param executionUuid Runtime 실행 UUID
+     * @param sourceJobId Runtime Job ID
+     */
+    public void linkRuntimeFile(
+            String sourceFileId,
+            String executionUuid,
+            String sourceJobId
+    ) {
+        this.sourceFileId = sourceFileId;
+        this.executionUuid = executionUuid;
+        this.sourceJobId = sourceJobId;
+    }
+
+    /**
      * Evidence 검증 처리
      *
-     * APPROVED 또는 REJECTED 상태로 변경한다.
+     * 허용되는 검증 상태와 반려 사유 등은
+     * Service 계층에서 검증한다.
      *
      * @param verificationStatus 검증 상태
      * @param verifiedBy 검증 담당자

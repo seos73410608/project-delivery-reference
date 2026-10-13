@@ -10,14 +10,14 @@ import java.time.LocalDateTime;
 /**
  * Evidence 응답 DTO
  *
- * Evidence 조회 결과를
- * Client에게 전달할 때 사용한다.
+ * Evidence 조회 결과를 Client에게 전달할 때 사용한다.
  *
  * 포함 정보:
  * - Evidence 기본 정보
  * - Project / Requirement / WBS 정보
  * - 제출자 정보
  * - Verification 정보
+ * - Automation Runtime 연동 정보
  * - 생성/수정 일시
  *
  * 연관 Entity 자체는 Client에게 전달하지 않고
@@ -81,10 +81,37 @@ public class EvidenceResponse {
     /**
      * 증적 파일 경로
      *
-     * V1에서는 실제 파일 저장소를 구현하지 않고
-     * 파일 경로 정보만 관리한다.
+     * 기존 수동 등록 방식과의 호환성을 위해 유지한다.
+     * Runtime 내부 파일 경로를 Client에 직접 노출하지 않도록 주의한다.
      */
     private String filePath;
+
+    /**
+     * Automation Runtime 파일 ID
+     *
+     * Runtime의 tb_output_file.file_id를 식별한다.
+     *
+     * 수동 등록 증적에서는 null이다.
+     */
+    private String sourceFileId;
+
+    /**
+     * Automation Runtime 실행 UUID
+     *
+     * 해당 파일을 생성한 Runtime 실행을 식별한다.
+     *
+     * 수동 등록 증적에서는 null이다.
+     */
+    private String executionUuid;
+
+    /**
+     * Automation Runtime Job ID
+     *
+     * 해당 파일을 생성한 자동화 Job을 식별한다.
+     *
+     * 수동 등록 증적에서는 null이다.
+     */
+    private String sourceJobId;
 
     /**
      * 제출자 User ID

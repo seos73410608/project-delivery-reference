@@ -14,6 +14,16 @@ import java.time.LocalDateTime;
  *
  * Evidence Requirement에 실제 증적을 등록할 때 사용한다.
  *
+ * 지원 방식:
+ * 1. 수동 증적 등록
+ *    - fileName, filePath를 사용한다.
+ *
+ * 2. Automation Runtime 연동 증적 등록
+ *    - sourceFileId, executionUuid, sourceJobId를 사용한다.
+ *
+ * Runtime 연동 필드는 기존 수동 등록과의 호환성을 위해
+ * 선택 사항으로 관리한다.
+ *
  * Backend 관리 필드:
  * - id
  * - projectId
@@ -63,8 +73,10 @@ public class EvidenceCreateRequest {
     /**
      * 증적 파일명
      *
-     * V1에서는 실제 파일 업로드를 처리하지 않고
-     * 파일명과 경로 정보만 관리한다.
+     * 수동 등록 증적의 파일명 또는
+     * Runtime 파일 메타데이터의 표시용 파일명이다.
+     *
+     * 선택 사항이다.
      */
     @Size(
             max = 255,
@@ -75,14 +87,58 @@ public class EvidenceCreateRequest {
     /**
      * 증적 파일 경로
      *
-     * V1에서는 실제 파일 저장소를 구현하지 않고
-     * 파일 경로만 관리한다.
+     * 기존 수동 등록 방식과의 호환성을 위해 유지한다.
+     *
+     * Runtime 연동 증적의 실제 파일 접근은
+     * Runtime 콘텐츠 API를 통해 처리한다.
      */
     @Size(
             max = 1000,
             message = "파일 경로는 1000자 이하여야 합니다."
     )
     private String filePath;
+
+    /**
+     * Automation Runtime 파일 ID
+     *
+     * Runtime의 tb_output_file.file_id를 전달한다.
+     *
+     * 기존 수동 등록 증적에서는 null이다.
+     *
+     * Runtime 파일의 존재 여부 및 메타데이터 검증은
+     * Service 계층에서 수행한다.
+     */
+    @Size(
+            max = 64,
+            message = "Runtime 파일 ID는 64자 이하여야 합니다."
+    )
+    private String sourceFileId;
+
+    /**
+     * Automation Runtime 실행 UUID
+     *
+     * Runtime 파일이 생성된 실행을 식별한다.
+     *
+     * 기존 수동 등록 증적에서는 null이다.
+     */
+    @Size(
+            max = 64,
+            message = "Runtime 실행 UUID는 64자 이하여야 합니다."
+    )
+    private String executionUuid;
+
+    /**
+     * Automation Runtime Job ID
+     *
+     * 해당 파일을 생성한 자동화 Job을 식별한다.
+     *
+     * 기존 수동 등록 증적에서는 null이다.
+     */
+    @Size(
+            max = 64,
+            message = "Runtime Job ID는 64자 이하여야 합니다."
+    )
+    private String sourceJobId;
 
     /**
      * 실제 증적 제출 일시

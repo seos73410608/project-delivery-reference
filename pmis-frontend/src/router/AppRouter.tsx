@@ -38,7 +38,8 @@ import ChangePage from "../features/change/ChangePage";
  *
  * - /                              Dashboard
  * - /login                         Login
- * - /evidence                      Evidence
+ * - /evidence                      Evidence (기존 경로)
+ * - /project/:projectId/evidence   Project Evidence Management
  * - /wbs                           WBS
  * - /project                       Project List
  * - /project/create                Project Create
@@ -94,11 +95,23 @@ function AppRouter() {
 
 
           {/* ===========================================
-              Evidence
+              Evidence - Existing Route
               =========================================== */}
 
           <Route
             path="/evidence"
+            element={
+              <EvidencePage />
+            }
+          />
+
+
+          {/* ===========================================
+              Project Evidence Management
+              =========================================== */}
+
+          <Route
+            path="/project/:projectId/evidence"
             element={
               <EvidencePage />
             }

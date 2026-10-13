@@ -290,6 +290,34 @@ function ProjectDetailPage() {
 
   /**
    * =====================================================
+   * 증적 관리 페이지 이동
+   * =====================================================
+   *
+   * Frontend Route:
+   *
+   * /project/{projectId}/evidence
+   *
+   * EvidencePage
+   *     ↓
+   * GET /api/projects/{projectId}/evidence-requirements
+   */
+
+  const handleEvidenceManagement = () => {
+
+    if (!project) {
+      return;
+    }
+
+
+    navigate(
+      `/project/${project.id}/evidence`,
+    );
+
+  };
+
+
+  /**
+   * =====================================================
    * 프로젝트 삭제
    * =====================================================
    *
@@ -589,6 +617,18 @@ function ProjectDetailPage() {
             disabled={deleting}
           >
             변경 관리
+          </button>
+
+
+          {/* Evidence Management */}
+
+          <button
+            type="button"
+            className="button button--primary"
+            onClick={handleEvidenceManagement}
+            disabled={deleting}
+          >
+            증적 관리
           </button>
 
 

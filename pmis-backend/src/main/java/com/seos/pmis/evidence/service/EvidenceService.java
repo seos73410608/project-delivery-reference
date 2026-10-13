@@ -17,6 +17,8 @@ import com.seos.pmis.evidence.repository.EvidenceRepository;
 import com.seos.pmis.evidence.repository.EvidenceRequirementRepository;
 import com.seos.pmis.evidence.repository.InspectionItemRepository;
 import com.seos.pmis.evidence.specification.EvidenceSpecification;
+import com.seos.pmis.integration.runtime.client.RuntimeApiClient;
+import com.seos.pmis.integration.runtime.dto.RuntimeOutputFileResponse;
 import com.seos.pmis.project.entity.Project;
 import com.seos.pmis.project.repository.ProjectRepository;
 import com.seos.pmis.user.entity.User;
@@ -33,6 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -48,30 +51,24 @@ public class EvidenceService {
     private final UserRepository userRepository;
 
     private final EvidenceMapper evidenceMapper;
-
-    /*
-     * Evidence 생성/삭제 후
-     * 연결된 Evidence Requirement의 상태를
-     * 다시 계산하기 위해 사용한다.
-     */
     private final EvidenceRequirementService evidenceRequirementService;
 
     /**
-     * =========================================================================
-     * 조회
-     * =========================================================================
+     * Automation Runtime API 클라이언트.
      */
+    private final RuntimeApiClient runtimeApiClient;
+
+    // =========================================================================
+    // 조회
+    // =========================================================================
 
     /**
      * Project 기준 Evidence 목록 조회
      */
-    public List<EvidenceResponse> findAllByProjectId(
-            Long projectId
-    ) {
+    public List<EvidenceResponse> findAllByProjectId(Long projectId) {
         validateProjectExists(projectId);
 
-        return evidenceRepository
-                .findAllByProjectId(projectId)
+        return evidenceRepository.findAllByProjectId(projectId)
                 .stream()
                 .map(evidenceMapper::toResponse)
                 .toList();
@@ -80,14 +77,10 @@ public class EvidenceService {
     /**
      * Evidence Requirement 기준 Evidence 목록 조회
      */
-    public List<EvidenceResponse> findAllByRequirementId(
-            Long requirementId
-    ) {
-        EvidenceRequirement requirement =
-                getRequirement(requirementId);
+    public List<EvidenceResponse> findAllByRequirementId(Long requirementId) {
+        EvidenceRequirement requirement = getRequirement(requirementId);
 
-        return evidenceRepository
-                .findAllByRequirementId(requirement.getId())
+        return evidenceRepository.findAllByRequirementId(requirement.getId())
                 .stream()
                 .map(evidenceMapper::toResponse)
                 .toList();
@@ -103,17 +96,10 @@ public class EvidenceService {
         validateProjectExists(projectId);
 
         Wbs wbs = getWbs(wbsId);
-
-        validateWbsBelongsToProject(
-                wbs,
-                projectId
-        );
+        validateWbsBelongsToProject(wbs, projectId);
 
         return evidenceRepository
-                .findAllByProjectIdAndWbsId(
-                        projectId,
-                        wbsId
-                )
+                .findAllByProjectIdAndWbsId(projectId, wbsId)
                 .stream()
                 .map(evidenceMapper::toResponse)
                 .toList();
@@ -122,160 +108,177 @@ public class EvidenceService {
     /**
      * Evidence 단건 조회
      */
-    public EvidenceResponse findById(
-            Long id
-    ) {
-        Evidence evidence = getEvidence(id);
-
-        return evidenceMapper.toResponse(evidence);
+    public EvidenceResponse findById(Long id) {
+        return evidenceMapper.toResponse(getEvidence(id));
     }
 
     /**
      * Evidence 검색
      */
-    public Page<EvidenceResponse> search(
-            EvidenceSearchRequest request
-    ) {
-        Pageable pageable =
-                SearchPageableFactory.create(
-                        request.getPage(),
-                        request.getSize(),
-                        request.getSortBy(),
-                        request.getDirection()
-                );
+    public Page<EvidenceResponse> search(EvidenceSearchRequest request) {
+        Pageable pageable = SearchPageableFactory.create(
+                request.getPage(),
+                request.getSize(),
+                request.getSortBy(),
+                request.getDirection()
+        );
 
-        var specification =
-                EvidenceSpecification
-                        .projectId(request.getProjectId())
-                        .and(
-                                EvidenceSpecification.requirementId(
-                                        request.getRequirementId()
-                                )
-                        )
-                        .and(
-                                EvidenceSpecification.wbsId(
-                                        request.getWbsId()
-                                )
-                        )
-                        .and(
-                                EvidenceSpecification.keyword(
-                                        request.getKeyword()
-                                )
-                        )
-                        .and(
-                                EvidenceSpecification.evidenceType(
-                                        request.getEvidenceType()
-                                )
-                        )
-                        .and(
-                                EvidenceSpecification.verificationStatus(
-                                        request.getVerificationStatus()
-                                )
-                        );
+        var specification = EvidenceSpecification
+                .projectId(request.getProjectId())
+                .and(EvidenceSpecification.requirementId(
+                        request.getRequirementId()
+                ))
+                .and(EvidenceSpecification.wbsId(
+                        request.getWbsId()
+                ))
+                .and(EvidenceSpecification.keyword(
+                        request.getKeyword()
+                ))
+                .and(EvidenceSpecification.evidenceType(
+                        request.getEvidenceType()
+                ))
+                .and(EvidenceSpecification.verificationStatus(
+                        request.getVerificationStatus()
+                ));
 
-        return evidenceRepository
-                .findAll(
-                        specification,
-                        pageable
-                )
+        return evidenceRepository.findAll(specification, pageable)
                 .map(evidenceMapper::toResponse);
     }
 
-    /**
-     * =========================================================================
-     * 생성
-     * =========================================================================
-     */
+    // =========================================================================
+    // 생성
+    // =========================================================================
 
     /**
      * Evidence 생성
      *
-     * Requirement를 기준으로 Project를 결정한다.
-     * 현재 로그인 사용자를 submittedBy로 기록한다.
+     * sourceFileId가 전달되면 Runtime 메타데이터를 조회하고
+     * 검증된 Runtime 응답을 통해 lineage를 연결한다.
      *
-     * Evidence 생성 후 연결된 Requirement의 상태를
-     * 다시 계산한다.
+     * sourceFileId가 없으면 기존 수동 등록 방식을 유지한다.
      */
     @Transactional
     public EvidenceResponse create(
             Long requirementId,
             EvidenceCreateRequest request
     ) {
-        EvidenceRequirement requirement =
-                getRequirement(requirementId);
+        EvidenceRequirement requirement = getRequirement(requirementId);
+        Project project = requirement.getProject();
 
-        Project project =
-                requirement.getProject();
-
-        Wbs wbs =
-                getOptionalWbs(
-                        request.getWbsId()
-                );
+        Wbs wbs = getOptionalWbs(request.getWbsId());
 
         if (wbs != null) {
-            validateWbsBelongsToProject(
-                    wbs,
-                    project.getId()
+            validateWbsBelongsToProject(wbs, project.getId());
+        }
+
+        User submittedBy = getCurrentUser();
+
+        RuntimeOutputFileResponse runtimeFile = null;
+
+        if (hasText(request.getSourceFileId())) {
+            runtimeFile = runtimeApiClient.getFileMetadata(
+                    request.getSourceFileId()
+            );
+
+            validateRuntimeFile(runtimeFile, request);
+        }
+
+        String evidenceKey = generateEvidenceKey(project.getId());
+
+        Evidence evidence = evidenceMapper.toEntity(
+                request,
+                project,
+                requirement,
+                wbs,
+                submittedBy,
+                evidenceKey
+        );
+
+        /*
+         * Runtime 식별자는 요청 DTO를 수정하지 않고,
+         * 검증된 Runtime 응답을 기준으로 엔티티에 연결한다.
+         */
+        if (runtimeFile != null) {
+            evidence.linkRuntimeFile(
+                    runtimeFile.getFileId(),
+                    runtimeFile.getExecutionUuid(),
+                    runtimeFile.getJobId()
             );
         }
 
-        User submittedBy =
-                getCurrentUser();
+        Evidence saved = evidenceRepository.save(evidence);
 
-        String evidenceKey =
-                generateEvidenceKey(
-                        project.getId()
-                );
-
-        Evidence evidence =
-                evidenceMapper.toEntity(
-                        request,
-                        project,
-                        requirement,
-                        wbs,
-                        submittedBy,
-                        evidenceKey
-                );
-
-        Evidence saved =
-                evidenceRepository.save(evidence);
-
-        /*
-         * Evidence 생성으로 인해
-         * Requirement 상태가 변경될 수 있으므로
-         * 상태를 다시 계산한다.
-         *
-         * 예:
-         * PENDING → PRESENT
-         */
-        evidenceRequirementService.refreshStatus(
-                requirement.getId()
-        );
+        evidenceRequirementService.refreshStatus(requirement.getId());
 
         return evidenceMapper.toResponse(saved);
     }
 
     /**
-     * =========================================================================
-     * 수정
-     * =========================================================================
+     * Runtime 메타데이터 검증
      */
+    private void validateRuntimeFile(
+            RuntimeOutputFileResponse runtimeFile,
+            EvidenceCreateRequest request
+    ) {
+        if (runtimeFile == null
+                || !hasText(runtimeFile.getFileId())
+                || !hasText(runtimeFile.getExecutionUuid())
+                || !hasText(runtimeFile.getJobId())) {
+            throw new BusinessException(
+                    EvidenceErrorCode.RUNTIME_FILE_METADATA_INVALID
+            );
+        }
+
+        // 요청한 파일 ID와 Runtime 응답의 파일 ID를 비교한다.
+        if (!Objects.equals(
+                request.getSourceFileId(),
+                runtimeFile.getFileId()
+        )) {
+            throw new BusinessException(
+                    EvidenceErrorCode.RUNTIME_FILE_ID_MISMATCH
+            );
+        }
+
+        // 실행 UUID가 요청에 포함된 경우에만 비교한다.
+        if (hasText(request.getExecutionUuid())
+                && !Objects.equals(
+                        request.getExecutionUuid(),
+                        runtimeFile.getExecutionUuid()
+                )) {
+            throw new BusinessException(
+                    EvidenceErrorCode.RUNTIME_FILE_REFERENCE_MISMATCH
+            );
+        }
+
+        // Job ID가 요청에 포함된 경우에만 비교한다.
+        if (hasText(request.getSourceJobId())
+                && !Objects.equals(
+                        request.getSourceJobId(),
+                        runtimeFile.getJobId()
+                )) {
+            throw new BusinessException(
+                    EvidenceErrorCode.RUNTIME_FILE_REFERENCE_MISMATCH
+            );
+        }
+    }
+
+    // =========================================================================
+    // 수정
+    // =========================================================================
 
     /**
      * Evidence 수정
+     *
+     * 일반 수정 요청으로 Runtime lineage를 변경하지 않는다.
      */
     @Transactional
     public EvidenceResponse update(
             Long id,
             EvidenceUpdateRequest request
     ) {
-        Evidence evidence =
-                getEvidence(id);
+        Evidence evidence = getEvidence(id);
 
-        Wbs wbs =
-                getOptionalWbs(
-                        request.getWbsId()
-                );
+        Wbs wbs = getOptionalWbs(request.getWbsId());
 
         if (wbs != null) {
             validateWbsBelongsToProject(
@@ -284,131 +287,69 @@ public class EvidenceService {
             );
         }
 
-        evidenceMapper.updateEntity(
-                evidence,
-                request,
-                wbs
-        );
+        evidenceMapper.updateEntity(evidence, request, wbs);
 
         return evidenceMapper.toResponse(evidence);
     }
 
-    /**
-     * =========================================================================
-     * 삭제
-     * =========================================================================
-     */
+    // =========================================================================
+    // 삭제
+    // =========================================================================
 
     /**
-     * Evidence 삭제
-     *
      * Inspection Item에서 사용 중인 Evidence는 삭제할 수 없다.
-     *
-     * Evidence 삭제 후 연결된 Requirement의 상태를
-     * 다시 계산한다.
      */
     @Transactional
-    public void delete(
-            Long id
-    ) {
-        Evidence evidence =
-                getEvidence(id);
+    public void delete(Long id) {
+        Evidence evidence = getEvidence(id);
 
-        if (inspectionItemRepository.existsByEvidenceId(
-                evidence.getId()
-        )) {
+        if (inspectionItemRepository.existsByEvidenceId(evidence.getId())) {
             throw new BusinessException(
                     EvidenceErrorCode.EVIDENCE_DELETE_NOT_ALLOWED
             );
         }
 
-        /*
-         * Evidence 삭제 후에도
-         * Requirement 상태를 다시 계산해야 하므로
-         * Requirement ID를 먼저 확보한다.
-         */
-        Long requirementId =
-                evidence.getRequirement().getId();
+        Long requirementId = evidence.getRequirement().getId();
 
         evidenceRepository.delete(evidence);
 
-        /*
-         * Evidence 삭제로 인해
-         * Requirement 상태가 변경될 수 있다.
-         *
-         * 예:
-         * PRESENT → PENDING
-         * PRESENT → MISSING
-         */
-        evidenceRequirementService.refreshStatus(
-                requirementId
-        );
+        evidenceRequirementService.refreshStatus(requirementId);
     }
 
-    /**
-     * =========================================================================
-     * Verification
-     * =========================================================================
-     */
+    // =========================================================================
+    // Verification
+    // =========================================================================
 
     /**
-     * Evidence Verification
+     * Evidence 검증
      *
-     * Client에서 전달받은 Verification 요청을 기준으로
-     * Evidence의 검증 상태를 변경한다.
-     *
-     * Client 전달 필드:
-     * - status
-     * - remark
-     *
-     * Backend 관리 필드:
-     * - verifiedBy
-     * - verifiedAt
-     *
-     * PENDING은 Verification 결과로 지정할 수 없다.
-     * 실제 검증 결과는 APPROVED 또는 REJECTED만 허용한다.
-     *
-     * REJECTED인 경우 반려 사유를 필수로 요구한다.
+     * 허용 결과: APPROVED, REJECTED
+     * REJECTED인 경우 반려 사유가 필수다.
      */
     @Transactional
     public EvidenceResponse verify(
             Long id,
             EvidenceVerificationRequest request
     ) {
-        Evidence evidence =
-                getEvidence(id);
+        Evidence evidence = getEvidence(id);
 
-        VerificationStatus status =
-                request.getStatus();
+        VerificationStatus status = request.getStatus();
+        String remark = request.getRemark();
 
-        String remark =
-                request.getRemark();
-
-        if (status == null) {
+        if (status == null || status == VerificationStatus.PENDING) {
             throw new BusinessException(
-                    EvidenceErrorCode
-                            .EVIDENCE_VERIFICATION_NOT_ALLOWED
-            );
-        }
-
-        if (status == VerificationStatus.PENDING) {
-            throw new BusinessException(
-                    EvidenceErrorCode
-                            .EVIDENCE_VERIFICATION_NOT_ALLOWED
+                    EvidenceErrorCode.EVIDENCE_VERIFICATION_NOT_ALLOWED
             );
         }
 
         if (status == VerificationStatus.REJECTED
-                && (remark == null || remark.isBlank())) {
-
+                && !hasText(remark)) {
             throw new BusinessException(
-                    EvidenceErrorCode
-                            .EVIDENCE_VERIFICATION_REMARK_REQUIRED
+                    EvidenceErrorCode.EVIDENCE_VERIFICATION_REMARK_REQUIRED
             );
         }
 
-        User verifiedBy =
-                getCurrentUser();
+        User verifiedBy = getCurrentUser();
 
         evidence.verify(
                 status,
@@ -420,49 +361,25 @@ public class EvidenceService {
         return evidenceMapper.toResponse(evidence);
     }
 
-    /**
-     * =========================================================================
-     * 내부 조회 / 검증
-     * =========================================================================
-     */
+    // =========================================================================
+    // 내부 조회 및 검증
+    // =========================================================================
 
-    /**
-     * Evidence 조회
-     */
-    private Evidence getEvidence(
-            Long id
-    ) {
-        return evidenceRepository
-                .findById(id)
-                .orElseThrow(
-                        () -> new BusinessException(
-                                EvidenceErrorCode.EVIDENCE_NOT_FOUND
-                        )
-                );
+    private Evidence getEvidence(Long id) {
+        return evidenceRepository.findById(id)
+                .orElseThrow(() -> new BusinessException(
+                        EvidenceErrorCode.EVIDENCE_NOT_FOUND
+                ));
     }
 
-    /**
-     * Evidence Requirement 조회
-     */
-    private EvidenceRequirement getRequirement(
-            Long requirementId
-    ) {
-        return evidenceRequirementRepository
-                .findById(requirementId)
-                .orElseThrow(
-                        () -> new BusinessException(
-                                EvidenceErrorCode
-                                        .EVIDENCE_REQUIREMENT_NOT_FOUND
-                        )
-                );
+    private EvidenceRequirement getRequirement(Long requirementId) {
+        return evidenceRequirementRepository.findById(requirementId)
+                .orElseThrow(() -> new BusinessException(
+                        EvidenceErrorCode.EVIDENCE_REQUIREMENT_NOT_FOUND
+                ));
     }
 
-    /**
-     * Project 존재 여부 검증
-     */
-    private void validateProjectExists(
-            Long projectId
-    ) {
+    private void validateProjectExists(Long projectId) {
         if (!projectRepository.existsById(projectId)) {
             throw new BusinessException(
                     EvidenceErrorCode.PROJECT_NOT_FOUND
@@ -470,141 +387,76 @@ public class EvidenceService {
         }
     }
 
-    /**
-     * WBS 조회
-     */
-    private Wbs getWbs(
-            Long wbsId
-    ) {
-        return wbsRepository
-                .findById(wbsId)
-                .orElseThrow(
-                        () -> new BusinessException(
-                                EvidenceErrorCode.WBS_NOT_FOUND
-                        )
-                );
+    private Wbs getWbs(Long wbsId) {
+        return wbsRepository.findById(wbsId)
+                .orElseThrow(() -> new BusinessException(
+                        EvidenceErrorCode.WBS_NOT_FOUND
+                ));
     }
 
-    /**
-     * Optional WBS 조회
-     */
-    private Wbs getOptionalWbs(
-            Long wbsId
-    ) {
-        if (wbsId == null) {
-            return null;
-        }
-
-        return getWbs(wbsId);
+    private Wbs getOptionalWbs(Long wbsId) {
+        return wbsId == null ? null : getWbs(wbsId);
     }
 
-    /**
-     * WBS가 Project에 속하는지 검증
-     */
     private void validateWbsBelongsToProject(
             Wbs wbs,
             Long projectId
     ) {
-        if (!wbs.getProject()
-                .getId()
-                .equals(projectId)) {
-
+        if (!wbs.getProject().getId().equals(projectId)) {
             throw new BusinessException(
                     EvidenceErrorCode.WBS_PROJECT_MISMATCH
             );
         }
     }
 
-    /**
-     * =========================================================================
-     * 현재 로그인 사용자
-     * =========================================================================
-     */
-
-    /**
-     * 현재 인증된 사용자 조회
-     *
-     * JWT 인증이 정상적으로 완료된 경우
-     * Authentication.getName()에는 username이 들어온다.
-     */
     private User getCurrentUser() {
-
-        Authentication authentication =
-                SecurityContextHolder
-                        .getContext()
-                        .getAuthentication();
+        Authentication authentication = SecurityContextHolder
+                .getContext()
+                .getAuthentication();
 
         if (authentication == null
                 || !authentication.isAuthenticated()
-                || authentication.getName() == null
-                || authentication.getName().isBlank()) {
-
+                || !hasText(authentication.getName())) {
             throw new BusinessException(
                     CommonErrorCode.UNAUTHORIZED
             );
         }
 
-        String username =
-                authentication.getName();
-
-        return userRepository
-                .findByUsername(username)
-                .orElseThrow(
-                        () -> new BusinessException(
-                                CommonErrorCode.USER_NOT_FOUND
-                        )
-                );
+        return userRepository.findByUsername(authentication.getName())
+                .orElseThrow(() -> new BusinessException(
+                        CommonErrorCode.USER_NOT_FOUND
+                ));
     }
 
-    /**
-     * =========================================================================
-     * Evidence Key 생성
-     * =========================================================================
-     */
+    // =========================================================================
+    // Evidence Key 생성
+    // =========================================================================
 
-    /**
-     * Project별 Evidence Key 생성
-     *
-     * EVD-001
-     * EVD-002
-     * EVD-003
-     * ...
-     */
-    private String generateEvidenceKey(
-            Long projectId
-    ) {
+    private String generateEvidenceKey(Long projectId) {
         List<Evidence> evidences =
-                evidenceRepository
-                        .findAllByProjectId(projectId);
+                evidenceRepository.findAllByProjectId(projectId);
 
-        int nextNumber =
-                evidences
-                        .stream()
-                        .map(Evidence::getEvidenceKey)
-                        .filter(key -> key != null)
-                        .filter(key -> key.startsWith("EVD-"))
-                        .map(key -> key.substring(4))
-                        .mapToInt(this::parseKeyNumber)
-                        .max()
-                        .orElse(0)
-                        + 1;
+        int nextNumber = evidences.stream()
+                .map(Evidence::getEvidenceKey)
+                .filter(Objects::nonNull)
+                .filter(key -> key.startsWith("EVD-"))
+                .map(key -> key.substring(4))
+                .mapToInt(this::parseKeyNumber)
+                .max()
+                .orElse(0) + 1;
 
-        return String.format(
-                "EVD-%03d",
-                nextNumber
-        );
+        return String.format("EVD-%03d", nextNumber);
     }
 
-    /**
-     * Evidence Key 숫자 부분 파싱
-     */
-    private int parseKeyNumber(
-            String value
-    ) {
+    private int parseKeyNumber(String value) {
         try {
             return Integer.parseInt(value);
         } catch (NumberFormatException exception) {
             return 0;
         }
+    }
+
+    private boolean hasText(String value) {
+        return value != null && !value.isBlank();
     }
 }

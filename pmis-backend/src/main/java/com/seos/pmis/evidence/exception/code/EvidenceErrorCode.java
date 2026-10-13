@@ -121,6 +121,28 @@ public enum EvidenceErrorCode implements ErrorCode {
             HttpStatus.BAD_REQUEST,
             "INSPECTION_ITEM_INVALID_RESULT_TRANSITION",
             "유효하지 않은 Inspection Item 결과 전이입니다."
+    ),
+
+    // =========================================================
+    // Automation Runtime 연동 오류
+    // =========================================================
+
+    RUNTIME_FILE_METADATA_INVALID(
+            HttpStatus.BAD_GATEWAY,
+            "RUNTIME_FILE_METADATA_INVALID",
+            "Automation Runtime에서 유효하지 않은 파일 메타데이터를 반환했습니다."
+    ),
+
+    RUNTIME_FILE_ID_MISMATCH(
+            HttpStatus.BAD_GATEWAY,
+            "RUNTIME_FILE_ID_MISMATCH",
+            "Automation Runtime 응답의 파일 ID가 요청한 파일 ID와 일치하지 않습니다."
+    ),
+
+    RUNTIME_FILE_REFERENCE_MISMATCH(
+            HttpStatus.BAD_REQUEST,
+            "RUNTIME_FILE_REFERENCE_MISMATCH",
+            "요청한 Runtime 실행 UUID 또는 Job ID가 파일 메타데이터와 일치하지 않습니다."
     );
 
     private final HttpStatus httpStatus;
