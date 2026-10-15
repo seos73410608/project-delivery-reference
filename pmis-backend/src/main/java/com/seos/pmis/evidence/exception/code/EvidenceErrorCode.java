@@ -143,6 +143,12 @@ public enum EvidenceErrorCode implements ErrorCode {
             HttpStatus.BAD_REQUEST,
             "RUNTIME_FILE_REFERENCE_MISMATCH",
             "요청한 Runtime 실행 UUID 또는 Job ID가 파일 메타데이터와 일치하지 않습니다."
+    ),
+
+    RUNTIME_API_UNAVAILABLE(
+            HttpStatus.BAD_GATEWAY,
+            "RUNTIME_API_UNAVAILABLE",
+            "Automation Runtime API 호출에 실패했습니다."
     );
 
     private final HttpStatus httpStatus;
