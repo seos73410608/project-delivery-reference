@@ -26,6 +26,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RuntimeApiClient {
 
+    private static final String API_KEY_HEADER = "X-API-Key";
+
     private final RestClient.Builder restClientBuilder;
     private final RuntimeProperties runtimeProperties;
 
@@ -41,10 +43,9 @@ public class RuntimeApiClient {
     public List<RuntimeOutputFileResponse> getExecutionFiles(
             String executionUuid
     ) {
-        RestClient restClient = createRestClient();
-
         List<RuntimeOutputFileResponse> response =
-                restClient.get()
+                createRestClient()
+                        .get()
                         .uri(
                                 "/api/v1/executions/{executionUuid}/files",
                                 executionUuid
@@ -134,11 +135,19 @@ public class RuntimeApiClient {
     /**
      * Runtime API 호출용 RestClient 생성
      *
-     * application.yaml의 runtime.api.base-url을 사용한다.
+     * application.yaml의 runtime.api 설정을 사용한다.
+     * API Key가 설정된 경우 X-API-Key 헤더를 추가한다.
      */
     private RestClient createRestClient() {
-        return restClientBuilder
-                .baseUrl(runtimeProperties.getBaseUrl())
-                .build();
+        RestClient.Builder builder = restClientBuilder
+                .baseUrl(runtimeProperties.getBaseUrl());
+
+        String apiKey = runtimeProperties.getApiKey();
+
+        if (apiKey != null && !apiKey.isBlank()) {
+            builder.defaultHeader(API_KEY_HEADER, apiKey);
+        }
+
+        return builder.build();
     }
 }

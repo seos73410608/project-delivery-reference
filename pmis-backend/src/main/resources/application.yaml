@@ -30,3 +30,4 @@ jwt:
 runtime:
   api:
     base-url: ${RUNTIME_API_BASE_URL:http://127.0.0.1:8000}
+    api-key: ${RUNTIME_API_KEY:sample-runtime-key-2026-dev-only}

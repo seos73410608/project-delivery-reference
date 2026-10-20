@@ -22,4 +22,11 @@ public class RuntimeProperties {
      * 예: http://127.0.0.1:8000
      */
     private String baseUrl;
+
+    /**
+     * Automation Runtime API 인증 키
+     *
+     * 환경변수 RUNTIME_API_KEY를 통해 주입한다.
+     */
+    private String apiKey;
 }
