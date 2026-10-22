@@ -28,6 +28,12 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-validation")
 
     // ------------------------------------------------------------------------
+    // Reactive Streams
+    // Runtime API multipart upload 시 필요한 Publisher 클래스 제공
+    // ------------------------------------------------------------------------
+    implementation("org.reactivestreams:reactive-streams:1.0.4")
+
+    // ------------------------------------------------------------------------
     // Database
     // ------------------------------------------------------------------------
     runtimeOnly("org.mariadb.jdbc:mariadb-java-client")
