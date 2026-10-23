@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -503,6 +504,7 @@ public class EvidenceOcrService {
     private LocalDateTime toLocalDateTime(OffsetDateTime value) {
         return value == null
                 ? null
-                : value.toLocalDateTime();
-    }
+                : value.atZoneSameInstant(ZoneId.of("Asia/Seoul"))
+                        .toLocalDateTime();
+        }
 }
