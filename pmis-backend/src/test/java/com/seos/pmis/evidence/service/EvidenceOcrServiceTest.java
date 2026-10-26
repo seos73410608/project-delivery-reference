@@ -4,6 +4,7 @@ import com.seos.pmis.evidence.entity.Evidence;
 import com.seos.pmis.evidence.entity.EvidenceOcrJob;
 import com.seos.pmis.evidence.repository.EvidenceOcrJobRepository;
 import com.seos.pmis.evidence.repository.EvidenceRepository;
+import com.seos.pmis.integration.runtime.dto.RuntimeOcrJobByRequestIdResponse;
 import com.seos.pmis.integration.runtime.dto.RuntimeOcrJobRequest;
 import com.seos.pmis.integration.runtime.dto.RuntimeOcrJobResponse;
 import com.seos.pmis.integration.runtime.dto.RuntimeOcrJobStatusResponse;
@@ -49,7 +50,7 @@ class EvidenceOcrServiceTest {
         evidence = Evidence.builder()
                 .id(1L)
                 .evidenceKey("EVD-001")
-                .title("OCR 테스트 증적")
+                .title("OCR test evidence")
                 .build();
     }
 
@@ -120,31 +121,137 @@ class EvidenceOcrServiceTest {
     }
 
     @Test
-    void refreshStatus_withoutRuntimeRequestId_doesNotCallRuntime() {
+    void refreshStatus_withoutRuntimeRequestId_recoversExistingRuntimeJob() {
         // given
+        String pmisRequestId = "pmis-request-001";
+        String fileId = "file-001";
+        String runtimeOcrRequestId = "runtime-ocr-001";
+
         EvidenceOcrJob job = EvidenceOcrJob.create(
                 evidence,
-                "pmis-request-001",
-                "file-001");
+                pmisRequestId,
+                fileId);
 
         when(evidenceOcrJobRepository.findById(10L))
                 .thenReturn(Optional.of(job));
+
+        RuntimeOcrJobByRequestIdResponse recovery =
+                new RuntimeOcrJobByRequestIdResponse();
+
+        recovery.setPmisRequestId(pmisRequestId);
+        recovery.setFileId(fileId);
+        recovery.setOcrRequestId(runtimeOcrRequestId);
+        recovery.setStatus("PENDING");
+
+        when(runtimeService.getOcrJobByPmisRequestId(pmisRequestId))
+                .thenReturn(recovery);
+
+        RuntimeOcrJobStatusResponse statusResponse =
+                new RuntimeOcrJobStatusResponse();
+
+        statusResponse.setPmisRequestId(pmisRequestId);
+        statusResponse.setFileId(fileId);
+        statusResponse.setOcrRequestId(runtimeOcrRequestId);
+        statusResponse.setStatus("PENDING");
+
+        when(runtimeService.getOcrJobStatus(runtimeOcrRequestId))
+                .thenReturn(statusResponse);
+
+        when(evidenceOcrJobRepository.save(any(EvidenceOcrJob.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
 
         // when
         EvidenceOcrJob result =
                 evidenceOcrService.refreshStatus(10L);
 
         // then
-        assertEquals(job, result);
+        assertEquals(runtimeOcrRequestId, result.getOcrRequestId());
         assertEquals(
                 EvidenceOcrJob.OcrStatus.PENDING,
                 result.getStatus());
 
-        verify(runtimeService, never())
-                .getOcrJobStatus(any());
+        verify(runtimeService)
+                .getOcrJobByPmisRequestId(pmisRequestId);
 
-        verify(runtimeService, never())
-                .getOcrResult(any());
+        verify(runtimeService)
+                .getOcrJobStatus(runtimeOcrRequestId);
+
+        verify(evidenceOcrJobRepository).save(job);
+
+        verify(runtimeService, never()).createOcrJob(
+                any(RuntimeOcrJobRequest.class));
+    }
+
+    @Test
+    void refreshStatus_runtimeJobNotFound_keepsPendingJob() {
+        // given
+        String pmisRequestId = "pmis-request-002";
+
+        EvidenceOcrJob job = EvidenceOcrJob.create(
+                evidence,
+                pmisRequestId,
+                "file-002");
+
+        when(evidenceOcrJobRepository.findById(20L))
+                .thenReturn(Optional.of(job));
+
+        when(runtimeService.getOcrJobByPmisRequestId(pmisRequestId))
+                .thenReturn(null);
+
+        // when
+        EvidenceOcrJob result =
+                evidenceOcrService.refreshStatus(20L);
+
+        // then
+        assertEquals(
+                EvidenceOcrJob.OcrStatus.PENDING,
+                result.getStatus());
+
+        assertEquals(null, result.getOcrRequestId());
+
+        verify(runtimeService)
+                .getOcrJobByPmisRequestId(pmisRequestId);
+
+        verify(runtimeService, never()).getOcrJobStatus(any());
+
+        verify(runtimeService, never()).getOcrResult(any());
+
+        verify(runtimeService, never()).createOcrJob(
+                any(RuntimeOcrJobRequest.class));
+    }
+
+    @Test
+    void refreshStatus_recoveryFileIdMismatch_throwsException() {
+        // given
+        String pmisRequestId = "pmis-request-003";
+
+        EvidenceOcrJob job = EvidenceOcrJob.create(
+                evidence,
+                pmisRequestId,
+                "expected-file");
+
+        when(evidenceOcrJobRepository.findById(30L))
+                .thenReturn(Optional.of(job));
+
+        RuntimeOcrJobByRequestIdResponse recovery =
+                new RuntimeOcrJobByRequestIdResponse();
+
+        recovery.setPmisRequestId(pmisRequestId);
+        recovery.setFileId("different-file");
+        recovery.setOcrRequestId("runtime-ocr-003");
+        recovery.setStatus("RUNNING");
+
+        when(runtimeService.getOcrJobByPmisRequestId(pmisRequestId))
+                .thenReturn(recovery);
+
+        // when / then
+        assertThrows(
+                IllegalStateException.class,
+                () -> evidenceOcrService.refreshStatus(30L));
+
+        assertEquals(null, job.getOcrRequestId());
+
+        verify(runtimeService, never()).getOcrJobStatus(any());
     }
 
     @Test
@@ -152,29 +259,29 @@ class EvidenceOcrServiceTest {
         // given
         EvidenceOcrJob job = EvidenceOcrJob.create(
                 evidence,
-                "pmis-request-002",
-                "file-002");
+                "pmis-request-004",
+                "file-004");
 
-        job.registerRuntimeRequest("runtime-ocr-002");
+        job.registerRuntimeRequest("runtime-ocr-004");
 
-        when(evidenceOcrJobRepository.findById(20L))
+        when(evidenceOcrJobRepository.findById(40L))
                 .thenReturn(Optional.of(job));
 
         RuntimeOcrJobStatusResponse response =
                 new RuntimeOcrJobStatusResponse();
 
-        response.setOcrRequestId("runtime-ocr-002");
+        response.setOcrRequestId("runtime-ocr-004");
         response.setPmisRequestId("different-pmis-request");
-        response.setFileId("file-002");
+        response.setFileId("file-004");
         response.setStatus("RUNNING");
 
-        when(runtimeService.getOcrJobStatus("runtime-ocr-002"))
+        when(runtimeService.getOcrJobStatus("runtime-ocr-004"))
                 .thenReturn(response);
 
         // when / then
         assertThrows(
                 IllegalStateException.class,
-                () -> evidenceOcrService.refreshStatus(20L));
+                () -> evidenceOcrService.refreshStatus(40L));
     }
 
     @Test
@@ -182,26 +289,29 @@ class EvidenceOcrServiceTest {
         // given
         EvidenceOcrJob job = EvidenceOcrJob.create(
                 evidence,
-                "pmis-request-003",
-                "file-003");
+                "pmis-request-005",
+                "file-005");
 
-        job.registerRuntimeRequest("runtime-ocr-003");
+        job.registerRuntimeRequest("runtime-ocr-005");
         job.fail(
-                "테스트용 종료 상태",
+                "Test terminal status",
                 null,
                 LocalDateTime.now());
 
-        when(evidenceOcrJobRepository.findById(30L))
+        when(evidenceOcrJobRepository.findById(50L))
                 .thenReturn(Optional.of(job));
 
         // when
         EvidenceOcrJob result =
-                evidenceOcrService.refreshStatus(30L);
+                evidenceOcrService.refreshStatus(50L);
 
         // then
         assertEquals(
                 EvidenceOcrJob.OcrStatus.FAILED,
                 result.getStatus());
+
+        verify(runtimeService, never())
+                .getOcrJobByPmisRequestId(any());
 
         verify(runtimeService, never())
                 .getOcrJobStatus(any());

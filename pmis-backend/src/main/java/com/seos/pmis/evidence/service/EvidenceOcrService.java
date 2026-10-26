@@ -1,4 +1,3 @@
-
 package com.seos.pmis.evidence.service;
 
 import com.seos.pmis.common.exception.BusinessException;
@@ -7,6 +6,7 @@ import com.seos.pmis.evidence.entity.EvidenceOcrJob;
 import com.seos.pmis.evidence.exception.code.EvidenceErrorCode;
 import com.seos.pmis.evidence.repository.EvidenceOcrJobRepository;
 import com.seos.pmis.evidence.repository.EvidenceRepository;
+import com.seos.pmis.integration.runtime.dto.RuntimeOcrJobByRequestIdResponse;
 import com.seos.pmis.integration.runtime.dto.RuntimeOcrJobRequest;
 import com.seos.pmis.integration.runtime.dto.RuntimeOcrJobResponse;
 import com.seos.pmis.integration.runtime.dto.RuntimeOcrJobStatusResponse;
@@ -93,10 +93,9 @@ public class EvidenceOcrService {
         /*
          * Runtime 호출 전에 PMIS 작업 이력을 저장한다.
          *
-         * 주의:
-         * 이 메서드는 현재 트랜잭션 안에서 Runtime을 호출한다.
-         * DB 저장과 외부 API 호출은 하나의 원자적 작업이 아니므로,
-         * 운영 환경에서는 별도 트랜잭션 경계 및 복구 정책이 필요하다.
+         * DB 저장과 외부 API 호출은 하나의 원자적 작업이 아니다.
+         * Runtime이 작업을 접수한 후 응답이 유실될 수 있으므로,
+         * PMIS 요청 ID 기반 복구 경로를 제공한다.
          */
         EvidenceOcrJob savedJob =
                 evidenceOcrJobRepository.saveAndFlush(ocrJob);
@@ -167,11 +166,14 @@ public class EvidenceOcrService {
 
         } catch (BusinessException exception) {
             /*
-             * RuntimeService가 전달한 연동 오류를 작업 이력에 남긴다.
-             *
+             * 주의:
              * 네트워크 오류는 Runtime이 작업을 접수한 뒤 응답만
-             * 유실된 경우일 수도 있다. 따라서 FAILED 상태만으로
-             * Runtime 작업이 미접수되었다고 단정해서는 안 된다.
+             * 유실된 경우일 수도 있다.
+             *
+             * 현재는 기존 정책에 따라 FAILED로 기록한다.
+             * 따라서 이 FAILED 작업은 아래 refreshStatus()의
+             * 자동 복구 대상이 아니다. 모호한 실패를 복구하려면
+             * 별도의 상태 정책 변경이 필요하다.
              */
             savedJob.fail(
                     "Runtime OCR 요청 중 오류가 발생했습니다: "
@@ -210,17 +212,13 @@ public class EvidenceOcrService {
 
             case "SUCCEEDED" -> {
                 /*
-                 * 생성 응답에서 이미 SUCCEEDED를 반환한 경우에도
                  * 결과 본문을 확인하기 전에는 완료로 확정하지 않는다.
                  * 이후 refreshStatus()에서 상태와 결과를 동기화한다.
                  */
             }
 
             default -> {
-                /*
-                 * 알 수 없는 상태를 임의로 성공 또는 실패로 바꾸지 않는다.
-                 * 현재 엔티티 상태를 유지한다.
-                 */
+                // 알 수 없는 상태는 임의로 성공 또는 실패 처리하지 않는다.
             }
         }
     }
@@ -270,15 +268,16 @@ public class EvidenceOcrService {
     }
 
     // =========================================================================
-    // OCR 상태 동기화
+    // OCR 상태 동기화 및 Runtime 작업 복구
     // =========================================================================
 
     /**
      * Runtime의 최신 OCR 상태를 조회하고 PMIS 이력에 반영한다.
      *
-     * PENDING 및 RUNNING 상태는 계속 조회할 수 있다.
-     * SUCCEEDED 및 FAILED 상태는 종결 상태로 취급하여
-     * 불필요한 Runtime 재조회를 방지한다.
+     * Runtime OCR 요청 ID가 아직 연결되지 않은 PENDING 작업은
+     * PMIS 요청 ID로 기존 Runtime 작업을 조회하여 복구를 시도한다.
+     *
+     * SUCCEEDED 및 FAILED 상태는 종결 상태로 취급한다.
      */
     @Transactional
     public EvidenceOcrJob refreshStatus(Long ocrJobId) {
@@ -290,15 +289,63 @@ public class EvidenceOcrService {
 
         String ocrRequestId = ocrJob.getOcrRequestId();
 
+        /*
+         * Runtime 요청 ID가 없다면 PMIS 요청 ID로 기존 Runtime 작업을
+         * 조회한다. 여기서는 새 OCR 작업을 생성하지 않는다.
+         */
         if (!hasText(ocrRequestId)) {
-            return ocrJob;
+            if (ocrJob.getStatus() != EvidenceOcrJob.OcrStatus.PENDING) {
+                return ocrJob;
+            }
+
+            RuntimeOcrJobByRequestIdResponse recovery =
+                    runtimeService.getOcrJobByPmisRequestId(
+                            ocrJob.getPmisRequestId()
+                    );
+
+            // Runtime에서 찾지 못한 경우 현재 PMIS 상태를 유지한다.
+            if (recovery == null) {
+                return ocrJob;
+            }
+
+            // 복구 응답이 현재 PMIS 작업에 해당하는지 검증한다.
+            if (!Objects.equals(
+                    ocrJob.getPmisRequestId(),
+                    recovery.getPmisRequestId()
+            )) {
+                throw new IllegalStateException(
+                        "Runtime 복구 응답의 PMIS 요청 ID가 일치하지 않습니다."
+                );
+            }
+
+            if (!Objects.equals(
+                    ocrJob.getInputFileId(),
+                    recovery.getFileId()
+            )) {
+                throw new IllegalStateException(
+                        "Runtime 복구 응답의 입력 파일 ID가 일치하지 않습니다."
+                );
+            }
+
+            if (!hasText(recovery.getOcrRequestId())) {
+                throw new IllegalStateException(
+                        "Runtime 복구 응답에 OCR 요청 ID가 없습니다."
+                );
+            }
+
+            // 기존 PMIS 작업에 Runtime 요청 ID를 연결한다.
+            ocrJob.registerRuntimeRequest(
+                    recovery.getOcrRequestId()
+            );
+
+            ocrRequestId = recovery.getOcrRequestId();
         }
 
         RuntimeOcrJobStatusResponse response =
                 runtimeService.getOcrJobStatus(ocrRequestId);
 
         if (response == null) {
-            return ocrJob;
+            return evidenceOcrJobRepository.save(ocrJob);
         }
 
         // Runtime 응답이 다른 작업의 정보인지 검증한다.
@@ -340,15 +387,9 @@ public class EvidenceOcrService {
                 ocrJob.markRunning(
                         toLocalDateTime(response.getStartedAt())
                 );
-
-                return evidenceOcrJobRepository.save(ocrJob);
             }
 
-            case "SUCCEEDED" -> {
-                syncOcrResult(ocrJob, response);
-
-                return evidenceOcrJobRepository.save(ocrJob);
-            }
+            case "SUCCEEDED" -> syncOcrResult(ocrJob, response);
 
             case "FAILED" -> {
                 String errorDetail = response.getError() == null
@@ -360,8 +401,6 @@ public class EvidenceOcrService {
                         toLocalDateTime(response.getStartedAt()),
                         toLocalDateTime(response.getFinishedAt())
                 );
-
-                return evidenceOcrJobRepository.save(ocrJob);
             }
 
             default -> {
@@ -369,7 +408,7 @@ public class EvidenceOcrService {
             }
         }
 
-        return ocrJob;
+        return evidenceOcrJobRepository.save(ocrJob);
     }
 
     // =========================================================================
@@ -422,10 +461,7 @@ public class EvidenceOcrService {
         }
 
         if (!"SUCCEEDED".equals(normalizeStatus(result.getStatus()))) {
-            /*
-             * 상태 API는 성공이지만 결과 API가 아직 완료 상태가 아니라면
-             * OCR 작업을 성공으로 확정하지 않는다.
-             */
+            // 결과 API가 완료 상태가 아니라면 성공으로 확정하지 않는다.
             return;
         }
 
@@ -498,13 +534,12 @@ public class EvidenceOcrService {
     /**
      * Runtime OffsetDateTime을 DB 엔티티의 LocalDateTime으로 변환한다.
      *
-     * 현재 구현은 offset을 제거하고 해당 날짜·시간 값을 유지한다.
-     * 시스템 간 시간대 기준은 운영 설정에서 통일해야 한다.
+     * Asia/Seoul 기준의 날짜·시간으로 변환한다.
      */
     private LocalDateTime toLocalDateTime(OffsetDateTime value) {
         return value == null
                 ? null
                 : value.atZoneSameInstant(ZoneId.of("Asia/Seoul"))
                         .toLocalDateTime();
-        }
+    }
 }

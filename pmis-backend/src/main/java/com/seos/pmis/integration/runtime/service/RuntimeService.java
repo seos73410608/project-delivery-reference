@@ -3,6 +3,7 @@ package com.seos.pmis.integration.runtime.service;
 import com.seos.pmis.common.exception.BusinessException;
 import com.seos.pmis.evidence.exception.code.EvidenceErrorCode;
 import com.seos.pmis.integration.runtime.client.RuntimeApiClient;
+import com.seos.pmis.integration.runtime.dto.RuntimeOcrJobByRequestIdResponse;
 import com.seos.pmis.integration.runtime.dto.RuntimeOcrJobRequest;
 import com.seos.pmis.integration.runtime.dto.RuntimeOcrJobResponse;
 import com.seos.pmis.integration.runtime.dto.RuntimeOcrJobStatusResponse;
@@ -11,6 +12,7 @@ import com.seos.pmis.integration.runtime.dto.RuntimeOcrUploadResponse;
 import com.seos.pmis.integration.runtime.dto.RuntimeOutputFileResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
@@ -116,6 +118,51 @@ public class RuntimeService {
                 "getOcrJobStatus",
                 () -> runtimeApiClient.getOcrJobStatus(ocrRequestId)
         );
+    }
+
+    /**
+     * PMIS 요청 ID로 Runtime OCR 작업 조회
+     *
+     * Runtime의 404는 작업 미발견으로 구분한다.
+     * 그 외 오류는 기존 Runtime API 장애 처리 규약을 유지한다.
+     *
+     * @param pmisRequestId PMIS 요청 ID
+     * @return OCR 작업 정보, 또는 Runtime에서 찾지 못한 경우 null
+     */
+    public RuntimeOcrJobByRequestIdResponse getOcrJobByPmisRequestId(
+            String pmisRequestId
+    ) {
+        try {
+            return runtimeApiClient.getOcrJobByPmisRequestId(pmisRequestId);
+        } catch (RestClientResponseException exception) {
+            if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
+                log.info(
+                        "Runtime OCR job not found by PMIS request ID. pmisRequestId={}",
+                        pmisRequestId
+                );
+                return null;
+            }
+
+            log.warn(
+                    "Runtime OCR recovery lookup returned an HTTP error. status={}",
+                    exception.getStatusCode().value()
+            );
+
+            throw new BusinessException(
+                    EvidenceErrorCode.RUNTIME_API_UNAVAILABLE,
+                    exception
+            );
+        } catch (RestClientException | IllegalStateException exception) {
+            log.error(
+                    "Runtime OCR recovery lookup failed. exceptionType={}",
+                    exception.getClass().getSimpleName()
+            );
+
+            throw new BusinessException(
+                    EvidenceErrorCode.RUNTIME_API_UNAVAILABLE,
+                    exception
+            );
+        }
     }
 
     /**

@@ -7,6 +7,7 @@ import com.seos.pmis.integration.runtime.dto.RuntimeOcrJobStatusResponse;
 import com.seos.pmis.integration.runtime.dto.RuntimeOcrResultResponse;
 import com.seos.pmis.integration.runtime.dto.RuntimeOcrUploadResponse;
 import com.seos.pmis.integration.runtime.dto.RuntimeOutputFileResponse;
+import com.seos.pmis.integration.runtime.dto.RuntimeOcrJobByRequestIdResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.ByteArrayResource;
@@ -249,6 +250,38 @@ public class RuntimeApiClient {
         if (response == null) {
             throw new IllegalStateException(
                     "Runtime API returned an empty OCR job status response."
+            );
+        }
+
+        return response;
+    }
+
+     /**
+     * PMIS 요청 ID를 이용한 OCR 작업 조회 및 복구
+     *
+     * API:
+     * GET /api/v1/pmis/ocr/jobs/by-request-id/{pmis_request_id}
+     *
+     * @param pmisRequestId PMIS에서 생성한 요청 ID
+     * @return 요청 ID에 해당하는 OCR 작업 정보
+     */
+    public RuntimeOcrJobByRequestIdResponse getOcrJobByPmisRequestId(
+            String pmisRequestId
+    ) {
+        RuntimeOcrJobByRequestIdResponse response =
+                createRestClient()
+                        .get()
+                        .uri(
+                                "/api/v1/pmis/ocr/jobs/by-request-id/{pmisRequestId}",
+                                pmisRequestId
+                        )
+                        .accept(MediaType.APPLICATION_JSON)
+                        .retrieve()
+                        .body(RuntimeOcrJobByRequestIdResponse.class);
+
+        if (response == null) {
+            throw new IllegalStateException(
+                    "Runtime API returned an empty OCR job recovery response."
             );
         }
 
