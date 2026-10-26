@@ -10,17 +10,23 @@ import com.seos.pmis.integration.runtime.dto.RuntimeOcrResultResponse;
 import com.seos.pmis.integration.runtime.dto.RuntimeOcrUploadResponse;
 import com.seos.pmis.integration.runtime.dto.RuntimeOutputFileResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestClientResponseException;
 
 import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * Automation Runtime 연동 서비스
  *
- * Runtime API 호출을 담당하고 API 통신 오류를 공통 예외로 변환한다.
+ * Runtime API 호출과 예외 변환을 담당한다.
+ * 외부 API 오류의 세부 계약이 확정되기 전까지
+ * 기존 PMIS 오류 응답 규격을 유지한다.
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class RuntimeService {
@@ -33,42 +39,30 @@ public class RuntimeService {
     public List<RuntimeOutputFileResponse> getExecutionFiles(
             String executionUuid
     ) {
-        try {
-            return runtimeApiClient.getExecutionFiles(executionUuid);
-        } catch (RestClientException | IllegalStateException exception) {
-            throw new BusinessException(
-                    EvidenceErrorCode.RUNTIME_API_UNAVAILABLE,
-                    exception
-            );
-        }
+        return execute(
+                "getExecutionFiles",
+                () -> runtimeApiClient.getExecutionFiles(executionUuid)
+        );
     }
 
     /**
      * 파일 메타데이터 조회
      */
     public RuntimeOutputFileResponse getFileMetadata(String fileId) {
-        try {
-            return runtimeApiClient.getFileMetadata(fileId);
-        } catch (RestClientException | IllegalStateException exception) {
-            throw new BusinessException(
-                    EvidenceErrorCode.RUNTIME_API_UNAVAILABLE,
-                    exception
-            );
-        }
+        return execute(
+                "getFileMetadata",
+                () -> runtimeApiClient.getFileMetadata(fileId)
+        );
     }
 
     /**
      * 파일 내용 다운로드
      */
     public byte[] downloadFileContent(String fileId) {
-        try {
-            return runtimeApiClient.downloadFileContent(fileId);
-        } catch (RestClientException | IllegalStateException exception) {
-            throw new BusinessException(
-                    EvidenceErrorCode.RUNTIME_API_UNAVAILABLE,
-                    exception
-            );
-        }
+        return execute(
+                "downloadFileContent",
+                () -> runtimeApiClient.downloadFileContent(fileId)
+        );
     }
 
     /**
@@ -84,18 +78,14 @@ public class RuntimeService {
             MediaType mediaType,
             byte[] fileContent
     ) {
-        try {
-            return runtimeApiClient.uploadImage(
-                    fileName,
-                    mediaType,
-                    fileContent
-            );
-        } catch (RestClientException | IllegalStateException exception) {
-            throw new BusinessException(
-                    EvidenceErrorCode.RUNTIME_API_UNAVAILABLE,
-                    exception
-            );
-        }
+        return execute(
+                "uploadImage",
+                () -> runtimeApiClient.uploadImage(
+                        fileName,
+                        mediaType,
+                        fileContent
+                )
+        );
     }
 
     /**
@@ -107,14 +97,10 @@ public class RuntimeService {
     public RuntimeOcrJobResponse createOcrJob(
             RuntimeOcrJobRequest request
     ) {
-        try {
-            return runtimeApiClient.createOcrJob(request);
-        } catch (RestClientException | IllegalStateException exception) {
-            throw new BusinessException(
-                    EvidenceErrorCode.RUNTIME_API_UNAVAILABLE,
-                    exception
-            );
-        }
+        return execute(
+                "createOcrJob",
+                () -> runtimeApiClient.createOcrJob(request)
+        );
     }
 
     /**
@@ -126,14 +112,10 @@ public class RuntimeService {
     public RuntimeOcrJobStatusResponse getOcrJobStatus(
             String ocrRequestId
     ) {
-        try {
-            return runtimeApiClient.getOcrJobStatus(ocrRequestId);
-        } catch (RestClientException | IllegalStateException exception) {
-            throw new BusinessException(
-                    EvidenceErrorCode.RUNTIME_API_UNAVAILABLE,
-                    exception
-            );
-        }
+        return execute(
+                "getOcrJobStatus",
+                () -> runtimeApiClient.getOcrJobStatus(ocrRequestId)
+        );
     }
 
     /**
@@ -145,9 +127,58 @@ public class RuntimeService {
     public RuntimeOcrResultResponse getOcrResult(
             String ocrRequestId
     ) {
+        return execute(
+                "getOcrResult",
+                () -> runtimeApiClient.getOcrResult(ocrRequestId)
+        );
+    }
+
+    /**
+     * Runtime API 호출 및 예외 변환
+     *
+     * HTTP 응답 오류와 통신 오류를 내부 로그에서 구분한다.
+     * PMIS 외부 응답은 기존 RUNTIME_API_UNAVAILABLE 규격을 유지한다.
+     *
+     * @param operation Runtime API 작업명
+     * @param action 실행할 Runtime API 호출
+     * @param <T> 응답 타입
+     * @return Runtime API 응답
+     */
+    private <T> T execute(
+            String operation,
+            Supplier<T> action
+    ) {
         try {
-            return runtimeApiClient.getOcrResult(ocrRequestId);
-        } catch (RestClientException | IllegalStateException exception) {
+            return action.get();
+        } catch (RestClientResponseException exception) {
+            log.warn(
+                    "Runtime API returned an HTTP error. operation={}, status={}",
+                    operation,
+                    exception.getStatusCode().value()
+            );
+
+            throw new BusinessException(
+                    EvidenceErrorCode.RUNTIME_API_UNAVAILABLE,
+                    exception
+            );
+        } catch (RestClientException exception) {
+            log.error(
+                    "Runtime API communication failed. operation={}, exceptionType={}",
+                    operation,
+                    exception.getClass().getSimpleName()
+            );
+
+            throw new BusinessException(
+                    EvidenceErrorCode.RUNTIME_API_UNAVAILABLE,
+                    exception
+            );
+        } catch (IllegalStateException exception) {
+            log.error(
+                    "Runtime API returned an invalid response. operation={}, exceptionType={}",
+                    operation,
+                    exception.getClass().getSimpleName()
+            );
+
             throw new BusinessException(
                     EvidenceErrorCode.RUNTIME_API_UNAVAILABLE,
                     exception
