@@ -37,7 +37,8 @@ public class RuntimeService {
             return runtimeApiClient.getExecutionFiles(executionUuid);
         } catch (RestClientException | IllegalStateException exception) {
             throw new BusinessException(
-                    EvidenceErrorCode.RUNTIME_API_UNAVAILABLE
+                    EvidenceErrorCode.RUNTIME_API_UNAVAILABLE,
+                    exception
             );
         }
     }
@@ -50,7 +51,8 @@ public class RuntimeService {
             return runtimeApiClient.getFileMetadata(fileId);
         } catch (RestClientException | IllegalStateException exception) {
             throw new BusinessException(
-                    EvidenceErrorCode.RUNTIME_API_UNAVAILABLE
+                    EvidenceErrorCode.RUNTIME_API_UNAVAILABLE,
+                    exception
             );
         }
     }
@@ -63,7 +65,8 @@ public class RuntimeService {
             return runtimeApiClient.downloadFileContent(fileId);
         } catch (RestClientException | IllegalStateException exception) {
             throw new BusinessException(
-                    EvidenceErrorCode.RUNTIME_API_UNAVAILABLE
+                    EvidenceErrorCode.RUNTIME_API_UNAVAILABLE,
+                    exception
             );
         }
     }
@@ -89,7 +92,8 @@ public class RuntimeService {
             );
         } catch (RestClientException | IllegalStateException exception) {
             throw new BusinessException(
-                    EvidenceErrorCode.RUNTIME_API_UNAVAILABLE
+                    EvidenceErrorCode.RUNTIME_API_UNAVAILABLE,
+                    exception
             );
         }
     }
@@ -107,7 +111,8 @@ public class RuntimeService {
             return runtimeApiClient.createOcrJob(request);
         } catch (RestClientException | IllegalStateException exception) {
             throw new BusinessException(
-                    EvidenceErrorCode.RUNTIME_API_UNAVAILABLE
+                    EvidenceErrorCode.RUNTIME_API_UNAVAILABLE,
+                    exception
             );
         }
     }
@@ -125,7 +130,8 @@ public class RuntimeService {
             return runtimeApiClient.getOcrJobStatus(ocrRequestId);
         } catch (RestClientException | IllegalStateException exception) {
             throw new BusinessException(
-                    EvidenceErrorCode.RUNTIME_API_UNAVAILABLE
+                    EvidenceErrorCode.RUNTIME_API_UNAVAILABLE,
+                    exception
             );
         }
     }
@@ -143,7 +149,8 @@ public class RuntimeService {
             return runtimeApiClient.getOcrResult(ocrRequestId);
         } catch (RestClientException | IllegalStateException exception) {
             throw new BusinessException(
-                    EvidenceErrorCode.RUNTIME_API_UNAVAILABLE
+                    EvidenceErrorCode.RUNTIME_API_UNAVAILABLE,
+                    exception
             );
         }
     }
