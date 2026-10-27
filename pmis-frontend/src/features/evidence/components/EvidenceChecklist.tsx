@@ -2,22 +2,27 @@ import {
   useCallback,
   useEffect,
   useState,
-} from "react";
-
+} from 'react';
 import type {
   CSSProperties,
   FormEvent,
-} from "react";
+} from 'react';
+
+import {
+  createEvidence,
+  getRequirementEvidence,
+} from '@/features/evidence/api/evidenceApi';
 
 import {
   createEvidenceRequirement,
   getProjectEvidenceRequirements,
   updateEvidenceRequirement,
-} from "@/features/evidence/api/evidenceRequirementApi";
+} from '@/features/evidence/api/evidenceRequirementApi';
 
-import {
-  getRequirementEvidence,
-} from "@/features/evidence/api/evidenceApi";
+import type {
+  Evidence,
+  EvidenceType,
+} from '@/features/evidence/types/evidence';
 
 import type {
   EvidenceRequirement,
@@ -25,12 +30,7 @@ import type {
   EvidenceRequirementUpdateRequest,
   RequirementStatus,
   RequirementType,
-} from "@/features/evidence/types/evidenceRequirement";
-
-import type {
-  Evidence,
-  VerificationStatus,
-} from "@/features/evidence/types/evidence";
+} from '@/features/evidence/types/evidenceRequirement';
 
 interface EvidenceChecklistProps {
   projectId?: number;
@@ -38,97 +38,131 @@ interface EvidenceChecklistProps {
   onSelectEvidence?: (evidence: Evidence) => void;
 }
 
-const REQUIREMENT_STATUS_CONFIG: Record<
-  RequirementStatus,
-  {
-    label: string;
-    icon: string;
-    color: string;
-  }
-> = {
-  PENDING: {
-    label: "대기 중",
-    icon: "○",
-    color: "#f57c00",
-  },
-  PRESENT: {
-    label: "증적 등록",
-    icon: "☑",
-    color: "#2e7d32",
-  },
-  MISSING: {
-    label: "누락",
-    icon: "✕",
-    color: "#d32f2f",
-  },
-  NOT_REQUIRED: {
-    label: "불필요",
-    icon: "—",
-    color: "#757575",
-  },
-};
+type RequirementForm = EvidenceRequirementCreateRequest;
 
-const VERIFICATION_STATUS_CONFIG: Record<
-  VerificationStatus,
-  {
-    label: string;
-    color: string;
-  }
-> = {
-  PENDING: {
-    label: "검증 대기",
-    color: "#f57c00",
-  },
-  APPROVED: {
-    label: "승인",
-    color: "#2e7d32",
-  },
-  REJECTED: {
-    label: "반려",
-    color: "#d32f2f",
-  },
-};
+interface EvidenceForm {
+  evidenceType: EvidenceType;
+  title: string;
+  description: string;
+  wbsId: string;
+  fileName: string;
+  filePath: string;
+  sourceFileId: string;
+  executionUuid: string;
+  sourceJobId: string;
+  submittedAt: string;
+}
 
-const REQUIREMENT_TYPE_OPTIONS: {
-  value: RequirementType;
-  label: string;
-}[] = [
-  { value: "INSTALLATION", label: "설치" },
-  { value: "CONFIGURATION", label: "환경 설정" },
-  { value: "ACCOUNT", label: "계정" },
-  { value: "TEST", label: "테스트" },
-  { value: "MIGRATION", label: "이관" },
-  { value: "INSPECTION", label: "점검" },
-  { value: "REPORT", label: "보고서" },
-  { value: "OPERATION", label: "운영" },
-  { value: "SECURITY", label: "보안" },
-  { value: "OTHER", label: "기타" },
-];
-
-const EVIDENCE_TYPE_LABELS: Record<string, string> = {
-  OTHER: "기타",
-  LOG: "로그",
-  SCREENSHOT: "스크린샷",
-  TEST_RESULT: "테스트 결과",
-  IMAGE: "이미지",
-  REPORT: "보고서",
-  CONFIGURATION: "환경 설정",
-  DOCUMENT: "문서",
-};
-
-const INITIAL_FORM: EvidenceRequirementCreateRequest = {
+const INITIAL_REQUIREMENT_FORM: RequirementForm = {
   wbsId: null,
-  title: "",
-  description: "",
-  requirementType: "INSTALLATION",
+  title: '',
+  description: '',
+  requirementType: 'INSTALLATION',
   required: true,
-  dueDate: "",
+  dueDate: '',
   sortOrder: 1,
 };
 
-function EvidenceChecklist({
+const INITIAL_EVIDENCE_FORM: EvidenceForm = {
+  evidenceType: 'DOCUMENT',
+  title: '',
+  description: '',
+  wbsId: '',
+  fileName: '',
+  filePath: '',
+  sourceFileId: '',
+  executionUuid: '',
+  sourceJobId: '',
+  submittedAt: '',
+};
+
+const REQUIREMENT_STATUS_CONFIG: Record<
+  RequirementStatus,
+  { label: string; color: string; background: string }
+> = {
+  PENDING: {
+    label: '대기',
+    color: '#92400e',
+    background: '#fef3c7',
+  },
+  PRESENT: {
+    label: '제출 완료',
+    color: '#166534',
+    background: '#dcfce7',
+  },
+  MISSING: {
+    label: '미제출',
+    color: '#991b1b',
+    background: '#fee2e2',
+  },
+  NOT_REQUIRED: {
+    label: '불필요',
+    color: '#475569',
+    background: '#e2e8f0',
+  },
+};
+
+const REQUIREMENT_TYPE_OPTIONS: Array<{
+  value: RequirementType;
+  label: string;
+}> = [
+  { value: 'INSTALLATION', label: '설치' },
+  { value: 'CONFIGURATION', label: '구성' },
+  { value: 'ACCOUNT', label: '계정' },
+  { value: 'TEST', label: '테스트' },
+  { value: 'MIGRATION', label: '이관' },
+  { value: 'INSPECTION', label: '점검' },
+  { value: 'REPORT', label: '보고서' },
+  { value: 'OPERATION', label: '운영' },
+  { value: 'SECURITY', label: '보안' },
+  { value: 'OTHER', label: '기타' },
+];
+
+const EVIDENCE_TYPE_OPTIONS: Array<{
+  value: EvidenceType;
+  label: string;
+}> = [
+  { value: 'DOCUMENT', label: '문서' },
+  { value: 'REPORT', label: '보고서' },
+  { value: 'SCREENSHOT', label: '스크린샷' },
+  { value: 'IMAGE', label: '이미지' },
+  { value: 'LOG', label: '로그' },
+  { value: 'TEST_RESULT', label: '테스트 결과' },
+  { value: 'CONFIGURATION', label: '구성 정보' },
+  { value: 'OTHER', label: '기타' },
+];
+
+const VERIFICATION_STATUS_LABELS: Record<string, string> = {
+  PENDING: '검토 대기',
+  VERIFIED: '검증 완료',
+  REJECTED: '반려',
+};
+
+function formatDate(value?: string | null): string {
+  if (!value) {
+    return '-';
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return date.toLocaleDateString('ko-KR');
+}
+
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  return '요청 처리 중 오류가 발생했습니다.';
+}
+
+export default function EvidenceChecklist({
   projectId,
-  selectedEvidenceId = null,
+  selectedEvidenceId,
   onSelectEvidence,
 }: EvidenceChecklistProps) {
   const [requirements, setRequirements] = useState<
@@ -138,42 +172,53 @@ function EvidenceChecklist({
   const [evidenceByRequirement, setEvidenceByRequirement] =
     useState<Record<number, Evidence[]>>({});
 
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [evidenceLoading, setEvidenceLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [evidenceError, setEvidenceError] = useState<string | null>(null);
 
-  const [showForm, setShowForm] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [evidenceError, setEvidenceError] = useState<string | null>(
+    null,
+  );
+
+  // 요구사항 생성 및 수정
+  const [showRequirementForm, setShowRequirementForm] = useState(false);
   const [editingRequirementId, setEditingRequirementId] =
     useState<number | null>(null);
 
-  const [form, setForm] =
-    useState<EvidenceRequirementCreateRequest>({
-      ...INITIAL_FORM,
-    });
+  const [requirementForm, setRequirementForm] =
+    useState<RequirementForm>(INITIAL_REQUIREMENT_FORM);
 
-  const [saving, setSaving] = useState(false);
-  const [formError, setFormError] = useState<string | null>(null);
-  const [formSuccess, setFormSuccess] = useState<string | null>(null);
+  const [savingRequirement, setSavingRequirement] = useState(false);
+  const [requirementFormError, setRequirementFormError] =
+    useState<string | null>(null);
 
-  const isValidProjectId =
-    projectId !== undefined &&
-    Number.isInteger(projectId) &&
-    projectId > 0;
+  const [requirementFormSuccess, setRequirementFormSuccess] =
+    useState<string | null>(null);
+
+  // 증적 등록
+  const [activeEvidenceRequirementId, setActiveEvidenceRequirementId] =
+    useState<number | null>(null);
+
+  const [evidenceForm, setEvidenceForm] = useState<EvidenceForm>(
+    INITIAL_EVIDENCE_FORM,
+  );
+
+  const [savingEvidence, setSavingEvidence] = useState(false);
+  const [evidenceFormError, setEvidenceFormError] =
+    useState<string | null>(null);
+
+  const [evidenceFormSuccess, setEvidenceFormSuccess] =
+    useState<string | null>(null);
 
   /**
-   * 프로젝트 요구사항 및 각 요구사항에 연결된 증적 조회
+   * 프로젝트의 요구사항 및 각 요구사항에 연결된 증적을 조회한다.
    */
   const fetchRequirements = useCallback(async () => {
-    if (!isValidProjectId || projectId === undefined) {
+    if (!projectId) {
       setRequirements([]);
       setEvidenceByRequirement({});
-      setError(
-        "프로젝트를 선택하면 증적 요구사항을 확인할 수 있습니다.",
-      );
+      setError(null);
       setEvidenceError(null);
-      setLoading(false);
-      setEvidenceLoading(false);
       return;
     }
 
@@ -182,151 +227,154 @@ function EvidenceChecklist({
     setEvidenceError(null);
 
     try {
-      const response =
-        await getProjectEvidenceRequirements(projectId);
+      const result = await getProjectEvidenceRequirements(projectId);
 
-      setRequirements(response);
-
-      // 요구사항별 증적 목록을 초기화한다.
-      setEvidenceByRequirement({});
-
-      if (response.length === 0) {
-        return;
-      }
+      setRequirements(result);
 
       setEvidenceLoading(true);
 
-      const results = await Promise.all(
-        response.map(async (requirement) => {
-          const evidence = await getRequirementEvidence(
-            requirement.id,
-          );
+      const entries = await Promise.all(
+        result.map(async (requirement) => {
+          try {
+            const evidence = await getRequirementEvidence(
+              requirement.id,
+            );
 
-          return [requirement.id, evidence] as const;
+            return [requirement.id, evidence] as const;
+          } catch {
+            return [requirement.id, [] as Evidence[]] as const;
+          }
         }),
       );
 
       setEvidenceByRequirement(
-        Object.fromEntries(results),
+        Object.fromEntries(entries) as Record<number, Evidence[]>,
       );
-    } catch (err) {
-      console.error("증적 요구사항 또는 증적 조회 실패:", err);
-
-      setEvidenceError(
-        "증적 목록을 불러오지 못했습니다. API 응답과 서버 로그를 확인해 주세요.",
-      );
+    } catch (fetchError) {
+      setError(getErrorMessage(fetchError));
     } finally {
       setLoading(false);
       setEvidenceLoading(false);
     }
-  }, [isValidProjectId, projectId]);
+  }, [projectId]);
 
   useEffect(() => {
     void fetchRequirements();
   }, [fetchRequirements]);
 
   /**
-   * 등록 및 수정 폼의 입력값 변경
+   * 요구사항 생성 폼을 연다.
    */
-  const handleFormChange = <
-    K extends keyof EvidenceRequirementCreateRequest,
-  >(
-    field: K,
-    value: EvidenceRequirementCreateRequest[K],
-  ) => {
-    setForm((current) => ({
-      ...current,
-      [field]: value,
-    }));
-  };
-
-  /**
-   * 등록 폼 열기
-   */
-  const handleOpenCreateForm = () => {
+  const openCreateRequirementForm = () => {
     setEditingRequirementId(null);
-    setForm({
-      ...INITIAL_FORM,
-      sortOrder: requirements.length + 1,
-    });
-    setFormError(null);
-    setFormSuccess(null);
-    setShowForm(true);
+    setRequirementForm(INITIAL_REQUIREMENT_FORM);
+    setRequirementFormError(null);
+    setRequirementFormSuccess(null);
+    setShowRequirementForm(true);
   };
 
   /**
-   * 기존 요구사항을 수정 폼에 불러오기
+   * 요구사항 수정 폼을 연다.
    */
-  const handleOpenEditForm = (
+  const openEditRequirementForm = (
     requirement: EvidenceRequirement,
   ) => {
     setEditingRequirementId(requirement.id);
 
-    setForm({
-      wbsId: requirement.wbsId,
+    setRequirementForm({
+      wbsId: requirement.wbsId ?? null,
       title: requirement.title,
-      description: requirement.description ?? "",
+      description: requirement.description ?? '',
       requirementType: requirement.requirementType,
       required: requirement.required,
-      dueDate: requirement.dueDate ?? "",
+      dueDate: requirement.dueDate ?? '',
       sortOrder: requirement.sortOrder,
     });
 
-    setFormError(null);
-    setFormSuccess(null);
-    setShowForm(true);
+    setRequirementFormError(null);
+    setRequirementFormSuccess(null);
+    setShowRequirementForm(true);
   };
 
-  /**
-   * 폼 닫기
-   */
-  const handleCloseForm = () => {
-    if (saving) return;
-
-    setShowForm(false);
+  const closeRequirementForm = () => {
+    setShowRequirementForm(false);
     setEditingRequirementId(null);
-    setFormError(null);
+    setRequirementForm(INITIAL_REQUIREMENT_FORM);
+    setRequirementFormError(null);
   };
 
   /**
-   * 요구사항 등록 또는 수정
-   *
-   * 신규: POST /api/projects/{projectId}/evidence-requirements
-   * 수정: PUT /api/evidence-requirements/{id}
-   *
-   * requirementKey와 status는 Backend에서 관리한다.
+   * 요구사항 입력값을 갱신한다.
    */
-  const handleSubmit = async (
+  const handleRequirementFormChange = (
+    event: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >,
+  ) => {
+    const { name, value } = event.target;
+
+    if (name === 'required') {
+      setRequirementForm((previous) => ({
+        ...previous,
+        required: (event.target as HTMLInputElement).checked,
+      }));
+      return;
+    }
+
+    if (name === 'sortOrder') {
+      setRequirementForm((previous) => ({
+        ...previous,
+        sortOrder: Number(value),
+      }));
+      return;
+    }
+
+    if (name === 'wbsId') {
+      setRequirementForm((previous) => ({
+        ...previous,
+        wbsId: value ? Number(value) : null,
+      }));
+      return;
+    }
+
+    setRequirementForm((previous) => ({
+      ...previous,
+      [name]: value,
+    }));
+  };
+
+  /**
+   * 요구사항을 생성하거나 수정한다.
+   */
+  const handleRequirementSubmit = async (
     event: FormEvent<HTMLFormElement>,
   ) => {
     event.preventDefault();
 
-    if (!isValidProjectId || projectId === undefined) {
-      setFormError("유효한 프로젝트를 선택해 주세요.");
+    if (!projectId) {
+      setRequirementFormError('프로젝트를 먼저 선택해 주세요.');
       return;
     }
 
-    const title = form.title.trim();
-
-    if (!title) {
-      setFormError("요구사항 제목을 입력해 주세요.");
+    if (!requirementForm.title.trim()) {
+      setRequirementFormError('요구사항 제목을 입력해 주세요.');
       return;
     }
 
-    setSaving(true);
-    setFormError(null);
-    setFormSuccess(null);
+    setSavingRequirement(true);
+    setRequirementFormError(null);
+    setRequirementFormSuccess(null);
 
     try {
       if (editingRequirementId !== null) {
         const request: EvidenceRequirementUpdateRequest = {
-          wbsId: form.wbsId,
-          title,
-          description: form.description?.trim() || null,
-          requirementType: form.requirementType,
-          required: form.required,
-          dueDate: form.dueDate || null,
-          sortOrder: form.sortOrder,
+          wbsId: requirementForm.wbsId,
+          title: requirementForm.title.trim(),
+          description: requirementForm.description?.trim() || null,
+          requirementType: requirementForm.requirementType,
+          required: requirementForm.required,
+          dueDate: requirementForm.dueDate || null,
+          sortOrder: requirementForm.sortOrder,
         };
 
         await updateEvidenceRequirement(
@@ -334,157 +382,245 @@ function EvidenceChecklist({
           request,
         );
 
-        setFormSuccess("증적 요구사항이 수정되었습니다.");
+        setRequirementFormSuccess('요구사항이 수정되었습니다.');
       } else {
         const request: EvidenceRequirementCreateRequest = {
-          ...form,
-          title,
-          description: form.description?.trim() || null,
-          dueDate: form.dueDate || null,
+          ...requirementForm,
+          title: requirementForm.title.trim(),
+          description: requirementForm.description?.trim() || null,
+          dueDate: requirementForm.dueDate || null,
         };
 
         await createEvidenceRequirement(projectId, request);
 
-        setFormSuccess("증적 요구사항이 등록되었습니다.");
+        setRequirementFormSuccess('요구사항이 등록되었습니다.');
       }
 
-      setShowForm(false);
-      setEditingRequirementId(null);
-      setForm({ ...INITIAL_FORM });
-
+      closeRequirementForm();
       await fetchRequirements();
-    } catch (err) {
-      console.error(
-        editingRequirementId !== null
-          ? "증적 요구사항 수정 실패:"
-          : "증적 요구사항 등록 실패:",
-        err,
-      );
-
-      setFormError(
-        editingRequirementId !== null
-          ? "증적 요구사항 수정에 실패했습니다. 입력값과 서버 응답을 확인해 주세요."
-          : "증적 요구사항 등록에 실패했습니다. 입력값과 서버 응답을 확인해 주세요.",
-      );
+    } catch (submitError) {
+      setRequirementFormError(getErrorMessage(submitError));
     } finally {
-      setSaving(false);
+      setSavingRequirement(false);
     }
   };
 
   /**
-   * PRESENT는 증적이 존재한다는 의미다.
-   * 검증 승인 여부와는 별개다.
+   * 특정 요구사항의 증적 등록 폼을 연다.
    */
-  const presentCount = requirements.filter(
-    (requirement) => requirement.status === "PRESENT",
-  ).length;
+  const openEvidenceForm = (
+    requirement: EvidenceRequirement,
+  ) => {
+    setActiveEvidenceRequirementId(requirement.id);
 
-  const totalEvidenceCount = Object.values(
-    evidenceByRequirement,
-  ).reduce(
-    (total, evidenceList) => total + evidenceList.length,
-    0,
-  );
+    setEvidenceForm({
+      ...INITIAL_EVIDENCE_FORM,
+      wbsId: requirement.wbsId
+        ? String(requirement.wbsId)
+        : '',
+    });
+
+    setEvidenceFormError(null);
+    setEvidenceFormSuccess(null);
+  };
+
+  const closeEvidenceForm = () => {
+    setActiveEvidenceRequirementId(null);
+    setEvidenceForm(INITIAL_EVIDENCE_FORM);
+    setEvidenceFormError(null);
+  };
+
+  /**
+   * 증적 등록 폼의 입력값을 갱신한다.
+   */
+  const handleEvidenceFormChange = (
+    event: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >,
+  ) => {
+    const { name, value } = event.target;
+
+    setEvidenceForm((previous) => ({
+      ...previous,
+      [name]: value,
+    }));
+  };
+
+  /**
+   * 증적을 등록한다.
+   *
+   * POST /api/evidence-requirements/{requirementId}/evidence
+   * 성공 상태: 201 Created
+   */
+  const handleEvidenceSubmit = async (
+    event: FormEvent<HTMLFormElement>,
+  ) => {
+    event.preventDefault();
+
+    if (activeEvidenceRequirementId === null) {
+      setEvidenceFormError('증적을 등록할 요구사항을 선택해 주세요.');
+      return;
+    }
+
+    if (!evidenceForm.title.trim()) {
+      setEvidenceFormError('증적 제목을 입력해 주세요.');
+      return;
+    }
+
+    if (evidenceForm.title.trim().length > 200) {
+      setEvidenceFormError('증적 제목은 200자 이내로 입력해 주세요.');
+      return;
+    }
+
+    setSavingEvidence(true);
+    setEvidenceFormError(null);
+    setEvidenceFormSuccess(null);
+
+    try {
+      const request = {
+        evidenceType: evidenceForm.evidenceType,
+        title: evidenceForm.title.trim(),
+        ...(evidenceForm.description.trim()
+          ? { description: evidenceForm.description.trim() }
+          : {}),
+        ...(evidenceForm.wbsId
+          ? { wbsId: Number(evidenceForm.wbsId) }
+          : {}),
+        ...(evidenceForm.fileName.trim()
+          ? { fileName: evidenceForm.fileName.trim() }
+          : {}),
+        ...(evidenceForm.filePath.trim()
+          ? { filePath: evidenceForm.filePath.trim() }
+          : {}),
+        ...(evidenceForm.sourceFileId.trim()
+          ? { sourceFileId: evidenceForm.sourceFileId.trim() }
+          : {}),
+        ...(evidenceForm.executionUuid.trim()
+          ? { executionUuid: evidenceForm.executionUuid.trim() }
+          : {}),
+        ...(evidenceForm.sourceJobId.trim()
+          ? { sourceJobId: evidenceForm.sourceJobId.trim() }
+          : {}),
+        ...(evidenceForm.submittedAt
+          ? {
+              submittedAt: new Date(
+                evidenceForm.submittedAt,
+              ).toISOString(),
+            }
+          : {}),
+      };
+
+      const createdEvidence = await createEvidence(
+        activeEvidenceRequirementId,
+        request,
+      );
+
+      setEvidenceFormSuccess('증적이 등록되었습니다.');
+
+      // 등록된 증적을 목록에 반영한다.
+      await fetchRequirements();
+
+      // 부모 컴포넌트에서 상세 화면을 열 수 있도록 전달한다.
+      onSelectEvidence?.(createdEvidence);
+
+      closeEvidenceForm();
+    } catch (submitError) {
+      setEvidenceFormError(getErrorMessage(submitError));
+    } finally {
+      setSavingEvidence(false);
+    }
+  };
+
+  const getRequirementStatus = (
+    requirement: EvidenceRequirement,
+  ) => {
+    return REQUIREMENT_STATUS_CONFIG[requirement.status] ?? {
+      label: requirement.status,
+      color: '#475569',
+      background: '#e2e8f0',
+    };
+  };
+
+  if (!projectId) {
+    return (
+      <section style={styles.container}>
+        <div style={styles.emptyState}>
+          프로젝트를 선택하면 증적 요구사항을 확인할 수 있습니다.
+        </div>
+      </section>
+    );
+  }
 
   return (
-    <div style={cardStyle}>
-      {/* Header */}
-      <div style={headerStyle}>
+    <section style={styles.container}>
+      <header style={styles.header}>
         <div>
-          <h3 style={{ margin: 0, fontSize: "18px" }}>
-            Evidence Checklist
-          </h3>
-
-          <p style={subtitleStyle}>
-            {isValidProjectId
-              ? `프로젝트 ID: ${projectId}`
-              : "프로젝트 미선택"}
+          <h2 style={styles.heading}>증적 체크리스트</h2>
+          <p style={styles.subheading}>
+            프로젝트 요구사항과 제출 증적을 관리합니다.
           </p>
         </div>
 
         <button
           type="button"
-          onClick={handleOpenCreateForm}
-          disabled={loading || !isValidProjectId || saving}
-          style={{
-            ...primaryButtonStyle,
-            opacity: loading || !isValidProjectId ? 0.5 : 1,
-          }}
+          style={styles.primaryButton}
+          onClick={openCreateRequirementForm}
         >
           + 요구사항 등록
         </button>
-      </div>
+      </header>
 
-      {/* Registration / Edit Form */}
-      {showForm && (
-        <form onSubmit={handleSubmit} style={formStyle}>
-          <h4 style={{ margin: 0 }}>
+      {error && (
+        <div role="alert" style={styles.errorBanner}>
+          {error}
+          <button
+            type="button"
+            style={styles.textButton}
+            onClick={() => void fetchRequirements()}
+          >
+            다시 시도
+          </button>
+        </div>
+      )}
+
+      {showRequirementForm && (
+        <form
+          onSubmit={handleRequirementSubmit}
+          style={styles.formCard}
+        >
+          <h3 style={styles.formHeading}>
             {editingRequirementId !== null
-              ? "증적 요구사항 수정"
-              : "증적 요구사항 등록"}
-          </h4>
+              ? '요구사항 수정'
+              : '요구사항 등록'}
+          </h3>
 
-          <div style={fieldStyle}>
-            <label htmlFor="requirement-title">
-              제목 <span style={{ color: "#d32f2f" }}>*</span>
+          {requirementFormError && (
+            <div role="alert" style={styles.errorMessage}>
+              {requirementFormError}
+            </div>
+          )}
+
+          <div style={styles.formGrid}>
+            <label style={styles.field}>
+              <span style={styles.label}>요구사항 제목 *</span>
+              <input
+                name="title"
+                value={requirementForm.title}
+                onChange={handleRequirementFormChange}
+                maxLength={200}
+                required
+                style={styles.input}
+                placeholder="예: 서버 설치 결과 보고서"
+              />
             </label>
 
-            <input
-              id="requirement-title"
-              type="text"
-              value={form.title}
-              onChange={(event) =>
-                handleFormChange("title", event.target.value)
-              }
-              maxLength={200}
-              required
-              disabled={saving}
-              placeholder="예: 서버 설치 결과 증적"
-              style={inputStyle}
-            />
-          </div>
-
-          <div style={fieldStyle}>
-            <label htmlFor="requirement-description">
-              설명
-            </label>
-
-            <textarea
-              id="requirement-description"
-              value={form.description ?? ""}
-              onChange={(event) =>
-                handleFormChange(
-                  "description",
-                  event.target.value,
-                )
-              }
-              rows={3}
-              disabled={saving}
-              placeholder="요구사항 설명"
-              style={{
-                ...inputStyle,
-                resize: "vertical",
-              }}
-            />
-          </div>
-
-          <div style={formGridStyle}>
-            <div style={fieldStyle}>
-              <label htmlFor="requirement-type">
-                요구사항 유형
-              </label>
-
+            <label style={styles.field}>
+              <span style={styles.label}>요구사항 유형</span>
               <select
-                id="requirement-type"
-                value={form.requirementType}
-                onChange={(event) =>
-                  handleFormChange(
-                    "requirementType",
-                    event.target.value as RequirementType,
-                  )
-                }
-                disabled={saving}
-                style={inputStyle}
+                name="requirementType"
+                value={requirementForm.requirementType}
+                onChange={handleRequirementFormChange}
+                style={styles.input}
               >
                 {REQUIREMENT_TYPE_OPTIONS.map((option) => (
                   <option
@@ -495,580 +631,823 @@ function EvidenceChecklist({
                   </option>
                 ))}
               </select>
-            </div>
+            </label>
 
-            <div style={fieldStyle}>
-              <label htmlFor="requirement-due-date">
-                제출 기한
-              </label>
-
+            <label style={styles.field}>
+              <span style={styles.label}>WBS ID</span>
               <input
-                id="requirement-due-date"
-                type="date"
-                value={form.dueDate ?? ""}
-                onChange={(event) =>
-                  handleFormChange(
-                    "dueDate",
-                    event.target.value || null,
-                  )
-                }
-                disabled={saving}
-                style={inputStyle}
-              />
-            </div>
-
-            <div style={fieldStyle}>
-              <label htmlFor="requirement-wbs-id">
-                WBS ID (선택)
-              </label>
-
-              <input
-                id="requirement-wbs-id"
+                name="wbsId"
                 type="number"
                 min={1}
-                value={form.wbsId ?? ""}
-                onChange={(event) => {
-                  const value = event.target.value;
-
-                  handleFormChange(
-                    "wbsId",
-                    value === "" ? null : Number(value),
-                  );
-                }}
-                disabled={saving}
-                placeholder="연결할 WBS ID"
-                style={inputStyle}
+                value={requirementForm.wbsId ?? ''}
+                onChange={handleRequirementFormChange}
+                style={styles.input}
+                placeholder="선택 입력"
               />
-            </div>
+            </label>
 
-            <div style={fieldStyle}>
-              <label htmlFor="requirement-sort-order">
-                정렬 순서
-              </label>
-
+            <label style={styles.field}>
+              <span style={styles.label}>제출 기한</span>
               <input
-                id="requirement-sort-order"
-                type="number"
-                min={0}
-                value={form.sortOrder ?? 0}
-                onChange={(event) =>
-                  handleFormChange(
-                    "sortOrder",
-                    Number(event.target.value),
-                  )
-                }
-                disabled={saving}
-                style={inputStyle}
+                name="dueDate"
+                type="date"
+                value={requirementForm.dueDate ?? ''}
+                onChange={handleRequirementFormChange}
+                style={styles.input}
               />
-            </div>
+            </label>
+
+            <label style={{ ...styles.field, ...styles.fullWidth }}>
+              <span style={styles.label}>설명</span>
+              <textarea
+                name="description"
+                value={requirementForm.description ?? ''}
+                onChange={handleRequirementFormChange}
+                rows={3}
+                style={styles.textarea}
+                placeholder="요구사항에 대한 설명"
+              />
+            </label>
+
+            <label style={styles.checkboxField}>
+              <input
+                name="required"
+                type="checkbox"
+                checked={requirementForm.required}
+                onChange={handleRequirementFormChange}
+              />
+              필수 제출 항목
+            </label>
+
+            <label style={styles.field}>
+              <span style={styles.label}>정렬 순서</span>
+              <input
+                name="sortOrder"
+                type="number"
+                min={1}
+                value={requirementForm.sortOrder}
+                onChange={handleRequirementFormChange}
+                style={styles.input}
+              />
+            </label>
           </div>
 
-          <label style={checkboxLabelStyle}>
-            <input
-              type="checkbox"
-              checked={form.required}
-              onChange={(event) =>
-                handleFormChange(
-                  "required",
-                  event.target.checked,
-                )
-              }
-              disabled={saving}
-            />
-            필수 증적 요구사항
-          </label>
-
-          {formError && (
-            <div role="alert" style={errorStyle}>
-              {formError}
-            </div>
-          )}
-
-          <div style={formActionsStyle}>
+          <div style={styles.formActions}>
             <button
               type="button"
-              onClick={handleCloseForm}
-              disabled={saving}
-              style={secondaryButtonStyle}
+              style={styles.secondaryButton}
+              onClick={closeRequirementForm}
+              disabled={savingRequirement}
             >
               취소
             </button>
 
             <button
               type="submit"
-              disabled={saving}
-              style={primaryButtonStyle}
+              style={styles.primaryButton}
+              disabled={savingRequirement}
             >
-              {saving
-                ? "저장 중..."
+              {savingRequirement
+                ? '저장 중...'
                 : editingRequirementId !== null
-                  ? "수정 저장"
-                  : "등록"}
+                  ? '수정'
+                  : '등록'}
             </button>
           </div>
         </form>
       )}
 
-      {/* Success Message */}
-      {formSuccess && (
-        <div role="status" style={successStyle}>
-          {formSuccess}
+      {requirementFormSuccess && (
+        <div role="status" style={styles.successBanner}>
+          {requirementFormSuccess}
         </div>
       )}
 
-      {/* Requirement Loading */}
-      {loading && (
-        <div role="status" style={messageStyle}>
-          증적 요구사항을 불러오는 중입니다...
-        </div>
-      )}
-
-      {/* Requirement Error */}
-      {!loading && error && (
-        <div role="alert" style={errorStyle}>
-          {error}
-        </div>
-      )}
-
-      {/* Empty Requirements */}
-      {!loading && !error && requirements.length === 0 && (
-        <div style={messageStyle}>
+      {loading ? (
+        <div style={styles.emptyState}>요구사항을 불러오는 중...</div>
+      ) : requirements.length === 0 ? (
+        <div style={styles.emptyState}>
           등록된 증적 요구사항이 없습니다.
+          <div style={styles.emptyStateAction}>
+            요구사항을 등록한 뒤 증적을 연결할 수 있습니다.
+          </div>
         </div>
-      )}
-
-      {/* Requirement and Evidence List */}
-      {!loading && !error && requirements.length > 0 && (
-        <div>
+      ) : (
+        <div style={styles.requirementList}>
           {requirements.map((requirement) => {
-            const statusConfig =
-              REQUIREMENT_STATUS_CONFIG[requirement.status];
-
+            const status = getRequirementStatus(requirement);
             const evidenceList =
-              evidenceByRequirement[requirement.id];
+              evidenceByRequirement[requirement.id] ?? [];
+
+            const evidenceFormOpen =
+              activeEvidenceRequirementId === requirement.id;
 
             return (
-              <div
+              <article
                 key={requirement.id}
-                style={requirementContainerStyle}
+                style={styles.requirementCard}
               >
-                {/* Requirement */}
-                <div style={requirementRowStyle}>
-                  <div style={requirementInfoStyle}>
-                    <span
-                      aria-hidden="true"
-                      style={{
-                        flexShrink: 0,
-                        fontSize: "16px",
-                        color: statusConfig.color,
-                      }}
-                    >
-                      {statusConfig.icon}
-                    </span>
-
-                    <div style={{ minWidth: 0 }}>
-                      <div style={{ overflowWrap: "anywhere" }}>
+                <div style={styles.requirementHeader}>
+                  <div style={styles.requirementTitleArea}>
+                    <div style={styles.requirementTitleRow}>
+                      <h3 style={styles.requirementTitle}>
                         {requirement.title}
-                      </div>
+                      </h3>
 
-                      <div style={metadataStyle}>
-                        {requirement.requirementKey}
-                        {" · "}
-                        {requirement.required ? "필수" : "선택"}
-                        {" · "}
+                      <span
+                        style={{
+                          ...styles.badge,
+                          color: status.color,
+                          background: status.background,
+                        }}
+                      >
+                        {status.label}
+                      </span>
+
+                      {requirement.required && (
+                        <span style={styles.requiredBadge}>
+                          필수
+                        </span>
+                      )}
+                    </div>
+
+                    <div style={styles.requirementMeta}>
+                      <span>
                         {REQUIREMENT_TYPE_OPTIONS.find(
                           (option) =>
                             option.value === requirement.requirementType,
                         )?.label ?? requirement.requirementType}
-                        {requirement.dueDate
-                          ? ` · 기한 ${requirement.dueDate}`
-                          : ""}
-                      </div>
+                      </span>
+
+                      <span>요구사항 #{requirement.id}</span>
+
+                      {requirement.wbsId != null && (
+                        <span>WBS #{requirement.wbsId}</span>
+                      )}
+
+                      <span>
+                        제출 기한: {formatDate(requirement.dueDate)}
+                      </span>
                     </div>
+
+                    {requirement.description && (
+                      <p style={styles.description}>
+                        {requirement.description}
+                      </p>
+                    )}
                   </div>
 
-                  <div style={rowActionsStyle}>
-                    <span
-                      style={{
-                        flexShrink: 0,
-                        fontSize: "14px",
-                        color: statusConfig.color,
-                        fontWeight: 500,
-                      }}
+                  <div style={styles.requirementActions}>
+                    <button
+                      type="button"
+                      style={styles.secondaryButton}
+                      onClick={() =>
+                        openEditRequirementForm(requirement)
+                      }
                     >
-                      {statusConfig.label}
-                    </span>
+                      수정
+                    </button>
 
                     <button
                       type="button"
+                      style={styles.primaryButton}
                       onClick={() =>
-                        handleOpenEditForm(requirement)
+                        evidenceFormOpen
+                          ? closeEvidenceForm()
+                          : openEvidenceForm(requirement)
                       }
-                      disabled={saving}
-                      style={smallButtonStyle}
-                      aria-label={`${requirement.title} 수정`}
                     >
-                      수정
+                      {evidenceFormOpen
+                        ? '등록 취소'
+                        : '+ 증적 등록'}
                     </button>
                   </div>
                 </div>
 
-                {/* Evidence List for Requirement */}
-                <div style={evidenceSectionStyle}>
-                  <div style={evidenceSectionHeaderStyle}>
-                    <strong style={{ fontSize: "13px" }}>
-                      연결된 증적
-                    </strong>
+                {evidenceFormOpen && (
+                  <form
+                    onSubmit={handleEvidenceSubmit}
+                    style={styles.evidenceForm}
+                  >
+                    <h4 style={styles.formHeading}>증적 등록</h4>
 
-                    <span style={metadataStyle}>
-                      {evidenceList
-                        ? `${evidenceList.length}건`
-                        : ""}
-                    </span>
-                  </div>
+                    <p style={styles.formHelp}>
+                      선택한 요구사항에 증적 정보를 등록합니다.
+                      파일 업로드와 OCR은 별도 기능입니다.
+                    </p>
 
-                  {evidenceLoading && evidenceList === undefined && (
-                    <div style={evidenceMessageStyle}>
-                      증적을 불러오는 중입니다...
-                    </div>
-                  )}
-
-                  {!evidenceLoading &&
-                    evidenceList !== undefined &&
-                    evidenceList.length === 0 && (
-                      <div style={evidenceMessageStyle}>
-                        연결된 증적이 없습니다.
+                    {evidenceFormError && (
+                      <div role="alert" style={styles.errorMessage}>
+                        {evidenceFormError}
                       </div>
                     )}
 
-                  {evidenceList?.map((evidence) => {
-                    const verificationConfig =
-                      VERIFICATION_STATUS_CONFIG[
-                        evidence.verificationStatus
-                      ];
-
-                    const isSelected =
-                      selectedEvidenceId === evidence.id;
-
-                    return (
-                      <button
-                        key={evidence.id}
-                        type="button"
-                        onClick={() => onSelectEvidence?.(evidence)}
-                        aria-pressed={isSelected}
-                        aria-label={`${evidence.title} 증적 선택`}
-                        style={{
-                          ...evidenceRowStyle,
-                          width: "100%",
-                          boxSizing: "border-box",
-                          textAlign: "left",
-                          font: "inherit",
-                          color: "inherit",
-                          cursor: "pointer",
-                          border: isSelected
-                            ? "1px solid #93c5fd"
-                            : "1px solid transparent",
-                          borderTop: isSelected
-                            ? "1px solid #93c5fd"
-                            : "1px solid #e5e7eb",
-                          borderRadius: "4px",
-                          padding: "12px 8px",
-                          backgroundColor: isSelected
-                            ? "#eff6ff"
-                            : "transparent",
-                        }}
-                      >
-                        <span
-                          aria-hidden="true"
-                          style={{
-                            color: isSelected ? "#2563eb" : "#64748b",
-                            fontSize: "18px",
-                            flexShrink: 0,
-                          }}
+                    <div style={styles.formGrid}>
+                      <label style={styles.field}>
+                        <span style={styles.label}>증적 유형 *</span>
+                        <select
+                          name="evidenceType"
+                          value={evidenceForm.evidenceType}
+                          onChange={handleEvidenceFormChange}
+                          style={styles.input}
+                          required
                         >
-                          ▤
-                        </span>
+                          {EVIDENCE_TYPE_OPTIONS.map((option) => (
+                            <option
+                              key={option.value}
+                              value={option.value}
+                            >
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
 
-                        <div style={evidenceInfoStyle}>
-                          <div
+                      <label style={styles.field}>
+                        <span style={styles.label}>증적 제목 *</span>
+                        <input
+                          name="title"
+                          value={evidenceForm.title}
+                          onChange={handleEvidenceFormChange}
+                          maxLength={200}
+                          required
+                          style={styles.input}
+                          placeholder="예: 서버 설치 결과"
+                        />
+                      </label>
+
+                      <label style={styles.field}>
+                        <span style={styles.label}>WBS ID</span>
+                        <input
+                          name="wbsId"
+                          type="number"
+                          min={1}
+                          value={evidenceForm.wbsId}
+                          onChange={handleEvidenceFormChange}
+                          style={styles.input}
+                          placeholder="선택 입력"
+                        />
+                      </label>
+
+                      <label style={styles.field}>
+                        <span style={styles.label}>제출 일시</span>
+                        <input
+                          name="submittedAt"
+                          type="datetime-local"
+                          value={evidenceForm.submittedAt}
+                          onChange={handleEvidenceFormChange}
+                          style={styles.input}
+                        />
+                      </label>
+
+                      <label style={styles.field}>
+                        <span style={styles.label}>파일명</span>
+                        <input
+                          name="fileName"
+                          value={evidenceForm.fileName}
+                          onChange={handleEvidenceFormChange}
+                          style={styles.input}
+                          placeholder="예: installation-result.pdf"
+                        />
+                      </label>
+
+                      <label style={styles.field}>
+                        <span style={styles.label}>파일 경로</span>
+                        <input
+                          name="filePath"
+                          value={evidenceForm.filePath}
+                          onChange={handleEvidenceFormChange}
+                          style={styles.input}
+                          placeholder="기존 파일 경로 또는 저장 위치"
+                        />
+                      </label>
+
+                      <label style={styles.field}>
+                        <span style={styles.label}>Runtime File ID</span>
+                        <input
+                          name="sourceFileId"
+                          value={evidenceForm.sourceFileId}
+                          onChange={handleEvidenceFormChange}
+                          style={styles.input}
+                          placeholder="Runtime 업로드 파일 ID"
+                        />
+                      </label>
+
+                      <label style={styles.field}>
+                        <span style={styles.label}>Execution UUID</span>
+                        <input
+                          name="executionUuid"
+                          value={evidenceForm.executionUuid}
+                          onChange={handleEvidenceFormChange}
+                          style={styles.input}
+                          placeholder="Runtime 실행 UUID"
+                        />
+                      </label>
+
+                      <label style={styles.field}>
+                        <span style={styles.label}>Source Job ID</span>
+                        <input
+                          name="sourceJobId"
+                          value={evidenceForm.sourceJobId}
+                          onChange={handleEvidenceFormChange}
+                          style={styles.input}
+                          placeholder="Runtime 작업 ID"
+                        />
+                      </label>
+
+                      <label style={{ ...styles.field, ...styles.fullWidth }}>
+                        <span style={styles.label}>설명</span>
+                        <textarea
+                          name="description"
+                          value={evidenceForm.description}
+                          onChange={handleEvidenceFormChange}
+                          rows={3}
+                          style={styles.textarea}
+                          placeholder="증적 설명"
+                        />
+                      </label>
+                    </div>
+
+                    <div style={styles.formActions}>
+                      <button
+                        type="button"
+                        style={styles.secondaryButton}
+                        onClick={closeEvidenceForm}
+                        disabled={savingEvidence}
+                      >
+                        취소
+                      </button>
+
+                      <button
+                        type="submit"
+                        style={styles.primaryButton}
+                        disabled={savingEvidence}
+                      >
+                        {savingEvidence ? '등록 중...' : '증적 등록'}
+                      </button>
+                    </div>
+                  </form>
+                )}
+
+                {evidenceFormSuccess && (
+                  <div role="status" style={styles.successBanner}>
+                    {evidenceFormSuccess}
+                  </div>
+                )}
+
+                <div style={styles.evidenceSection}>
+                  <div style={styles.evidenceSectionHeader}>
+                    <h4 style={styles.evidenceHeading}>연결된 증적</h4>
+
+                    <span style={styles.evidenceCount}>
+                      {evidenceList.length}건
+                    </span>
+                  </div>
+
+                  {evidenceLoading ? (
+                    <div style={styles.evidenceEmpty}>
+                      증적을 불러오는 중...
+                    </div>
+                  ) : evidenceList.length === 0 ? (
+                    <div style={styles.evidenceEmpty}>
+                      연결된 증적이 없습니다.
+                    </div>
+                  ) : (
+                    <div style={styles.evidenceList}>
+                      {evidenceList.map((evidence) => {
+                        const isSelected =
+                          evidence.id === selectedEvidenceId;
+
+                        return (
+                          <button
+                            key={evidence.id}
+                            type="button"
+                            onClick={() =>
+                              onSelectEvidence?.(evidence)
+                            }
                             style={{
-                              fontWeight: isSelected ? 700 : 500,
-                              overflowWrap: "anywhere",
+                              ...styles.evidenceRow,
+                              ...(isSelected
+                                ? styles.evidenceRowSelected
+                                : {}),
                             }}
                           >
-                            {evidence.title}
-                          </div>
+                            <span style={styles.evidenceIcon}>
+                              {evidence.fileName ? '📎' : '📄'}
+                            </span>
 
-                          <div style={metadataStyle}>
-                            {evidence.evidenceKey}
-                            {" · "}
-                            {EVIDENCE_TYPE_LABELS[
-                              evidence.evidenceType
-                            ] ?? evidence.evidenceType}
-                            {evidence.fileName
-                              ? ` · ${evidence.fileName}`
-                              : ""}
-                          </div>
+                            <span style={styles.evidenceInfo}>
+                              <span style={styles.evidenceTitle}>
+                                {evidence.title}
+                              </span>
 
-                          {evidence.description && (
-                            <div style={evidenceDescriptionStyle}>
-                              {evidence.description}
-                            </div>
-                          )}
+                              <span style={styles.evidenceMeta}>
+                                {EVIDENCE_TYPE_OPTIONS.find(
+                                  (option) =>
+                                    option.value === evidence.evidenceType,
+                                )?.label ?? evidence.evidenceType}
 
-                          <div style={metadataStyle}>
-                            등록자: {evidence.submittedByName}
-                            {" · "}
-                            등록일:{" "}
-                            {new Date(
-                              evidence.submittedAt,
-                            ).toLocaleString("ko-KR")}
-                          </div>
-                        </div>
+                                {' · '}
 
-                        <span
-                          style={{
-                            ...verificationBadgeStyle,
-                            color: verificationConfig.color,
-                            borderColor: verificationConfig.color,
-                          }}
-                        >
-                          {verificationConfig.label}
-                        </span>
-                      </button>
-                    );
-                  })}
+                                {evidence.fileName || '파일 미연결'}
+
+                                {' · '}
+
+                                {formatDate(evidence.submittedAt)}
+                              </span>
+                            </span>
+
+                            <span style={styles.verificationBadge}>
+                              {VERIFICATION_STATUS_LABELS[
+                                evidence.verificationStatus
+                              ] ?? evidence.verificationStatus}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
-              </div>
+              </article>
             );
           })}
         </div>
       )}
 
-      {/* Evidence Loading Error */}
-      {!loading && evidenceError && (
-        <div role="alert" style={errorStyle}>
+      {evidenceError && (
+        <div role="alert" style={styles.errorBanner}>
           {evidenceError}
         </div>
       )}
-
-      {/* Summary */}
-      {!loading && !error && requirements.length > 0 && (
-        <div style={summaryStyle}>
-          요구사항 증적 등록 {presentCount} / 전체 요구사항{" "}
-          {requirements.length}
-          {" · "}
-          조회된 증적 {totalEvidenceCount}건
-        </div>
-      )}
-    </div>
+    </section>
   );
 }
 
-const cardStyle: CSSProperties = {
-  padding: "20px",
-  backgroundColor: "#ffffff",
-  border: "1px solid #dddddd",
-  borderRadius: "6px",
-};
+const styles: Record<string, CSSProperties> = {
+  container: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 16,
+    width: '100%',
+  },
 
-const headerStyle: CSSProperties = {
-  display: "flex",
-  alignItems: "flex-start",
-  justifyContent: "space-between",
-  gap: "12px",
-  flexWrap: "wrap",
-  marginBottom: "20px",
-};
+  header: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+    flexWrap: 'wrap',
+  },
 
-const subtitleStyle: CSSProperties = {
-  marginTop: "8px",
-  marginBottom: 0,
-  color: "#666666",
-};
+  heading: {
+    margin: 0,
+    fontSize: 20,
+    fontWeight: 700,
+    color: '#0f172a',
+  },
 
-const formStyle: CSSProperties = {
-  display: "grid",
-  gap: "14px",
-  marginBottom: "20px",
-  padding: "16px",
-  border: "1px solid #dbeafe",
-  borderRadius: "6px",
-  backgroundColor: "#f8fbff",
-};
+  subheading: {
+    margin: '6px 0 0',
+    fontSize: 13,
+    color: '#64748b',
+  },
 
-const fieldStyle: CSSProperties = {
-  display: "grid",
-  gap: "6px",
-};
+  primaryButton: {
+    border: '1px solid #2563eb',
+    borderRadius: 6,
+    padding: '8px 12px',
+    background: '#2563eb',
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: 600,
+    cursor: 'pointer',
+  },
 
-const formGridStyle: CSSProperties = {
-  display: "grid",
-  gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-  gap: "14px",
-};
+  secondaryButton: {
+    border: '1px solid #cbd5e1',
+    borderRadius: 6,
+    padding: '8px 12px',
+    background: '#fff',
+    color: '#334155',
+    fontSize: 13,
+    fontWeight: 500,
+    cursor: 'pointer',
+  },
 
-const inputStyle: CSSProperties = {
-  width: "100%",
-  boxSizing: "border-box",
-  padding: "9px 10px",
-  border: "1px solid #cccccc",
-  borderRadius: "4px",
-  backgroundColor: "#ffffff",
-  fontSize: "14px",
-};
+  textButton: {
+    border: 0,
+    background: 'transparent',
+    color: '#1d4ed8',
+    fontSize: 13,
+    fontWeight: 600,
+    cursor: 'pointer',
+    marginLeft: 8,
+  },
 
-const checkboxLabelStyle: CSSProperties = {
-  display: "flex",
-  alignItems: "center",
-  gap: "8px",
-};
+  formCard: {
+    border: '1px solid #cbd5e1',
+    borderRadius: 8,
+    padding: 16,
+    background: '#f8fafc',
+  },
 
-const formActionsStyle: CSSProperties = {
-  display: "flex",
-  justifyContent: "flex-end",
-  gap: "8px",
-  flexWrap: "wrap",
-};
+  evidenceForm: {
+    border: '1px solid #bfdbfe',
+    borderRadius: 8,
+    padding: 16,
+    marginTop: 16,
+    background: '#eff6ff',
+  },
 
-const primaryButtonStyle: CSSProperties = {
-  padding: "9px 14px",
-  border: "none",
-  borderRadius: "4px",
-  backgroundColor: "#1976d2",
-  color: "#ffffff",
-  cursor: "pointer",
-};
+  formHeading: {
+    margin: '0 0 12px',
+    fontSize: 16,
+    fontWeight: 700,
+    color: '#0f172a',
+  },
 
-const secondaryButtonStyle: CSSProperties = {
-  padding: "9px 14px",
-  border: "1px solid #cccccc",
-  borderRadius: "4px",
-  backgroundColor: "#ffffff",
-  color: "#333333",
-  cursor: "pointer",
-};
+  formHelp: {
+    margin: '0 0 12px',
+    fontSize: 12,
+    color: '#475569',
+  },
 
-const smallButtonStyle: CSSProperties = {
-  padding: "5px 9px",
-  border: "1px solid #bdbdbd",
-  borderRadius: "4px",
-  backgroundColor: "#ffffff",
-  color: "#333333",
-  cursor: "pointer",
-};
+  formGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+    gap: 12,
+  },
 
-const requirementContainerStyle: CSSProperties = {
-  borderBottom: "1px solid #eeeeee",
-};
+  field: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 6,
+    minWidth: 0,
+  },
 
-const requirementRowStyle: CSSProperties = {
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between",
-  gap: "12px",
-  padding: "12px 0",
-};
+  fullWidth: {
+    gridColumn: '1 / -1',
+  },
 
-const requirementInfoStyle: CSSProperties = {
-  display: "flex",
-  alignItems: "center",
-  gap: "8px",
-  minWidth: 0,
-};
+  label: {
+    fontSize: 12,
+    fontWeight: 600,
+    color: '#475569',
+  },
 
-const metadataStyle: CSSProperties = {
-  marginTop: "4px",
-  fontSize: "12px",
-  color: "#777777",
-};
+  input: {
+    boxSizing: 'border-box',
+    width: '100%',
+    minHeight: 36,
+    border: '1px solid #cbd5e1',
+    borderRadius: 5,
+    padding: '7px 9px',
+    background: '#fff',
+    color: '#0f172a',
+    fontSize: 13,
+  },
 
-const rowActionsStyle: CSSProperties = {
-  display: "flex",
-  alignItems: "center",
-  gap: "10px",
-  flexShrink: 0,
-};
+  textarea: {
+    boxSizing: 'border-box',
+    width: '100%',
+    border: '1px solid #cbd5e1',
+    borderRadius: 5,
+    padding: '8px 9px',
+    background: '#fff',
+    color: '#0f172a',
+    fontSize: 13,
+    resize: 'vertical',
+  },
 
-const evidenceSectionStyle: CSSProperties = {
-  margin: "0 0 14px 24px",
-  padding: "12px",
-  borderLeft: "3px solid #dbeafe",
-  borderRadius: "0 4px 4px 0",
-  backgroundColor: "#f8fafc",
-};
+  checkboxField: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+    fontSize: 13,
+    color: '#334155',
+  },
 
-const evidenceSectionHeaderStyle: CSSProperties = {
-  display: "flex",
-  alignItems: "center",
-  gap: "8px",
-  marginBottom: "8px",
-};
+  formActions: {
+    display: 'flex',
+    justifyContent: 'flex-end',
+    gap: 8,
+    marginTop: 16,
+  },
 
-const evidenceRowStyle: CSSProperties = {
-  display: "flex",
-  alignItems: "flex-start",
-  gap: "10px",
-  padding: "12px 0",
-  borderTop: "1px solid #e5e7eb",
-};
+  errorBanner: {
+    border: '1px solid #fecaca',
+    borderRadius: 6,
+    padding: 12,
+    background: '#fef2f2',
+    color: '#991b1b',
+    fontSize: 13,
+  },
 
-const evidenceInfoStyle: CSSProperties = {
-  flex: 1,
-  minWidth: 0,
-  fontSize: "14px",
-};
+  errorMessage: {
+    marginBottom: 12,
+    color: '#b91c1c',
+    fontSize: 13,
+  },
 
-const evidenceDescriptionStyle: CSSProperties = {
-  marginTop: "6px",
-  fontSize: "13px",
-  color: "#555555",
-  overflowWrap: "anywhere",
-};
+  successBanner: {
+    border: '1px solid #bbf7d0',
+    borderRadius: 6,
+    padding: 10,
+    background: '#f0fdf4',
+    color: '#166534',
+    fontSize: 13,
+  },
 
-const evidenceMessageStyle: CSSProperties = {
-  padding: "8px 0",
-  fontSize: "13px",
-  color: "#777777",
-};
+  emptyState: {
+    border: '1px dashed #cbd5e1',
+    borderRadius: 8,
+    padding: 28,
+    textAlign: 'center',
+    color: '#64748b',
+    fontSize: 13,
+  },
 
-const verificationBadgeStyle: CSSProperties = {
-  flexShrink: 0,
-  padding: "4px 7px",
-  border: "1px solid",
-  borderRadius: "4px",
-  fontSize: "12px",
-  fontWeight: 500,
-};
+  emptyStateAction: {
+    marginTop: 6,
+    fontSize: 12,
+  },
 
-const messageStyle: CSSProperties = {
-  padding: "24px 0",
-  color: "#666666",
-  textAlign: "center",
-};
+  requirementList: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 12,
+  },
 
-const summaryStyle: CSSProperties = {
-  marginTop: "16px",
-  paddingTop: "12px",
-  color: "#666666",
-  fontSize: "14px",
-};
+  requirementCard: {
+    border: '1px solid #e2e8f0',
+    borderRadius: 8,
+    padding: 16,
+    background: '#fff',
+  },
 
-const errorStyle: CSSProperties = {
-  padding: "12px",
-  border: "1px solid #fecaca",
-  borderRadius: "4px",
-  backgroundColor: "#fff5f5",
-  color: "#b91c1c",
-};
+  requirementHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    gap: 12,
+    flexWrap: 'wrap',
+  },
 
-const successStyle: CSSProperties = {
-  marginBottom: "16px",
-  padding: "12px",
-  border: "1px solid #bbf7d0",
-  borderRadius: "4px",
-  backgroundColor: "#f0fdf4",
-  color: "#166534",
-};
+  requirementTitleArea: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 8,
+    flex: 1,
+    minWidth: 220,
+  },
 
-export default EvidenceChecklist;
+  requirementTitleRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+    flexWrap: 'wrap',
+  },
+
+  requirementTitle: {
+    margin: 0,
+    fontSize: 15,
+    fontWeight: 700,
+    color: '#0f172a',
+  },
+
+  badge: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    borderRadius: 999,
+    padding: '3px 8px',
+    fontSize: 11,
+    fontWeight: 600,
+  },
+
+  requiredBadge: {
+    borderRadius: 999,
+    padding: '3px 8px',
+    background: '#fff7ed',
+    color: '#9a3412',
+    fontSize: 11,
+    fontWeight: 600,
+  },
+
+  requirementMeta: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: 8,
+    color: '#64748b',
+    fontSize: 12,
+  },
+
+  description: {
+    margin: 0,
+    color: '#475569',
+    fontSize: 13,
+    whiteSpace: 'pre-wrap',
+  },
+
+  requirementActions: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+    flexWrap: 'wrap',
+  },
+
+  evidenceSection: {
+    borderTop: '1px solid #e2e8f0',
+    marginTop: 16,
+    paddingTop: 12,
+  },
+
+  evidenceSectionHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 8,
+  },
+
+  evidenceHeading: {
+    margin: 0,
+    fontSize: 13,
+    fontWeight: 700,
+    color: '#334155',
+  },
+
+  evidenceCount: {
+    borderRadius: 999,
+    padding: '2px 7px',
+    background: '#f1f5f9',
+    color: '#475569',
+    fontSize: 11,
+  },
+
+  evidenceList: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 6,
+  },
+
+  evidenceRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 10,
+    width: '100%',
+    border: '1px solid #e2e8f0',
+    borderRadius: 6,
+    padding: '10px 12px',
+    background: '#fff',
+    color: '#334155',
+    textAlign: 'left',
+    cursor: 'pointer',
+  },
+
+  evidenceRowSelected: {
+    borderColor: '#60a5fa',
+    background: '#eff6ff',
+  },
+
+  evidenceIcon: {
+    flexShrink: 0,
+    fontSize: 17,
+  },
+
+  evidenceInfo: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 4,
+    flex: 1,
+    minWidth: 0,
+  },
+
+  evidenceTitle: {
+    overflowWrap: 'anywhere',
+    fontSize: 13,
+    fontWeight: 600,
+    color: '#0f172a',
+  },
+
+  evidenceMeta: {
+    overflowWrap: 'anywhere',
+    fontSize: 11,
+    color: '#64748b',
+  },
+
+  verificationBadge: {
+    flexShrink: 0,
+    borderRadius: 5,
+    padding: '4px 7px',
+    background: '#f1f5f9',
+    color: '#475569',
+    fontSize: 11,
+  },
+
+  evidenceEmpty: {
+    borderRadius: 6,
+    padding: 12,
+    background: '#f8fafc',
+    color: '#94a3b8',
+    fontSize: 12,
+  },
+};

@@ -1,3 +1,4 @@
+
 /**
  * 공통 API 응답
  */
@@ -28,6 +29,43 @@ export type VerificationStatus =
   | 'PENDING'
   | 'APPROVED'
   | 'REJECTED';
+
+/**
+ * 증적 등록 요청
+ *
+ * POST /api/evidence-requirements/{requirementId}/evidence
+ */
+export interface EvidenceCreateRequest {
+  /** 연결할 WBS ID */
+  wbsId: number | null;
+
+  /** 증적 유형 */
+  evidenceType: EvidenceType;
+
+  /** 증적 제목 (최대 200자) */
+  title: string;
+
+  /** 증적 설명 */
+  description?: string | null;
+
+  /** 표시용 파일명 */
+  fileName?: string | null;
+
+  /** 기존 수동 등록 호환용 경로 */
+  filePath?: string | null;
+
+  /** Automation Runtime 파일 ID */
+  sourceFileId?: string | null;
+
+  /** Automation Runtime 실행 UUID */
+  executionUuid?: string | null;
+
+  /** Automation Runtime Job ID */
+  sourceJobId?: string | null;
+
+  /** 제출 일시 */
+  submittedAt?: string | null;
+}
 
 /**
  * 증적 정보

@@ -1,10 +1,13 @@
 import {
+  useCallback,
   useEffect,
   useRef,
   useState,
   type ChangeEvent,
 } from "react";
+
 import type { Evidence } from "../types/evidence";
+
 import {
   createEvidenceOcrJob,
   refreshEvidenceOcrJob,
@@ -23,7 +26,7 @@ const OCR_MAX_ATTEMPTS = 15;
 
 function getVerificationStatusLabel(
   status: Evidence["verificationStatus"],
-) {
+): string {
   switch (status) {
     case "APPROVED":
       return "승인";
@@ -45,11 +48,13 @@ function getVerificationStatusStyle(
         backgroundColor: "#e8f5e9",
         color: "#2e7d32",
       };
+
     case "REJECTED":
       return {
         backgroundColor: "#ffebee",
         color: "#c62828",
       };
+
     case "PENDING":
     default:
       return {
@@ -59,15 +64,17 @@ function getVerificationStatusStyle(
   }
 }
 
-function formatDate(date: string | null | undefined): string {
-  if (!date) {
+function formatDate(
+  value: string | null | undefined,
+): string {
+  if (!value) {
     return "-";
   }
 
-  const parsedDate = new Date(date);
+  const parsedDate = new Date(value);
 
   if (Number.isNaN(parsedDate.getTime())) {
-    return date;
+    return value;
   }
 
   return parsedDate.toLocaleString("ko-KR", {
@@ -94,14 +101,33 @@ function sleep(ms: number): Promise<void> {
 
 function EvidenceDetail({ evidence }: EvidenceDetailProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // 증적 변경 및 비동기 요청의 최신 실행 번호를 관리한다.
   const requestSequenceRef = useRef(0);
+
+  // 컴포넌트가 언마운트되었는지 확인한다.
+  const mountedRef = useRef(true);
 
   const [ocrStatus, setOcrStatus] = useState<OcrStatus>("IDLE");
   const [ocrJob, setOcrJob] = useState<EvidenceOcrJob | null>(null);
   const [ocrError, setOcrError] = useState("");
 
   useEffect(() => {
-    // 증적이 바뀌면 이전 OCR 요청의 화면 반영을 무효화한다.
+    mountedRef.current = true;
+
+    return () => {
+      mountedRef.current = false;
+      requestSequenceRef.current += 1;
+    };
+  }, []);
+
+  /**
+   * 증적이 바뀌면 기존 OCR 결과를 초기화한다.
+   *
+   * 이전 요청이 완료되더라도 새로 선택한 증적의 화면을
+   * 덮어쓰지 못하도록 실행 번호를 갱신한다.
+   */
+  useEffect(() => {
     requestSequenceRef.current += 1;
 
     setOcrStatus("IDLE");
@@ -111,17 +137,25 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
-
-    return () => {
-      // 진행 중인 요청이 이후 화면 상태를 덮어쓰지 않도록 한다.
-      requestSequenceRef.current += 1;
-    };
   }, [evidence?.id]);
+
+  const isCurrentRequest = useCallback(
+    (requestSequence: number): boolean => {
+      return (
+        mountedRef.current &&
+        requestSequenceRef.current === requestSequence
+      );
+    },
+    [],
+  );
 
   const statusStyle = evidence
     ? getVerificationStatusStyle(evidence.verificationStatus)
     : undefined;
 
+  /**
+   * OCR 버튼을 누르면 파일 선택창을 연다.
+   */
   function handleOcrButtonClick() {
     if (!evidence || ocrStatus === "PENDING") {
       return;
@@ -129,25 +163,31 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
 
     setOcrError("");
 
-    if (fileInputRef.current) {
-      fileInputRef.current.click();
-    }
+    fileInputRef.current?.click();
   }
 
+  /**
+   * OCR 작업 상태를 재조회한다.
+   *
+   * PENDING 또는 RUNNING 상태에서는 제한 횟수만큼 반복 조회한다.
+   */
   async function waitForOcrResult(
     jobId: number,
     requestSequence: number,
   ): Promise<EvidenceOcrJob> {
     for (let attempt = 0; attempt < OCR_MAX_ATTEMPTS; attempt += 1) {
-      if (requestSequenceRef.current !== requestSequence) {
-        throw new Error("증적 선택이 변경되어 OCR 화면 갱신을 중단했습니다.");
+      if (!isCurrentRequest(requestSequence)) {
+        throw new Error(
+          "증적 선택이 변경되어 OCR 화면 갱신을 중단했습니다.",
+        );
       }
 
-      // 최초 갱신 및 후속 상태 재조회
       const refreshedJob = await refreshEvidenceOcrJob(jobId);
 
-      if (requestSequenceRef.current !== requestSequence) {
-        throw new Error("증적 선택이 변경되어 OCR 화면 갱신을 중단했습니다.");
+      if (!isCurrentRequest(requestSequence)) {
+        throw new Error(
+          "증적 선택이 변경되어 OCR 화면 갱신을 중단했습니다.",
+        );
       }
 
       setOcrJob(refreshedJob);
@@ -162,17 +202,21 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
         );
       }
 
-      // PENDING 또는 RUNNING 상태면 잠시 기다렸다가 재조회한다.
+      // PENDING 또는 RUNNING 상태는 계속 조회한다.
       if (attempt < OCR_MAX_ATTEMPTS - 1) {
         await sleep(OCR_POLL_INTERVAL_MS);
       }
     }
 
     throw new Error(
-      "OCR 처리 결과를 제한 시간 내에 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+      "OCR 처리 결과를 제한 시간 내에 확인하지 못했습니다. " +
+        "잠시 후 다시 시도해 주세요.",
     );
   }
 
+  /**
+   * 파일 선택 → Runtime 업로드 → OCR 작업 생성 → 결과 확인
+   */
   async function handleFileChange(
     event: ChangeEvent<HTMLInputElement>,
   ) {
@@ -196,15 +240,17 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
       // 1. OCR 입력 파일 업로드
       const uploadedFile = await uploadOcrFile(file);
 
-      if (requestSequenceRef.current !== requestSequence) {
+      if (!isCurrentRequest(requestSequence)) {
         return;
       }
 
       if (!uploadedFile.file_id) {
-        throw new Error("파일 업로드 응답에 file_id가 없습니다.");
+        throw new Error(
+          "파일 업로드 응답에 file_id가 없습니다.",
+        );
       }
 
-      // 2. 선택한 증적의 OCR 작업 생성
+      // 2. 현재 선택된 증적의 OCR 작업 생성
       const createdJob = await createEvidenceOcrJob(
         selectedEvidence.id,
         {
@@ -212,7 +258,7 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
         },
       );
 
-      if (requestSequenceRef.current !== requestSequence) {
+      if (!isCurrentRequest(requestSequence)) {
         return;
       }
 
@@ -231,20 +277,20 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
         return;
       }
 
-      // 3. 작업이 완료될 때까지 상태를 재조회한다.
+      // 3. 완료될 때까지 OCR 작업 상태를 재조회한다.
       const completedJob = await waitForOcrResult(
         createdJob.id,
         requestSequence,
       );
 
-      if (requestSequenceRef.current !== requestSequence) {
+      if (!isCurrentRequest(requestSequence)) {
         return;
       }
 
       setOcrJob(completedJob);
       setOcrStatus("SUCCEEDED");
     } catch (error: unknown) {
-      if (requestSequenceRef.current !== requestSequence) {
+      if (!isCurrentRequest(requestSequence)) {
         return;
       }
 
@@ -254,60 +300,31 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
   }
 
   return (
-    <div
-      style={{
-        backgroundColor: "#ffffff",
-        border: "1px solid #e0e0e0",
-        borderRadius: "8px",
-        padding: "20px",
-      }}
-    >
+    <div style={styles.container}>
       {/* Header */}
-      <div style={{ marginBottom: "20px" }}>
-        <h2 style={{ margin: 0, fontSize: "18px" }}>
-          Evidence Detail
-        </h2>
+      <div style={styles.header}>
+        <h2 style={styles.heading}>Evidence Detail</h2>
 
-        <p
-          style={{
-            marginTop: "6px",
-            marginBottom: 0,
-            color: "#666666",
-            fontSize: "14px",
-          }}
-        >
+        <p style={styles.subheading}>
           Selected evidence information
         </p>
       </div>
 
       {!evidence ? (
-        <div
-          style={{
-            padding: "40px 12px",
-            textAlign: "center",
-            color: "#777777",
-            fontSize: "14px",
-            backgroundColor: "#fafafa",
-            borderRadius: "6px",
-          }}
-        >
+        <div style={styles.emptyState}>
           증적 목록에서 항목을 선택하면 상세 정보가 표시됩니다.
         </div>
       ) : (
         <>
           {/* Evidence Information */}
-          <div style={{ marginBottom: "20px" }}>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "120px 1fr",
-                rowGap: "12px",
-                fontSize: "14px",
-                overflowWrap: "anywhere",
-              }}
-            >
+          <section style={styles.section}>
+            <h3 style={styles.sectionHeading}>증적 정보</h3>
+
+            <div style={styles.infoGrid}>
               <strong>Evidence ID</strong>
-              <span>{evidence.evidenceKey || `#${evidence.id}`}</span>
+              <span>
+                {evidence.evidenceKey || `#${evidence.id}`}
+              </span>
 
               <strong>Title</strong>
               <span>{evidence.title || "-"}</span>
@@ -325,18 +342,17 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
               <span>{evidence.wbsId ?? "-"}</span>
 
               <strong>Status</strong>
-              <span
-                style={{
-                  display: "inline-block",
-                  width: "fit-content",
-                  padding: "4px 8px",
-                  borderRadius: "4px",
-                  fontSize: "12px",
-                  fontWeight: 600,
-                  ...statusStyle,
-                }}
-              >
-                {getVerificationStatusLabel(evidence.verificationStatus)}
+              <span>
+                <span
+                  style={{
+                    ...styles.statusBadge,
+                    ...statusStyle,
+                  }}
+                >
+                  {getVerificationStatusLabel(
+                    evidence.verificationStatus,
+                  )}
+                </span>
               </span>
 
               <strong>Submitted By</strong>
@@ -352,46 +368,22 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
               <span>{formatDate(evidence.verifiedAt)}</span>
 
               <strong>Description</strong>
-              <span>{evidence.description || "-"}</span>
+              <span style={styles.longText}>
+                {evidence.description || "-"}
+              </span>
             </div>
-          </div>
+          </section>
 
-          {/* File Information */}
-          <div
-            style={{
-              borderTop: "1px solid #eeeeee",
-              paddingTop: "20px",
-            }}
-          >
-            <h3
-              style={{
-                marginTop: 0,
-                marginBottom: "12px",
-                fontSize: "15px",
-              }}
-            >
-              Attached Evidence
-            </h3>
+          {/* File Information and OCR Input */}
+          <section style={styles.section}>
+            <h3 style={styles.sectionHeading}>Attached Evidence</h3>
 
-            <div
-              style={{
-                padding: "12px",
-                border: "1px solid #e0e0e0",
-                borderRadius: "6px",
-                backgroundColor: "#fafafa",
-                overflowWrap: "anywhere",
-              }}
-            >
-              <div style={{ fontWeight: 600, marginBottom: "6px" }}>
+            <div style={styles.fileCard}>
+              <div style={styles.fileName}>
                 {evidence.fileName || "첨부 파일 없음"}
               </div>
 
-              <div
-                style={{
-                  color: "#666666",
-                  fontSize: "13px",
-                }}
-              >
+              <div style={styles.fileDescription}>
                 {evidence.filePath
                   ? "파일 경로 정보가 등록되어 있습니다."
                   : "파일 경로 정보 없음"}
@@ -403,7 +395,7 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
                 accept="image/*,.pdf"
                 onChange={handleFileChange}
                 disabled={ocrStatus === "PENDING"}
-                style={{ display: "none" }}
+                style={styles.hiddenInput}
               />
 
               <button
@@ -411,16 +403,10 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
                 onClick={handleOcrButtonClick}
                 disabled={ocrStatus === "PENDING"}
                 style={{
-                  marginTop: "12px",
-                  padding: "8px 14px",
-                  border: "1px solid #1976d2",
-                  borderRadius: "6px",
-                  backgroundColor:
-                    ocrStatus === "PENDING" ? "#eeeeee" : "#1976d2",
-                  color:
-                    ocrStatus === "PENDING" ? "#777777" : "#ffffff",
-                  cursor:
-                    ocrStatus === "PENDING" ? "not-allowed" : "pointer",
+                  ...styles.ocrButton,
+                  ...(ocrStatus === "PENDING"
+                    ? styles.ocrButtonDisabled
+                    : {}),
                 }}
               >
                 {ocrStatus === "PENDING"
@@ -432,69 +418,40 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
                       : "OCR 실행"}
               </button>
             </div>
-          </div>
+          </section>
 
           {/* OCR Result */}
-          <div
-            style={{
-              marginTop: "20px",
-              borderTop: "1px solid #eeeeee",
-              paddingTop: "20px",
-            }}
-          >
-            <h3
-              style={{
-                marginTop: 0,
-                marginBottom: "12px",
-                fontSize: "15px",
-              }}
-            >
-              OCR Result
-            </h3>
+          <section style={styles.section}>
+            <h3 style={styles.sectionHeading}>OCR Result</h3>
 
             {ocrStatus === "IDLE" && (
-              <p style={{ color: "#666666", fontSize: "14px" }}>
-                OCR 실행 버튼을 눌러 파일을 선택하면 인식 작업이 시작됩니다.
+              <p style={styles.mutedText}>
+                OCR 실행 버튼을 눌러 파일을 선택하면 인식 작업이
+                시작됩니다.
               </p>
             )}
 
             {ocrStatus === "PENDING" && (
-              <p
-                role="status"
-                style={{ color: "#e65100", fontSize: "14px" }}
-              >
-                OCR 작업을 처리하고 있습니다. 완료될 때까지 자동으로 확인합니다.
+              <p role="status" style={styles.pendingText}>
+                OCR 작업을 처리하고 있습니다. 완료될 때까지 자동으로
+                확인합니다.
               </p>
             )}
 
             {ocrStatus === "FAILED" && (
-              <p
-                role="alert"
-                style={{
-                  color: "#c62828",
-                  fontSize: "14px",
-                  whiteSpace: "pre-wrap",
-                }}
-              >
+              <div role="alert" style={styles.errorBox}>
                 {ocrError}
-              </p>
+              </div>
             )}
 
             {ocrStatus === "SUCCEEDED" && ocrJob && (
-              <div style={{ fontSize: "14px" }}>
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "120px 1fr",
-                    rowGap: "10px",
-                    marginBottom: "12px",
-                  }}
-                >
+              <div>
+                <div style={styles.infoGrid}>
                   <strong>Job ID</strong>
                   <span>{ocrJob.id}</span>
 
                   <strong>OCR Status</strong>
-                  <span style={{ color: "#2e7d32", fontWeight: 600 }}>
+                  <span style={styles.successText}>
                     {ocrJob.status}
                   </span>
 
@@ -508,75 +465,238 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
                   <span>{formatDate(ocrJob.finishedAt)}</span>
                 </div>
 
-                <strong style={{ display: "block", marginBottom: "8px" }}>
+                {ocrJob.warnings && ocrJob.warnings.length > 0 && (
+                  <div style={styles.warningBox}>
+                    <strong>Warnings</strong>
+                    <ul style={styles.warningList}>
+                      {ocrJob.warnings.map((warning, index) => (
+                        <li key={`${index}-${warning}`}>
+                          {warning}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                <strong style={styles.recognizedTextHeading}>
                   Recognized Text
                 </strong>
 
-                <pre
-                  style={{
-                    margin: 0,
-                    padding: "12px",
-                    backgroundColor: "#f5f5f5",
-                    borderRadius: "6px",
-                    whiteSpace: "pre-wrap",
-                    overflowWrap: "anywhere",
-                    fontSize: "13px",
-                  }}
-                >
-                  {ocrJob.recognizedText || "인식된 텍스트가 없습니다."}
+                <pre style={styles.recognizedText}>
+                  {ocrJob.recognizedText ||
+                    "인식된 텍스트가 없습니다."}
                 </pre>
               </div>
             )}
-          </div>
+          </section>
 
           {/* Verification */}
-          <div
-            style={{
-              marginTop: "20px",
-              borderTop: "1px solid #eeeeee",
-              paddingTop: "20px",
-            }}
-          >
-            <h3
-              style={{
-                marginTop: 0,
-                marginBottom: "12px",
-                fontSize: "15px",
-              }}
-            >
-              Verification
-            </h3>
+          <section style={styles.section}>
+            <h3 style={styles.sectionHeading}>Verification</h3>
 
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "120px 1fr",
-                rowGap: "12px",
-                fontSize: "14px",
-                overflowWrap: "anywhere",
-              }}
-            >
+            <div style={styles.infoGrid}>
               <strong>Verifier</strong>
               <span>{evidence.verifiedByName || "-"}</span>
 
               <strong>Result</strong>
               <span
                 style={{
-                  fontWeight: 600,
+                  ...styles.verificationResult,
                   color: statusStyle?.color,
                 }}
               >
-                {getVerificationStatusLabel(evidence.verificationStatus)}
+                {getVerificationStatusLabel(
+                  evidence.verificationStatus,
+                )}
               </span>
 
               <strong>Comment</strong>
-              <span>{evidence.verificationRemark || "-"}</span>
+              <span style={styles.longText}>
+                {evidence.verificationRemark || "-"}
+              </span>
             </div>
-          </div>
+          </section>
         </>
       )}
     </div>
   );
 }
+
+const styles: Record<string, React.CSSProperties> = {
+  container: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 20,
+    width: "100%",
+    boxSizing: "border-box",
+    padding: 20,
+    border: "1px solid #e0e0e0",
+    borderRadius: 8,
+    backgroundColor: "#ffffff",
+  },
+
+  header: {
+    marginBottom: 0,
+  },
+
+  heading: {
+    margin: 0,
+    fontSize: 18,
+  },
+
+  subheading: {
+    marginTop: 6,
+    marginBottom: 0,
+    color: "#666666",
+    fontSize: 14,
+  },
+
+  emptyState: {
+    padding: "40px 12px",
+    textAlign: "center",
+    color: "#777777",
+    fontSize: 14,
+    backgroundColor: "#fafafa",
+    borderRadius: 6,
+  },
+
+  section: {
+    borderTop: "1px solid #eeeeee",
+    paddingTop: 20,
+    minWidth: 0,
+  },
+
+  sectionHeading: {
+    marginTop: 0,
+    marginBottom: 12,
+    fontSize: 15,
+  },
+
+  infoGrid: {
+    display: "grid",
+    gridTemplateColumns: "120px minmax(0, 1fr)",
+    rowGap: 12,
+    columnGap: 12,
+    fontSize: 14,
+    overflowWrap: "anywhere",
+  },
+
+  statusBadge: {
+    display: "inline-block",
+    width: "fit-content",
+    padding: "4px 8px",
+    borderRadius: 4,
+    fontSize: 12,
+    fontWeight: 600,
+  },
+
+  longText: {
+    whiteSpace: "pre-wrap",
+    overflowWrap: "anywhere",
+  },
+
+  fileCard: {
+    padding: 12,
+    border: "1px solid #e0e0e0",
+    borderRadius: 6,
+    backgroundColor: "#fafafa",
+    overflowWrap: "anywhere",
+  },
+
+  fileName: {
+    marginBottom: 6,
+    fontWeight: 600,
+  },
+
+  fileDescription: {
+    color: "#666666",
+    fontSize: 13,
+  },
+
+  hiddenInput: {
+    display: "none",
+  },
+
+  ocrButton: {
+    marginTop: 12,
+    padding: "8px 14px",
+    border: "1px solid #1976d2",
+    borderRadius: 6,
+    backgroundColor: "#1976d2",
+    color: "#ffffff",
+    cursor: "pointer",
+  },
+
+  ocrButtonDisabled: {
+    backgroundColor: "#eeeeee",
+    color: "#777777",
+    borderColor: "#eeeeee",
+    cursor: "not-allowed",
+  },
+
+  mutedText: {
+    color: "#666666",
+    fontSize: 14,
+  },
+
+  pendingText: {
+    color: "#e65100",
+    fontSize: 14,
+  },
+
+  errorBox: {
+    padding: 12,
+    border: "1px solid #ffcdd2",
+    borderRadius: 6,
+    backgroundColor: "#ffebee",
+    color: "#c62828",
+    fontSize: 14,
+    whiteSpace: "pre-wrap",
+    overflowWrap: "anywhere",
+  },
+
+  successText: {
+    color: "#2e7d32",
+    fontWeight: 600,
+  },
+
+  warningBox: {
+    marginTop: 16,
+    padding: 12,
+    border: "1px solid #ffe0b2",
+    borderRadius: 6,
+    backgroundColor: "#fff8e1",
+    color: "#795548",
+    fontSize: 13,
+  },
+
+  warningList: {
+    marginBottom: 0,
+    paddingLeft: 20,
+  },
+
+  recognizedTextHeading: {
+    display: "block",
+    marginTop: 16,
+    marginBottom: 8,
+  },
+
+  recognizedText: {
+    boxSizing: "border-box",
+    width: "100%",
+    margin: 0,
+    padding: 12,
+    backgroundColor: "#f5f5f5",
+    borderRadius: 6,
+    whiteSpace: "pre-wrap",
+    overflowWrap: "anywhere",
+    fontSize: 13,
+    fontFamily: "inherit",
+  },
+
+  verificationResult: {
+    fontWeight: 600,
+  },
+};
 
 export default EvidenceDetail;

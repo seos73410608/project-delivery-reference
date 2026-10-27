@@ -1,11 +1,29 @@
 import apiClient from '@/api/client';
-import type { ApiResponse, Evidence } from '../types/evidence';
+import type { ApiResponse, Evidence, EvidenceType } from '../types/evidence';
 
 const EVIDENCE_REQUIREMENTS_API = '/evidence-requirements';
 const PROJECTS_API = '/projects';
 const EVIDENCE_API = '/evidence';
 const RUNTIME_OCR_API = '/runtime/ocr';
 const EVIDENCE_OCR_JOBS_API = '/evidence-ocr-jobs';
+
+/**
+ * 증적 등록 요청 DTO
+ *
+ * POST /api/evidence-requirements/{requirementId}/evidence
+ */
+export interface EvidenceCreateRequest {
+  wbsId?: number | null;
+  evidenceType: EvidenceType;
+  title: string;
+  description?: string | null;
+  fileName?: string | null;
+  filePath?: string | null;
+  sourceFileId?: string | null;
+  executionUuid?: string | null;
+  sourceJobId?: string | null;
+  submittedAt?: string | null;
+}
 
 /**
  * OCR 입력 파일 업로드 응답
@@ -20,14 +38,14 @@ export interface OcrUploadResponse {
 }
 
 /**
- * OCR 작업 생성 요청
+ * 증적 OCR 작업 생성 요청
  */
 export interface CreateEvidenceOcrJobRequest {
   inputFileId: string;
 }
 
 /**
- * OCR 작업 상태
+ * 증적 OCR 작업 상태
  */
 export type EvidenceOcrJobStatus =
   | 'PENDING'
@@ -36,7 +54,7 @@ export type EvidenceOcrJobStatus =
   | 'FAILED';
 
 /**
- * OCR 작업 응답
+ * 증적 OCR 작업 정보
  */
 export interface EvidenceOcrJob {
   id: number;
@@ -56,20 +74,9 @@ export interface EvidenceOcrJob {
 }
 
 /**
- * 요구사항에 연결된 증적 목록 조회
- */
-export async function getRequirementEvidence(
-  requirementId: number,
-): Promise<Evidence[]> {
-  const response = await apiClient.get<ApiResponse<Evidence[]>>(
-    `${EVIDENCE_REQUIREMENTS_API}/${requirementId}/evidence`,
-  );
-
-  return response.data.data;
-}
-
-/**
  * 프로젝트의 전체 증적 목록 조회
+ *
+ * GET /api/projects/{projectId}/evidence
  */
 export async function getProjectEvidence(
   projectId: number,
@@ -82,7 +89,42 @@ export async function getProjectEvidence(
 }
 
 /**
+ * 요구사항에 연결된 증적 목록 조회
+ *
+ * GET /api/evidence-requirements/{requirementId}/evidence
+ */
+export async function getRequirementEvidence(
+  requirementId: number,
+): Promise<Evidence[]> {
+  const response = await apiClient.get<ApiResponse<Evidence[]>>(
+    `${EVIDENCE_REQUIREMENTS_API}/${requirementId}/evidence`,
+  );
+
+  return response.data.data;
+}
+
+/**
+ * 증적 등록
+ *
+ * POST /api/evidence-requirements/{requirementId}/evidence
+ * 성공 상태: 201 Created
+ */
+export async function createEvidence(
+  requirementId: number,
+  request: EvidenceCreateRequest,
+): Promise<Evidence> {
+  const response = await apiClient.post<ApiResponse<Evidence>>(
+    `${EVIDENCE_REQUIREMENTS_API}/${requirementId}/evidence`,
+    request,
+  );
+
+  return response.data.data;
+}
+
+/**
  * 증적 단건 조회
+ *
+ * GET /api/evidence/{evidenceId}
  */
 export async function getEvidence(
   evidenceId: number,
@@ -97,8 +139,8 @@ export async function getEvidence(
 /**
  * OCR 입력 파일 업로드
  *
- * 파일을 multipart/form-data로 전송한다.
- * Content-Type과 boundary는 Axios/브라우저가 설정하도록 둔다.
+ * POST /api/runtime/ocr/uploads
+ * Content-Type과 multipart boundary는 Axios/브라우저가 설정한다.
  */
 export async function uploadOcrFile(
   file: File,
@@ -116,6 +158,9 @@ export async function uploadOcrFile(
 
 /**
  * 증적 OCR 작업 생성
+ *
+ * POST /api/evidences/{evidenceId}/ocr-jobs
+ * 응답은 기존 확인 결과에 따라 일반 JSON으로 처리한다.
  */
 export async function createEvidenceOcrJob(
   evidenceId: number,
@@ -131,6 +176,8 @@ export async function createEvidenceOcrJob(
 
 /**
  * 증적 OCR 작업 조회
+ *
+ * GET /api/evidence-ocr-jobs/{jobId}
  */
 export async function getEvidenceOcrJob(
   jobId: number,
@@ -144,6 +191,8 @@ export async function getEvidenceOcrJob(
 
 /**
  * OCR 작업 상태 갱신 및 결과 동기화
+ *
+ * POST /api/evidence-ocr-jobs/{jobId}/refresh
  */
 export async function refreshEvidenceOcrJob(
   jobId: number,
@@ -157,6 +206,8 @@ export async function refreshEvidenceOcrJob(
 
 /**
  * 특정 증적의 OCR 작업 목록 조회
+ *
+ * GET /api/evidences/{evidenceId}/ocr-jobs
  */
 export async function getEvidenceOcrJobs(
   evidenceId: number,
