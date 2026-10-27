@@ -1,3 +1,6 @@
+/**
+ * 공통 API 응답
+ */
 export interface ApiResponse<T> {
   success: boolean;
   code: string;
@@ -5,6 +8,9 @@ export interface ApiResponse<T> {
   data: T;
 }
 
+/**
+ * 증적 유형
+ */
 export type EvidenceType =
   | 'OTHER'
   | 'LOG'
@@ -15,11 +21,17 @@ export type EvidenceType =
   | 'CONFIGURATION'
   | 'DOCUMENT';
 
+/**
+ * 증적 검증 상태
+ */
 export type VerificationStatus =
   | 'PENDING'
   | 'APPROVED'
   | 'REJECTED';
 
+/**
+ * 증적 정보
+ */
 export interface Evidence {
   id: number;
   projectId: number;
@@ -46,4 +58,55 @@ export interface Evidence {
 
   createdAt: string;
   updatedAt: string;
+}
+
+/**
+ * OCR 입력 파일 업로드 응답
+ */
+export interface OcrUploadResponse {
+  status: string;
+  file_id: string;
+  file_name: string;
+  media_type: string;
+  size_bytes: number;
+  created_at: string;
+}
+
+/**
+ * 증적 OCR 작업 생성 요청
+ */
+export interface CreateEvidenceOcrJobRequest {
+  inputFileId: string;
+}
+
+/**
+ * 증적 OCR 작업 상태
+ */
+export type EvidenceOcrJobStatus =
+  | 'PENDING'
+  | 'RUNNING'
+  | 'SUCCEEDED'
+  | 'FAILED';
+
+/**
+ * 증적 OCR 작업 정보
+ */
+export interface EvidenceOcrJob {
+  id: number;
+  evidenceId: number;
+  pmisRequestId: string;
+  ocrRequestId: string;
+  inputFileId: string;
+
+  status: EvidenceOcrJobStatus | (string & {});
+
+  recognizedText: string | null;
+  engineName: string | null;
+  engineVersion: string | null;
+  warnings: string[] | null;
+  errorDetail: string | null;
+
+  requestedAt: string;
+  startedAt: string | null;
+  finishedAt: string | null;
 }

@@ -34,6 +34,8 @@ import type {
 
 interface EvidenceChecklistProps {
   projectId?: number;
+  selectedEvidenceId?: number | null;
+  onSelectEvidence?: (evidence: Evidence) => void;
 }
 
 const REQUIREMENT_STATUS_CONFIG: Record<
@@ -126,6 +128,8 @@ const INITIAL_FORM: EvidenceRequirementCreateRequest = {
 
 function EvidenceChecklist({
   projectId,
+  selectedEvidenceId = null,
+  onSelectEvidence,
 }: EvidenceChecklistProps) {
   const [requirements, setRequirements] = useState<
     EvidenceRequirement[]
@@ -743,15 +747,41 @@ function EvidenceChecklist({
                         evidence.verificationStatus
                       ];
 
+                    const isSelected =
+                      selectedEvidenceId === evidence.id;
+
                     return (
-                      <div
+                      <button
                         key={evidence.id}
-                        style={evidenceRowStyle}
+                        type="button"
+                        onClick={() => onSelectEvidence?.(evidence)}
+                        aria-pressed={isSelected}
+                        aria-label={`${evidence.title} 증적 선택`}
+                        style={{
+                          ...evidenceRowStyle,
+                          width: "100%",
+                          boxSizing: "border-box",
+                          textAlign: "left",
+                          font: "inherit",
+                          color: "inherit",
+                          cursor: "pointer",
+                          border: isSelected
+                            ? "1px solid #93c5fd"
+                            : "1px solid transparent",
+                          borderTop: isSelected
+                            ? "1px solid #93c5fd"
+                            : "1px solid #e5e7eb",
+                          borderRadius: "4px",
+                          padding: "12px 8px",
+                          backgroundColor: isSelected
+                            ? "#eff6ff"
+                            : "transparent",
+                        }}
                       >
                         <span
                           aria-hidden="true"
                           style={{
-                            color: "#64748b",
+                            color: isSelected ? "#2563eb" : "#64748b",
                             fontSize: "18px",
                             flexShrink: 0,
                           }}
@@ -762,7 +792,7 @@ function EvidenceChecklist({
                         <div style={evidenceInfoStyle}>
                           <div
                             style={{
-                              fontWeight: 500,
+                              fontWeight: isSelected ? 700 : 500,
                               overflowWrap: "anywhere",
                             }}
                           >
@@ -805,7 +835,7 @@ function EvidenceChecklist({
                         >
                           {verificationConfig.label}
                         </span>
-                      </div>
+                      </button>
                     );
                   })}
                 </div>

@@ -1,4 +1,9 @@
 import {
+    useEffect,
+    useState,
+} from "react";
+
+import {
     useParams,
 } from "react-router-dom";
 
@@ -6,6 +11,10 @@ import EvidenceSummary from "@/components/dashboard/EvidenceSummary";
 import EvidenceChecklist from "@/features/evidence/components/EvidenceChecklist";
 import EvidenceMatrix from "@/features/evidence/components/EvidenceMatrix";
 import EvidenceDetail from "@/features/evidence/components/EvidenceDetail";
+
+import type {
+    Evidence,
+} from "@/features/evidence/types/evidence";
 
 
 function EvidencePage() {
@@ -28,17 +37,32 @@ function EvidencePage() {
         projectId?: string;
     }>();
 
-
     const projectId = projectIdParam
         ? Number(projectIdParam)
         : undefined;
-
 
     const isValidProjectId =
         projectId !== undefined &&
         Number.isInteger(projectId) &&
         projectId > 0;
 
+    /**
+     * =====================================================
+     * Selected Evidence
+     * =====================================================
+     *
+     * 체크리스트에서 선택한 증적을 상세 패널에 전달한다.
+     */
+
+    const [selectedEvidence, setSelectedEvidence] =
+        useState<Evidence | null>(null);
+
+    /**
+     * 프로젝트 경로가 바뀌면 이전 프로젝트의 증적 선택을 초기화한다.
+     */
+    useEffect(() => {
+        setSelectedEvidence(null);
+    }, [projectIdParam]);
 
     /**
      * =====================================================
@@ -81,7 +105,6 @@ function EvidencePage() {
                 </p>
             </div>
 
-
             {/* =============================================
                 Invalid Project ID
                 ============================================= */}
@@ -117,7 +140,6 @@ function EvidencePage() {
                         <EvidenceSummary />
                     </div>
 
-
                     {/* =====================================
                         Evidence Checklist / Detail
                         ===================================== */}
@@ -132,11 +154,16 @@ function EvidencePage() {
                     >
                         <EvidenceChecklist
                             projectId={projectId}
+                            selectedEvidenceId={
+                                selectedEvidence?.id ?? null
+                            }
+                            onSelectEvidence={setSelectedEvidence}
                         />
 
-                        <EvidenceDetail />
+                        <EvidenceDetail
+                            evidence={selectedEvidence}
+                        />
                     </div>
-
 
                     {/* =====================================
                         Evidence Matrix
