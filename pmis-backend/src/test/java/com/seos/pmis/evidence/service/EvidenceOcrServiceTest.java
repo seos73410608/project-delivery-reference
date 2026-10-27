@@ -1,5 +1,8 @@
+
 package com.seos.pmis.evidence.service;
 
+import com.seos.pmis.common.exception.BusinessException;
+import com.seos.pmis.common.exception.code.CommonErrorCode;
 import com.seos.pmis.evidence.entity.Evidence;
 import com.seos.pmis.evidence.entity.EvidenceOcrJob;
 import com.seos.pmis.evidence.repository.EvidenceOcrJobRepository;
@@ -121,6 +124,54 @@ class EvidenceOcrServiceTest {
     }
 
     @Test
+    void createOcrJob_runtimeException_marksJobAsFailed() {
+        // given
+        String inputFileId = "file-001";
+
+        when(evidenceRepository.findById(1L))
+                .thenReturn(Optional.of(evidence));
+
+        when(evidenceOcrJobRepository.saveAndFlush(
+                any(EvidenceOcrJob.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        when(evidenceOcrJobRepository.save(
+                any(EvidenceOcrJob.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        when(runtimeService.createOcrJob(
+                any(RuntimeOcrJobRequest.class)))
+                .thenThrow(new BusinessException(
+                        CommonErrorCode.INTERNAL_SERVER_ERROR
+                ));
+
+        // when
+        EvidenceOcrJob result =
+                evidenceOcrService.createOcrJob(1L, inputFileId);
+
+        // then
+        assertNotNull(result);
+        assertNotNull(result.getPmisRequestId());
+        assertEquals(inputFileId, result.getInputFileId());
+        assertEquals(
+                EvidenceOcrJob.OcrStatus.FAILED,
+                result.getStatus());
+
+        assertNotNull(result.getErrorDetail());
+
+        verify(evidenceOcrJobRepository).saveAndFlush(
+                any(EvidenceOcrJob.class));
+
+        verify(evidenceOcrJobRepository).save(result);
+
+        verify(runtimeService).createOcrJob(
+                any(RuntimeOcrJobRequest.class));
+
+        verify(runtimeService, never())
+                .getOcrJobByPmisRequestId(any());
+    }
+
+    @Test
     void refreshStatus_withoutRuntimeRequestId_recoversExistingRuntimeJob() {
         // given
         String pmisRequestId = "pmis-request-001";
@@ -157,7 +208,8 @@ class EvidenceOcrServiceTest {
         when(runtimeService.getOcrJobStatus(runtimeOcrRequestId))
                 .thenReturn(statusResponse);
 
-        when(evidenceOcrJobRepository.save(any(EvidenceOcrJob.class)))
+        when(evidenceOcrJobRepository.save(
+                any(EvidenceOcrJob.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         // when
