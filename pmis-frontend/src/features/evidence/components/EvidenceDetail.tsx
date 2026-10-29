@@ -4,6 +4,7 @@ import {
   useRef,
   useState,
   type ChangeEvent,
+  type CSSProperties,
 } from "react";
 
 import type { Evidence } from "../types/evidence";
@@ -41,7 +42,7 @@ function getVerificationStatusLabel(
 
 function getVerificationStatusStyle(
   status: Evidence["verificationStatus"],
-) {
+): CSSProperties {
   switch (status) {
     case "APPROVED":
       return {
@@ -101,11 +102,7 @@ function sleep(ms: number): Promise<void> {
 
 function EvidenceDetail({ evidence }: EvidenceDetailProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // 증적 변경 및 비동기 요청의 최신 실행 번호를 관리한다.
   const requestSequenceRef = useRef(0);
-
-  // 컴포넌트가 언마운트되었는지 확인한다.
   const mountedRef = useRef(true);
 
   const [ocrStatus, setOcrStatus] = useState<OcrStatus>("IDLE");
@@ -121,12 +118,6 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
     };
   }, []);
 
-  /**
-   * 증적이 바뀌면 기존 OCR 결과를 초기화한다.
-   *
-   * 이전 요청이 완료되더라도 새로 선택한 증적의 화면을
-   * 덮어쓰지 못하도록 실행 번호를 갱신한다.
-   */
   useEffect(() => {
     requestSequenceRef.current += 1;
 
@@ -140,12 +131,9 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
   }, [evidence?.id]);
 
   const isCurrentRequest = useCallback(
-    (requestSequence: number): boolean => {
-      return (
-        mountedRef.current &&
-        requestSequenceRef.current === requestSequence
-      );
-    },
+    (requestSequence: number): boolean =>
+      mountedRef.current &&
+      requestSequenceRef.current === requestSequence,
     [],
   );
 
@@ -153,24 +141,15 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
     ? getVerificationStatusStyle(evidence.verificationStatus)
     : undefined;
 
-  /**
-   * OCR 버튼을 누르면 파일 선택창을 연다.
-   */
   function handleOcrButtonClick() {
     if (!evidence || ocrStatus === "PENDING") {
       return;
     }
 
     setOcrError("");
-
     fileInputRef.current?.click();
   }
 
-  /**
-   * OCR 작업 상태를 재조회한다.
-   *
-   * PENDING 또는 RUNNING 상태에서는 제한 횟수만큼 반복 조회한다.
-   */
   async function waitForOcrResult(
     jobId: number,
     requestSequence: number,
@@ -202,7 +181,6 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
         );
       }
 
-      // PENDING 또는 RUNNING 상태는 계속 조회한다.
       if (attempt < OCR_MAX_ATTEMPTS - 1) {
         await sleep(OCR_POLL_INTERVAL_MS);
       }
@@ -214,16 +192,12 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
     );
   }
 
-  /**
-   * 파일 선택 → Runtime 업로드 → OCR 작업 생성 → 결과 확인
-   */
   async function handleFileChange(
     event: ChangeEvent<HTMLInputElement>,
   ) {
     const file = event.target.files?.[0];
     const selectedEvidence = evidence;
 
-    // 같은 파일을 다시 선택할 수 있도록 입력값을 초기화한다.
     event.target.value = "";
 
     if (!file || !selectedEvidence || ocrStatus === "PENDING") {
@@ -277,7 +251,7 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
         return;
       }
 
-      // 3. 완료될 때까지 OCR 작업 상태를 재조회한다.
+      // 3. OCR 완료까지 상태 재조회
       const completedJob = await waitForOcrResult(
         createdJob.id,
         requestSequence,
@@ -301,10 +275,8 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
 
   return (
     <div style={styles.container}>
-      {/* Header */}
       <div style={styles.header}>
         <h2 style={styles.heading}>Evidence Detail</h2>
-
         <p style={styles.subheading}>
           Selected evidence information
         </p>
@@ -316,7 +288,6 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
         </div>
       ) : (
         <>
-          {/* Evidence Information */}
           <section style={styles.section}>
             <h3 style={styles.sectionHeading}>증적 정보</h3>
 
@@ -374,7 +345,6 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
             </div>
           </section>
 
-          {/* File Information and OCR Input */}
           <section style={styles.section}>
             <h3 style={styles.sectionHeading}>Attached Evidence</h3>
 
@@ -420,7 +390,6 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
             </div>
           </section>
 
-          {/* OCR Result */}
           <section style={styles.section}>
             <h3 style={styles.sectionHeading}>OCR Result</h3>
 
@@ -465,18 +434,19 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
                   <span>{formatDate(ocrJob.finishedAt)}</span>
                 </div>
 
-                {ocrJob.warnings && ocrJob.warnings.length > 0 && (
-                  <div style={styles.warningBox}>
-                    <strong>Warnings</strong>
-                    <ul style={styles.warningList}>
-                      {ocrJob.warnings.map((warning, index) => (
-                        <li key={`${index}-${warning}`}>
-                          {warning}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
+                {ocrJob.warnings &&
+                  ocrJob.warnings.length > 0 && (
+                    <div style={styles.warningBox}>
+                      <strong>Warnings</strong>
+                      <ul style={styles.warningList}>
+                        {ocrJob.warnings.map((warning, index) => (
+                          <li key={`${index}-${warning}`}>
+                            {warning}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
 
                 <strong style={styles.recognizedTextHeading}>
                   Recognized Text
@@ -490,7 +460,6 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
             )}
           </section>
 
-          {/* Verification */}
           <section style={styles.section}>
             <h3 style={styles.sectionHeading}>Verification</h3>
 
@@ -522,7 +491,7 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
   );
 }
 
-const styles: Record<string, React.CSSProperties> = {
+const styles: Record<string, CSSProperties> = {
   container: {
     display: "flex",
     flexDirection: "column",
