@@ -5,7 +5,9 @@ import com.seos.pmis.evidence.dto.request.EvidenceCreateRequest;
 import com.seos.pmis.evidence.dto.request.EvidenceSearchRequest;
 import com.seos.pmis.evidence.dto.request.EvidenceUpdateRequest;
 import com.seos.pmis.evidence.dto.request.EvidenceVerificationRequest;
+import com.seos.pmis.evidence.dto.request.EvidenceVersionCreateRequest;
 import com.seos.pmis.evidence.dto.response.EvidenceResponse;
+import com.seos.pmis.evidence.dto.response.EvidenceVersionResponse;
 import com.seos.pmis.evidence.service.EvidenceService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +28,8 @@ import java.util.List;
  * /api/evidence/{id}
  * /api/evidence
  * /api/evidence/{id}/verification
+ * /api/evidence/{id}/versions
+ * /api/evidence/{id}/versions/{versionNumber}
  */
 @RestController
 @RequiredArgsConstructor
@@ -43,48 +47,37 @@ public class EvidenceController {
     /**
      * Project 기준 Evidence 목록 조회
      *
-     * GET
-     * /api/projects/{projectId}/evidence
+     * GET /api/projects/{projectId}/evidence
      */
     @GetMapping("/projects/{projectId}/evidence")
     public ApiResponse<List<EvidenceResponse>> findAllByProjectId(
             @PathVariable Long projectId
     ) {
         return ApiResponse.success(
-                evidenceService.findAllByProjectId(
-                        projectId
-                )
+                evidenceService.findAllByProjectId(projectId)
         );
     }
 
     /**
      * Requirement 기준 Evidence 목록 조회
      *
-     * GET
-     * /api/evidence-requirements/{requirementId}/evidence
+     * GET /api/evidence-requirements/{requirementId}/evidence
      */
-    @GetMapping(
-            "/evidence-requirements/{requirementId}/evidence"
-    )
+    @GetMapping("/evidence-requirements/{requirementId}/evidence")
     public ApiResponse<List<EvidenceResponse>> findAllByRequirementId(
             @PathVariable Long requirementId
     ) {
         return ApiResponse.success(
-                evidenceService.findAllByRequirementId(
-                        requirementId
-                )
+                evidenceService.findAllByRequirementId(requirementId)
         );
     }
 
     /**
      * Project + WBS 기준 Evidence 목록 조회
      *
-     * GET
-     * /api/projects/{projectId}/wbs/{wbsId}/evidence
+     * GET /api/projects/{projectId}/wbs/{wbsId}/evidence
      */
-    @GetMapping(
-            "/projects/{projectId}/wbs/{wbsId}/evidence"
-    )
+    @GetMapping("/projects/{projectId}/wbs/{wbsId}/evidence")
     public ApiResponse<List<EvidenceResponse>> findAllByProjectIdAndWbsId(
             @PathVariable Long projectId,
             @PathVariable Long wbsId
@@ -100,8 +93,7 @@ public class EvidenceController {
     /**
      * Evidence 단건 조회
      *
-     * GET
-     * /api/evidence/{id}
+     * GET /api/evidence/{id}
      */
     @GetMapping("/evidence/{id}")
     public ApiResponse<EvidenceResponse> findById(
@@ -115,11 +107,9 @@ public class EvidenceController {
     /**
      * Evidence 검색
      *
-     * GET
-     * /api/evidence
+     * GET /api/evidence
      *
      * 예:
-     *
      * /api/evidence?projectId=1
      * /api/evidence?requirementId=1
      * /api/evidence?verificationStatus=APPROVED
@@ -130,9 +120,7 @@ public class EvidenceController {
             @ModelAttribute EvidenceSearchRequest request
     ) {
         return ApiResponse.success(
-                evidenceService.search(
-                        request
-                )
+                evidenceService.search(request)
         );
     }
 
@@ -145,12 +133,9 @@ public class EvidenceController {
     /**
      * Evidence 생성
      *
-     * POST
-     * /api/evidence-requirements/{requirementId}/evidence
+     * POST /api/evidence-requirements/{requirementId}/evidence
      */
-    @PostMapping(
-            "/evidence-requirements/{requirementId}/evidence"
-    )
+    @PostMapping("/evidence-requirements/{requirementId}/evidence")
     @ResponseStatus(HttpStatus.CREATED)
     public ApiResponse<EvidenceResponse> create(
             @PathVariable Long requirementId,
@@ -166,6 +151,68 @@ public class EvidenceController {
 
     /**
      * =========================================================================
+     * Evidence 버전 관리
+     * =========================================================================
+     */
+
+    /**
+     * Evidence 신규 버전 생성
+     *
+     * POST /api/evidence/{id}/versions
+     *
+     * 기존 Evidence를 유지하면서 새로운 버전을 등록한다.
+     * 버전 번호와 제출 시각은 Backend에서 관리한다.
+     */
+    @PostMapping("/evidence/{id}/versions")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ApiResponse<EvidenceVersionResponse> createVersion(
+            @PathVariable Long id,
+            @Valid @RequestBody EvidenceVersionCreateRequest request
+    ) {
+        return ApiResponse.success(
+                evidenceService.createVersion(
+                        id,
+                        request
+                )
+        );
+    }
+
+    /**
+     * Evidence 버전 목록 조회
+     *
+     * GET /api/evidence/{id}/versions
+     *
+     * 최신 버전부터 조회한다.
+     */
+    @GetMapping("/evidence/{id}/versions")
+    public ApiResponse<List<EvidenceVersionResponse>> findAllVersions(
+            @PathVariable Long id
+    ) {
+        return ApiResponse.success(
+                evidenceService.findAllVersions(id)
+        );
+    }
+
+    /**
+     * Evidence 특정 버전 상세 조회
+     *
+     * GET /api/evidence/{id}/versions/{versionNumber}
+     */
+    @GetMapping("/evidence/{id}/versions/{versionNumber}")
+    public ApiResponse<EvidenceVersionResponse> findVersion(
+            @PathVariable Long id,
+            @PathVariable Integer versionNumber
+    ) {
+        return ApiResponse.success(
+                evidenceService.findVersion(
+                        id,
+                        versionNumber
+                )
+        );
+    }
+
+    /**
+     * =========================================================================
      * Evidence 수정
      * =========================================================================
      */
@@ -173,8 +220,7 @@ public class EvidenceController {
     /**
      * Evidence 수정
      *
-     * PUT
-     * /api/evidence/{id}
+     * PUT /api/evidence/{id}
      */
     @PutMapping("/evidence/{id}")
     public ApiResponse<EvidenceResponse> update(
@@ -198,8 +244,7 @@ public class EvidenceController {
     /**
      * Evidence 삭제
      *
-     * DELETE
-     * /api/evidence/{id}
+     * DELETE /api/evidence/{id}
      *
      * Inspection Item에서 사용 중인 Evidence는
      * Service에서 삭제를 차단한다.
@@ -219,23 +264,17 @@ public class EvidenceController {
      */
 
     /**
-     * Evidence Verification
+     * Evidence 검증 상태 변경
      *
-     * PATCH
-     * /api/evidence/{id}/verification
+     * PATCH /api/evidence/{id}/verification
      *
      * Request Body:
-     *
      * {
      *     "status": "APPROVED",
      *     "remark": "설치 결과 및 설정값 확인 완료"
      * }
      *
-     * Client는 status와 remark만 전달한다.
-     *
-     * verifiedBy / verifiedAt은
-     * Backend에서 현재 인증 사용자와 현재 시각을
-     * 기준으로 자동 처리한다.
+     * verifiedBy / verifiedAt은 Backend에서 자동 처리한다.
      */
     @PatchMapping("/evidence/{id}/verification")
     public ApiResponse<EvidenceResponse> verify(

@@ -9,6 +9,8 @@ import com.seos.pmis.evidence.enums.VerificationStatus;
 import com.seos.pmis.project.entity.Project;
 import com.seos.pmis.user.entity.User;
 import com.seos.pmis.wbs.entity.Wbs;
+import com.seos.pmis.evidence.dto.response.EvidenceVersionResponse;
+import com.seos.pmis.evidence.entity.EvidenceVersion;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -147,4 +149,36 @@ public class EvidenceMapper {
                 request.getFilePath()
         );
     }
+
+    public EvidenceVersionResponse toVersionResponse(
+            EvidenceVersion entity
+    ) {
+        return EvidenceVersionResponse.builder()
+                .id(entity.getId())
+                .evidenceId(entity.getEvidence().getId())
+                .versionNumber(entity.getVersionNumber())
+                .evidenceType(entity.getEvidenceType())
+                .title(entity.getTitle())
+                .description(entity.getDescription())
+                .fileName(entity.getFileName())
+                .filePath(entity.getFilePath())
+                .sourceFileId(entity.getSourceFileId())
+                .executionUuid(entity.getExecutionUuid())
+                .sourceJobId(entity.getSourceJobId())
+                .submittedById(
+                        entity.getSubmittedBy() == null
+                                ? null
+                                : entity.getSubmittedBy().getId()
+                )
+                .submittedAt(entity.getSubmittedAt())
+                .verificationStatus(entity.getVerificationStatus())
+                .verifiedById(
+                        entity.getVerifiedBy() == null
+                                ? null
+                                : entity.getVerifiedBy().getId()
+                )
+                .verifiedAt(entity.getVerifiedAt())
+                .verificationRemark(entity.getVerificationRemark())
+                .build();
+    }    
 }

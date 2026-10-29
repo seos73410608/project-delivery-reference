@@ -1,4 +1,3 @@
-
 package com.seos.pmis.evidence.service;
 
 import com.seos.pmis.common.exception.BusinessException;
@@ -8,7 +7,9 @@ import com.seos.pmis.evidence.dto.request.EvidenceCreateRequest;
 import com.seos.pmis.evidence.dto.request.EvidenceSearchRequest;
 import com.seos.pmis.evidence.dto.request.EvidenceUpdateRequest;
 import com.seos.pmis.evidence.dto.request.EvidenceVerificationRequest;
+import com.seos.pmis.evidence.dto.request.EvidenceVersionCreateRequest;
 import com.seos.pmis.evidence.dto.response.EvidenceResponse;
+import com.seos.pmis.evidence.dto.response.EvidenceVersionResponse;
 import com.seos.pmis.evidence.entity.Evidence;
 import com.seos.pmis.evidence.entity.EvidenceRequirement;
 import com.seos.pmis.evidence.entity.EvidenceVersion;
@@ -131,6 +132,50 @@ public class EvidenceService {
     }
 
     // =========================================================================
+    // 버전 조회
+    // =========================================================================
+
+    /**
+     * 특정 Evidence의 버전 목록을 최신 버전부터 조회한다.
+     */
+    public List<EvidenceVersionResponse> findAllVersions(Long evidenceId) {
+        getEvidence(evidenceId);
+
+        return evidenceVersionRepository
+                .findAllByEvidenceIdOrderByVersionNumberDesc(evidenceId)
+                .stream()
+                .map(evidenceMapper::toVersionResponse)
+                .toList();
+    }
+
+    /**
+     * 특정 Evidence의 특정 버전을 조회한다.
+     */
+    public EvidenceVersionResponse findVersion(
+            Long evidenceId,
+            Integer versionNumber
+    ) {
+        getEvidence(evidenceId);
+
+        if (versionNumber == null || versionNumber < 1) {
+            throw new BusinessException(
+                    EvidenceErrorCode.EVIDENCE_NOT_FOUND
+            );
+        }
+
+        EvidenceVersion version = evidenceVersionRepository
+                .findByEvidenceIdAndVersionNumber(
+                        evidenceId,
+                        versionNumber
+                )
+                .orElseThrow(() -> new BusinessException(
+                        EvidenceErrorCode.EVIDENCE_NOT_FOUND
+                ));
+
+        return evidenceMapper.toVersionResponse(version);
+    }
+
+    // =========================================================================
     // 생성
     // =========================================================================
 
@@ -160,7 +205,12 @@ public class EvidenceService {
                     request.getSourceFileId()
             );
 
-            validateRuntimeFile(runtimeFile, request);
+            validateRuntimeFile(
+                    runtimeFile,
+                    request.getSourceFileId(),
+                    request.getExecutionUuid(),
+                    request.getSourceJobId()
+            );
         }
 
         String evidenceKey = generateEvidenceKey(project.getId());
@@ -197,9 +247,91 @@ public class EvidenceService {
         return evidenceMapper.toResponse(saved);
     }
 
+    /**
+     * 기존 Evidence에 새 버전을 생성한다.
+     *
+     * Evidence의 논리 ID와 evidenceKey는 유지하고,
+     * 버전별 제출 정보는 EvidenceVersion에 별도로 저장한다.
+     */
+    @Transactional
+    public EvidenceVersionResponse createVersion(
+            Long evidenceId,
+            EvidenceVersionCreateRequest request
+    ) {
+        Evidence evidence = getEvidence(evidenceId);
+
+        User submittedBy = getCurrentUser();
+
+        RuntimeOutputFileResponse runtimeFile = null;
+
+        if (hasText(request.getSourceFileId())) {
+            runtimeFile = runtimeApiClient.getFileMetadata(
+                    request.getSourceFileId()
+            );
+
+            validateRuntimeFile(
+                    runtimeFile,
+                    request.getSourceFileId(),
+                    request.getExecutionUuid(),
+                    request.getSourceJobId()
+            );
+        }
+
+        int nextVersionNumber = evidenceVersionRepository
+                .findTopByEvidenceIdOrderByVersionNumberDesc(evidenceId)
+                .map(version -> version.getVersionNumber() + 1)
+                .orElse(1);
+
+        LocalDateTime submittedAt = LocalDateTime.now();
+
+        EvidenceVersion version = EvidenceVersion.createNewVersion(
+                evidence,
+                nextVersionNumber,
+                request.getEvidenceType(),
+                request.getTitle(),
+                request.getDescription(),
+                request.getFileName(),
+                request.getFilePath(),
+                runtimeFile != null
+                        ? runtimeFile.getFileId()
+                        : request.getSourceFileId(),
+                runtimeFile != null
+                        ? runtimeFile.getExecutionUuid()
+                        : request.getExecutionUuid(),
+                runtimeFile != null
+                        ? runtimeFile.getJobId()
+                        : request.getSourceJobId(),
+                submittedBy,
+                submittedAt
+        );
+
+        EvidenceVersion savedVersion =
+                evidenceVersionRepository.save(version);
+
+        return evidenceMapper.toVersionResponse(savedVersion);
+    }
+
+    // =========================================================================
+    // Runtime 파일 검증
+    // =========================================================================
+
     private void validateRuntimeFile(
             RuntimeOutputFileResponse runtimeFile,
             EvidenceCreateRequest request
+    ) {
+        validateRuntimeFile(
+                runtimeFile,
+                request.getSourceFileId(),
+                request.getExecutionUuid(),
+                request.getSourceJobId()
+        );
+    }
+
+    private void validateRuntimeFile(
+            RuntimeOutputFileResponse runtimeFile,
+            String sourceFileId,
+            String executionUuid,
+            String sourceJobId
     ) {
         if (runtimeFile == null
                 || !hasText(runtimeFile.getFileId())
@@ -210,18 +342,15 @@ public class EvidenceService {
             );
         }
 
-        if (!Objects.equals(
-                request.getSourceFileId(),
-                runtimeFile.getFileId()
-        )) {
+        if (!Objects.equals(sourceFileId, runtimeFile.getFileId())) {
             throw new BusinessException(
                     EvidenceErrorCode.RUNTIME_FILE_ID_MISMATCH
             );
         }
 
-        if (hasText(request.getExecutionUuid())
+        if (hasText(executionUuid)
                 && !Objects.equals(
-                        request.getExecutionUuid(),
+                        executionUuid,
                         runtimeFile.getExecutionUuid()
                 )) {
             throw new BusinessException(
@@ -229,11 +358,8 @@ public class EvidenceService {
             );
         }
 
-        if (hasText(request.getSourceJobId())
-                && !Objects.equals(
-                        request.getSourceJobId(),
-                        runtimeFile.getJobId()
-                )) {
+        if (hasText(sourceJobId)
+                && !Objects.equals(sourceJobId, runtimeFile.getJobId())) {
             throw new BusinessException(
                     EvidenceErrorCode.RUNTIME_FILE_REFERENCE_MISMATCH
             );
@@ -280,8 +406,8 @@ public class EvidenceService {
         }
 
         /*
-         * 버전 및 검증 이력이 존재하는 경우 삭제 정책을 별도로
-         * 결정해야 한다. 현재는 기존 삭제 동작을 유지한다.
+         * 버전 및 검증 이력 보존 정책은 별도 결정이 필요하다.
+         * 현재는 기존 삭제 동작을 유지한다.
          */
         Long requirementId = evidence.getRequirement().getId();
 
@@ -322,7 +448,7 @@ public class EvidenceService {
         }
 
         /*
-         * 아직 버전 데이터가 없는 기존 Evidence는 검증 시점에
+         * 버전 데이터가 없는 기존 Evidence는 검증 시점에
          * 버전 1을 생성해 기존 데이터를 보존한다.
          */
         EvidenceVersion version = evidenceVersionRepository

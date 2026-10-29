@@ -125,6 +125,36 @@ public class EvidenceVersion extends BaseEntity {
         );
     }
 
+    public static EvidenceVersion createNewVersion(
+        Evidence evidence,
+        int versionNumber,
+        EvidenceType evidenceType,
+        String title,
+        String description,
+        String fileName,
+        String filePath,
+        String sourceFileId,
+        String executionUuid,
+        String sourceJobId,
+        User submittedBy,
+        LocalDateTime submittedAt
+    ) {
+        return EvidenceVersion.builder()
+                .evidence(evidence)
+                .versionNumber(versionNumber)
+                .evidenceType(evidenceType)
+                .title(title)
+                .description(description)
+                .fileName(fileName)
+                .filePath(filePath)
+                .sourceFileId(sourceFileId)
+                .executionUuid(executionUuid)
+                .sourceJobId(sourceJobId)
+                .submittedBy(submittedBy)
+                .submittedAt(submittedAt)
+                .build();
+    }
+
     public static EvidenceVersion fromEvidence(
             Evidence evidence,
             int versionNumber,
