@@ -1,3 +1,4 @@
+
 package com.seos.pmis.evidence.service;
 
 import com.seos.pmis.common.exception.BusinessException;
@@ -10,11 +11,15 @@ import com.seos.pmis.evidence.dto.request.EvidenceVerificationRequest;
 import com.seos.pmis.evidence.dto.response.EvidenceResponse;
 import com.seos.pmis.evidence.entity.Evidence;
 import com.seos.pmis.evidence.entity.EvidenceRequirement;
+import com.seos.pmis.evidence.entity.EvidenceVersion;
+import com.seos.pmis.evidence.entity.EvidenceVerificationHistory;
 import com.seos.pmis.evidence.enums.VerificationStatus;
 import com.seos.pmis.evidence.exception.code.EvidenceErrorCode;
 import com.seos.pmis.evidence.mapper.EvidenceMapper;
 import com.seos.pmis.evidence.repository.EvidenceRepository;
 import com.seos.pmis.evidence.repository.EvidenceRequirementRepository;
+import com.seos.pmis.evidence.repository.EvidenceVersionRepository;
+import com.seos.pmis.evidence.repository.EvidenceVerificationHistoryRepository;
 import com.seos.pmis.evidence.repository.InspectionItemRepository;
 import com.seos.pmis.evidence.specification.EvidenceSpecification;
 import com.seos.pmis.integration.runtime.client.RuntimeApiClient;
@@ -44,6 +49,9 @@ public class EvidenceService {
 
     private final EvidenceRepository evidenceRepository;
     private final EvidenceRequirementRepository evidenceRequirementRepository;
+    private final EvidenceVersionRepository evidenceVersionRepository;
+    private final EvidenceVerificationHistoryRepository
+            evidenceVerificationHistoryRepository;
     private final InspectionItemRepository inspectionItemRepository;
 
     private final ProjectRepository projectRepository;
@@ -52,19 +60,12 @@ public class EvidenceService {
 
     private final EvidenceMapper evidenceMapper;
     private final EvidenceRequirementService evidenceRequirementService;
-
-    /**
-     * Automation Runtime API 클라이언트.
-     */
     private final RuntimeApiClient runtimeApiClient;
 
     // =========================================================================
     // 조회
     // =========================================================================
 
-    /**
-     * Project 기준 Evidence 목록 조회
-     */
     public List<EvidenceResponse> findAllByProjectId(Long projectId) {
         validateProjectExists(projectId);
 
@@ -74,9 +75,6 @@ public class EvidenceService {
                 .toList();
     }
 
-    /**
-     * Evidence Requirement 기준 Evidence 목록 조회
-     */
     public List<EvidenceResponse> findAllByRequirementId(Long requirementId) {
         EvidenceRequirement requirement = getRequirement(requirementId);
 
@@ -86,9 +84,6 @@ public class EvidenceService {
                 .toList();
     }
 
-    /**
-     * Project + WBS 기준 Evidence 목록 조회
-     */
     public List<EvidenceResponse> findAllByProjectIdAndWbsId(
             Long projectId,
             Long wbsId
@@ -105,16 +100,10 @@ public class EvidenceService {
                 .toList();
     }
 
-    /**
-     * Evidence 단건 조회
-     */
     public EvidenceResponse findById(Long id) {
         return evidenceMapper.toResponse(getEvidence(id));
     }
 
-    /**
-     * Evidence 검색
-     */
     public Page<EvidenceResponse> search(EvidenceSearchRequest request) {
         Pageable pageable = SearchPageableFactory.create(
                 request.getPage(),
@@ -128,12 +117,8 @@ public class EvidenceService {
                 .and(EvidenceSpecification.requirementId(
                         request.getRequirementId()
                 ))
-                .and(EvidenceSpecification.wbsId(
-                        request.getWbsId()
-                ))
-                .and(EvidenceSpecification.keyword(
-                        request.getKeyword()
-                ))
+                .and(EvidenceSpecification.wbsId(request.getWbsId()))
+                .and(EvidenceSpecification.keyword(request.getKeyword()))
                 .and(EvidenceSpecification.evidenceType(
                         request.getEvidenceType()
                 ))
@@ -150,12 +135,7 @@ public class EvidenceService {
     // =========================================================================
 
     /**
-     * Evidence 생성
-     *
-     * sourceFileId가 전달되면 Runtime 메타데이터를 조회하고
-     * 검증된 Runtime 응답을 통해 lineage를 연결한다.
-     *
-     * sourceFileId가 없으면 기존 수동 등록 방식을 유지한다.
+     * Evidence 생성과 최초 버전 생성은 동일 트랜잭션에서 처리한다.
      */
     @Transactional
     public EvidenceResponse create(
@@ -194,10 +174,6 @@ public class EvidenceService {
                 evidenceKey
         );
 
-        /*
-         * Runtime 식별자는 요청 DTO를 수정하지 않고,
-         * 검증된 Runtime 응답을 기준으로 엔티티에 연결한다.
-         */
         if (runtimeFile != null) {
             evidence.linkRuntimeFile(
                     runtimeFile.getFileId(),
@@ -208,14 +184,19 @@ public class EvidenceService {
 
         Evidence saved = evidenceRepository.save(evidence);
 
+        EvidenceVersion initialVersion = EvidenceVersion.createInitial(
+                saved,
+                submittedBy,
+                saved.getSubmittedAt()
+        );
+
+        evidenceVersionRepository.save(initialVersion);
+
         evidenceRequirementService.refreshStatus(requirement.getId());
 
         return evidenceMapper.toResponse(saved);
     }
 
-    /**
-     * Runtime 메타데이터 검증
-     */
     private void validateRuntimeFile(
             RuntimeOutputFileResponse runtimeFile,
             EvidenceCreateRequest request
@@ -229,7 +210,6 @@ public class EvidenceService {
             );
         }
 
-        // 요청한 파일 ID와 Runtime 응답의 파일 ID를 비교한다.
         if (!Objects.equals(
                 request.getSourceFileId(),
                 runtimeFile.getFileId()
@@ -239,7 +219,6 @@ public class EvidenceService {
             );
         }
 
-        // 실행 UUID가 요청에 포함된 경우에만 비교한다.
         if (hasText(request.getExecutionUuid())
                 && !Objects.equals(
                         request.getExecutionUuid(),
@@ -250,7 +229,6 @@ public class EvidenceService {
             );
         }
 
-        // Job ID가 요청에 포함된 경우에만 비교한다.
         if (hasText(request.getSourceJobId())
                 && !Objects.equals(
                         request.getSourceJobId(),
@@ -266,11 +244,6 @@ public class EvidenceService {
     // 수정
     // =========================================================================
 
-    /**
-     * Evidence 수정
-     *
-     * 일반 수정 요청으로 Runtime lineage를 변경하지 않는다.
-     */
     @Transactional
     public EvidenceResponse update(
             Long id,
@@ -296,9 +269,6 @@ public class EvidenceService {
     // 삭제
     // =========================================================================
 
-    /**
-     * Inspection Item에서 사용 중인 Evidence는 삭제할 수 없다.
-     */
     @Transactional
     public void delete(Long id) {
         Evidence evidence = getEvidence(id);
@@ -309,6 +279,10 @@ public class EvidenceService {
             );
         }
 
+        /*
+         * 버전 및 검증 이력이 존재하는 경우 삭제 정책을 별도로
+         * 결정해야 한다. 현재는 기존 삭제 동작을 유지한다.
+         */
         Long requirementId = evidence.getRequirement().getId();
 
         evidenceRepository.delete(evidence);
@@ -321,10 +295,8 @@ public class EvidenceService {
     // =========================================================================
 
     /**
-     * Evidence 검증
-     *
-     * 허용 결과: APPROVED, REJECTED
-     * REJECTED인 경우 반려 사유가 필수다.
+     * 기존 Evidence 검증 API를 유지하면서 현재 버전과
+     * 검증 이력을 함께 갱신한다.
      */
     @Transactional
     public EvidenceResponse verify(
@@ -349,14 +321,37 @@ public class EvidenceService {
             );
         }
 
-        User verifiedBy = getCurrentUser();
+        /*
+         * 아직 버전 데이터가 없는 기존 Evidence는 검증 시점에
+         * 버전 1을 생성해 기존 데이터를 보존한다.
+         */
+        EvidenceVersion version = evidenceVersionRepository
+                .findTopByEvidenceIdOrderByVersionNumberDesc(evidence.getId())
+                .orElseGet(() -> evidenceVersionRepository.save(
+                        EvidenceVersion.createInitial(
+                                evidence,
+                                evidence.getSubmittedBy(),
+                                evidence.getSubmittedAt()
+                        )
+                ));
 
-        evidence.verify(
-                status,
-                verifiedBy,
-                LocalDateTime.now(),
-                remark
-        );
+        User verifiedBy = getCurrentUser();
+        LocalDateTime verifiedAt = LocalDateTime.now();
+
+        version.verify(status, verifiedBy, verifiedAt, remark);
+
+        evidence.verify(status, verifiedBy, verifiedAt, remark);
+
+        EvidenceVerificationHistory history =
+                EvidenceVerificationHistory.create(
+                        version,
+                        status,
+                        verifiedBy,
+                        verifiedAt,
+                        remark
+                );
+
+        evidenceVerificationHistoryRepository.save(history);
 
         return evidenceMapper.toResponse(evidence);
     }
