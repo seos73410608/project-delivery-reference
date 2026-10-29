@@ -1,16 +1,19 @@
+
 package com.seos.pmis.evidence.mapper;
 
 import com.seos.pmis.evidence.dto.request.EvidenceCreateRequest;
 import com.seos.pmis.evidence.dto.request.EvidenceUpdateRequest;
 import com.seos.pmis.evidence.dto.response.EvidenceResponse;
+import com.seos.pmis.evidence.dto.response.EvidenceVersionResponse;
+import com.seos.pmis.evidence.dto.response.EvidenceVerificationHistoryResponse;
 import com.seos.pmis.evidence.entity.Evidence;
 import com.seos.pmis.evidence.entity.EvidenceRequirement;
+import com.seos.pmis.evidence.entity.EvidenceVersion;
+import com.seos.pmis.evidence.entity.EvidenceVerificationHistory;
 import com.seos.pmis.evidence.enums.VerificationStatus;
 import com.seos.pmis.project.entity.Project;
 import com.seos.pmis.user.entity.User;
 import com.seos.pmis.wbs.entity.Wbs;
-import com.seos.pmis.evidence.dto.response.EvidenceVersionResponse;
-import com.seos.pmis.evidence.entity.EvidenceVersion;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -18,12 +21,14 @@ import java.time.LocalDateTime;
 /**
  * Evidence Mapper
  *
- * Evidence의 Entity ↔ DTO 변환을 담당한다.
+ * Evidence 및 Evidence 관련 Entity와 DTO 간 변환을 담당한다.
  *
  * Mapper의 책임:
  * - CreateRequest → Entity
  * - Entity → Response
  * - UpdateRequest → Entity update
+ * - EvidenceVersion → EvidenceVersionResponse
+ * - EvidenceVerificationHistory → EvidenceVerificationHistoryResponse
  *
  * Mapper에서는 비즈니스 로직을 처리하지 않는다.
  *
@@ -43,8 +48,7 @@ public class EvidenceMapper {
      * Runtime 연결 정보는 이 메서드에서 설정하지 않는다.
      * Runtime 파일 메타데이터 검증 후 Service에서 연결한다.
      *
-     * Verification 상태는 신규 Evidence이므로
-     * PENDING으로 초기화한다.
+     * 신규 Evidence의 검증 상태는 PENDING으로 초기화한다.
      */
     public Evidence toEntity(
             EvidenceCreateRequest request,
@@ -132,7 +136,6 @@ public class EvidenceMapper {
      * Evidence 수정 Request를 Entity에 반영한다.
      *
      * Runtime 연결 정보와 Verification 관련 필드는 변경하지 않는다.
-     *
      * Verification 상태 변경은 별도의 Verification API에서 처리한다.
      */
     public void updateEntity(
@@ -150,6 +153,9 @@ public class EvidenceMapper {
         );
     }
 
+    /**
+     * EvidenceVersion Entity를 Response DTO로 변환한다.
+     */
     public EvidenceVersionResponse toVersionResponse(
             EvidenceVersion entity
     ) {
@@ -180,5 +186,31 @@ public class EvidenceMapper {
                 .verifiedAt(entity.getVerifiedAt())
                 .verificationRemark(entity.getVerificationRemark())
                 .build();
-    }    
+    }
+
+    /**
+     * EvidenceVerificationHistory Entity를 Response DTO로 변환한다.
+     *
+     * Evidence ID와 버전 번호는 연결된 EvidenceVersion에서 조회한다.
+     * 검증 결과는 해당 이력에 저장된 당시 값을 사용한다.
+     */
+    public EvidenceVerificationHistoryResponse toVerificationHistoryResponse(
+            EvidenceVerificationHistory entity
+    ) {
+        EvidenceVersion version = entity.getEvidenceVersion();
+
+        return EvidenceVerificationHistoryResponse.builder()
+                .id(entity.getId())
+                .evidenceId(version.getEvidence().getId())
+                .versionNumber(version.getVersionNumber())
+                .verificationStatus(entity.getVerificationStatus())
+                .verifiedById(
+                        entity.getVerifiedBy() != null
+                                ? entity.getVerifiedBy().getId()
+                                : null
+                )
+                .verifiedAt(entity.getVerifiedAt())
+                .remark(entity.getRemark())
+                .build();
+    }
 }

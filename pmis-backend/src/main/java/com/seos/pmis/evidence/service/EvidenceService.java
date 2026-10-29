@@ -1,3 +1,4 @@
+
 package com.seos.pmis.evidence.service;
 
 import com.seos.pmis.common.exception.BusinessException;
@@ -10,6 +11,7 @@ import com.seos.pmis.evidence.dto.request.EvidenceVerificationRequest;
 import com.seos.pmis.evidence.dto.request.EvidenceVersionCreateRequest;
 import com.seos.pmis.evidence.dto.response.EvidenceResponse;
 import com.seos.pmis.evidence.dto.response.EvidenceVersionResponse;
+import com.seos.pmis.evidence.dto.response.EvidenceVerificationHistoryResponse;
 import com.seos.pmis.evidence.entity.Evidence;
 import com.seos.pmis.evidence.entity.EvidenceRequirement;
 import com.seos.pmis.evidence.entity.EvidenceVersion;
@@ -173,6 +175,48 @@ public class EvidenceService {
                 ));
 
         return evidenceMapper.toVersionResponse(version);
+    }
+
+    /**
+     * 특정 Evidence 버전의 검증 이력을 최신순으로 조회한다.
+     *
+     * GET /api/evidence/{id}/versions/{versionNumber}/verification-history
+     *
+     * 검증 이력이 없으면 빈 목록을 반환한다.
+     */
+    public List<EvidenceVerificationHistoryResponse>
+    findVersionVerificationHistory(
+            Long evidenceId,
+            Integer versionNumber
+    ) {
+        // Evidence 존재 여부 확인
+        getEvidence(evidenceId);
+
+        // 버전 번호 검증
+        if (versionNumber == null || versionNumber < 1) {
+            throw new BusinessException(
+                    EvidenceErrorCode.EVIDENCE_NOT_FOUND
+            );
+        }
+
+        // 해당 Evidence의 특정 버전 조회
+        EvidenceVersion version = evidenceVersionRepository
+                .findByEvidenceIdAndVersionNumber(
+                        evidenceId,
+                        versionNumber
+                )
+                .orElseThrow(() -> new BusinessException(
+                        EvidenceErrorCode.EVIDENCE_NOT_FOUND
+                ));
+
+        // 해당 버전의 검증 이력을 최신순으로 반환
+        return evidenceVerificationHistoryRepository
+                .findAllByEvidenceVersionIdOrderByVerifiedAtDescIdDesc(
+                        version.getId()
+                )
+                .stream()
+                .map(evidenceMapper::toVerificationHistoryResponse)
+                .toList();
     }
 
     // =========================================================================

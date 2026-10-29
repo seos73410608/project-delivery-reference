@@ -1,3 +1,4 @@
+
 package com.seos.pmis.evidence.controller;
 
 import com.seos.pmis.common.response.ApiResponse;
@@ -8,6 +9,7 @@ import com.seos.pmis.evidence.dto.request.EvidenceVerificationRequest;
 import com.seos.pmis.evidence.dto.request.EvidenceVersionCreateRequest;
 import com.seos.pmis.evidence.dto.response.EvidenceResponse;
 import com.seos.pmis.evidence.dto.response.EvidenceVersionResponse;
+import com.seos.pmis.evidence.dto.response.EvidenceVerificationHistoryResponse;
 import com.seos.pmis.evidence.service.EvidenceService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +32,7 @@ import java.util.List;
  * /api/evidence/{id}/verification
  * /api/evidence/{id}/versions
  * /api/evidence/{id}/versions/{versionNumber}
+ * /api/evidence/{id}/versions/{versionNumber}/verification-history
  */
 @RestController
 @RequiredArgsConstructor
@@ -205,6 +208,30 @@ public class EvidenceController {
     ) {
         return ApiResponse.success(
                 evidenceService.findVersion(
+                        id,
+                        versionNumber
+                )
+        );
+    }
+
+    /**
+     * Evidence 특정 버전의 검증 이력 조회
+     *
+     * GET /api/evidence/{id}/versions/{versionNumber}/verification-history
+     *
+     * 특정 버전에 기록된 검증 이력을 최신순으로 조회한다.
+     * 검증 이력이 없으면 빈 목록을 반환한다.
+     */
+    @GetMapping(
+            "/evidence/{id}/versions/{versionNumber}/verification-history"
+    )
+    public ApiResponse<List<EvidenceVerificationHistoryResponse>>
+    findVersionVerificationHistory(
+            @PathVariable Long id,
+            @PathVariable Integer versionNumber
+    ) {
+        return ApiResponse.success(
+                evidenceService.findVersionVerificationHistory(
                         id,
                         versionNumber
                 )
