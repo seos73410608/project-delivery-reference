@@ -1,4 +1,3 @@
-
 import apiClient from '@/api/client';
 import type {
   ApiResponse,
@@ -30,6 +29,25 @@ export interface EvidenceCreateRequest {
   executionUuid?: string | null;
   sourceJobId?: string | null;
   submittedAt?: string | null;
+}
+
+/**
+ * 증적 버전 생성 요청 DTO
+ *
+ * POST /api/evidence/{evidenceId}/versions
+ *
+ * versionNumber, submittedAt, 검증 상태 등은
+ * Backend에서 관리하므로 요청에 포함하지 않는다.
+ */
+export interface EvidenceVersionCreateRequest {
+  evidenceType: EvidenceType;
+  title: string;
+  description?: string | null;
+  fileName?: string | null;
+  filePath?: string | null;
+  sourceFileId?: string | null;
+  executionUuid?: string | null;
+  sourceJobId?: string | null;
 }
 
 /**
@@ -138,6 +156,26 @@ export async function getEvidence(
 ): Promise<Evidence> {
   const response = await apiClient.get<ApiResponse<Evidence>>(
     `${EVIDENCE_API}/${evidenceId}`,
+  );
+
+  return response.data.data;
+}
+
+/**
+ * 증적 버전 생성
+ *
+ * POST /api/evidence/{evidenceId}/versions
+ * 성공 상태: 201 Created
+ *
+ * Backend가 다음 버전 번호와 제출 시각 등을 생성한다.
+ */
+export async function createEvidenceVersion(
+  evidenceId: number,
+  request: EvidenceVersionCreateRequest,
+): Promise<EvidenceVersion> {
+  const response = await apiClient.post<ApiResponse<EvidenceVersion>>(
+    `${EVIDENCE_API}/${evidenceId}/versions`,
+    request,
   );
 
   return response.data.data;

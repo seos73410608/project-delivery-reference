@@ -5,15 +5,18 @@ import {
   useState,
   type ChangeEvent,
   type CSSProperties,
+  type FormEvent,
 } from "react";
 
 import type {
   Evidence,
+  EvidenceType,
   EvidenceVersion,
   EvidenceVerificationHistory,
 } from "../types/evidence";
 
 import {
+  createEvidenceVersion,
   createEvidenceOcrJob,
   refreshEvidenceOcrJob,
   uploadOcrFile,
@@ -21,6 +24,7 @@ import {
   getEvidenceVersion,
   getEvidenceVersionVerificationHistory,
   type EvidenceOcrJob,
+  type EvidenceVersionCreateRequest,
 } from "../api/evidenceApi";
 
 interface EvidenceDetailProps {
@@ -35,8 +39,54 @@ type VersionLoadingStatus =
   | "SUCCEEDED"
   | "FAILED";
 
+interface EvidenceVersionFormState {
+  evidenceType: EvidenceType;
+  title: string;
+  description: string;
+  fileName: string;
+  filePath: string;
+  sourceFileId: string;
+  executionUuid: string;
+  sourceJobId: string;
+}
+
 const OCR_POLL_INTERVAL_MS = 2000;
 const OCR_MAX_ATTEMPTS = 15;
+
+const EVIDENCE_TYPES: EvidenceType[] = [
+  "DOCUMENT",
+  "IMAGE",
+  "SCREENSHOT",
+  "LOG",
+  "CONFIGURATION",
+  "REPORT",
+  "TEST_RESULT",
+  "OTHER",
+];
+
+const EVIDENCE_TYPE_LABELS: Record<EvidenceType, string> = {
+  DOCUMENT: "문서",
+  IMAGE: "이미지",
+  SCREENSHOT: "스크린샷",
+  LOG: "로그",
+  CONFIGURATION: "설정",
+  REPORT: "보고서",
+  TEST_RESULT: "테스트 결과",
+  OTHER: "기타",
+};
+
+function createEmptyVersionForm(): EvidenceVersionFormState {
+  return {
+    evidenceType: "DOCUMENT",
+    title: "",
+    description: "",
+    fileName: "",
+    filePath: "",
+    sourceFileId: "",
+    executionUuid: "",
+    sourceJobId: "",
+  };
+}
 
 function getVerificationStatusLabel(
   status: Evidence["verificationStatus"],
@@ -128,6 +178,9 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
   // 버전 상세 및 검증 이력 요청 식별
   const versionDetailRequestSequenceRef = useRef(0);
 
+  // 버전 생성 요청 식별
+  const versionCreateRequestSequenceRef = useRef(0);
+
   const mountedRef = useRef(true);
 
   // OCR 상태
@@ -162,6 +215,22 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyError, setHistoryError] = useState("");
 
+  // 신규 버전 제출 폼
+  const [isVersionFormOpen, setIsVersionFormOpen] =
+    useState(false);
+
+  const [versionForm, setVersionForm] =
+    useState<EvidenceVersionFormState>(createEmptyVersionForm);
+
+  const [versionSubmitting, setVersionSubmitting] =
+    useState(false);
+
+  const [versionSubmitError, setVersionSubmitError] =
+    useState("");
+
+  const [versionSubmitSuccess, setVersionSubmitSuccess] =
+    useState("");
+
   // 컴포넌트 마운트 및 언마운트 처리
   useEffect(() => {
     mountedRef.current = true;
@@ -172,6 +241,7 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
       requestSequenceRef.current += 1;
       versionListRequestSequenceRef.current += 1;
       versionDetailRequestSequenceRef.current += 1;
+      versionCreateRequestSequenceRef.current += 1;
     };
   }, []);
 
@@ -205,6 +275,7 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
     requestSequenceRef.current += 1;
     versionListRequestSequenceRef.current += 1;
     versionDetailRequestSequenceRef.current += 1;
+    versionCreateRequestSequenceRef.current += 1;
 
     // OCR 상태 초기화
     setOcrStatus("IDLE");
@@ -228,6 +299,13 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
     // 검증 이력 상태 초기화
     setHistoryLoading(false);
     setHistoryError("");
+
+    // 신규 버전 폼 초기화
+    setIsVersionFormOpen(false);
+    setVersionForm(createEmptyVersionForm());
+    setVersionSubmitting(false);
+    setVersionSubmitError("");
+    setVersionSubmitSuccess("");
 
     // 파일 입력 초기화
     if (fileInputRef.current) {
@@ -354,6 +432,170 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
     selectedVersionNumber,
     isCurrentVersionDetailRequest,
   ]);
+
+  // 신규 버전 폼 열기
+  function handleOpenVersionForm() {
+    if (!evidence || versionSubmitting) {
+      return;
+    }
+
+    const initialTitle =
+      selectedVersion?.title || evidence.title || "";
+
+    const initialDescription =
+      selectedVersion?.description || evidence.description || "";
+
+    setVersionForm({
+      evidenceType:
+        selectedVersion?.evidenceType ||
+        evidence.evidenceType ||
+        "DOCUMENT",
+      title: initialTitle,
+      description: initialDescription,
+      fileName: "",
+      filePath: "",
+      sourceFileId: "",
+      executionUuid: "",
+      sourceJobId: "",
+    });
+
+    setVersionSubmitError("");
+    setVersionSubmitSuccess("");
+    setIsVersionFormOpen(true);
+  }
+
+  // 신규 버전 폼 닫기
+  function handleCloseVersionForm() {
+    if (versionSubmitting) {
+      return;
+    }
+
+    setIsVersionFormOpen(false);
+    setVersionSubmitError("");
+  }
+
+  // 신규 버전 폼 입력 변경
+  function handleVersionFormChange(
+    event: ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >,
+  ) {
+    const { name, value } = event.target;
+
+    setVersionForm((previous) => ({
+      ...previous,
+      [name]: value,
+    }));
+
+    setVersionSubmitError("");
+    setVersionSubmitSuccess("");
+  }
+
+  // 신규 버전 생성 및 목록 갱신
+  async function handleCreateVersion(
+    event: FormEvent<HTMLFormElement>,
+  ) {
+    event.preventDefault();
+
+    if (!evidence || versionSubmitting) {
+      return;
+    }
+
+    const evidenceId = evidence.id;
+    const requestSequence =
+      ++versionCreateRequestSequenceRef.current;
+
+    const title = versionForm.title.trim();
+
+    if (!title) {
+      setVersionSubmitError("증적 제목을 입력해 주세요.");
+      return;
+    }
+
+    if (title.length > 200) {
+      setVersionSubmitError(
+        "증적 제목은 200자 이하로 입력해 주세요.",
+      );
+      return;
+    }
+
+    const request: EvidenceVersionCreateRequest = {
+      evidenceType: versionForm.evidenceType,
+      title,
+      description: versionForm.description.trim() || null,
+      fileName: versionForm.fileName.trim() || null,
+      filePath: versionForm.filePath.trim() || null,
+      sourceFileId: versionForm.sourceFileId.trim() || null,
+      executionUuid: versionForm.executionUuid.trim() || null,
+      sourceJobId: versionForm.sourceJobId.trim() || null,
+    };
+
+    setVersionSubmitting(true);
+    setVersionSubmitError("");
+    setVersionSubmitSuccess("");
+
+    try {
+      // 1. 신규 버전 생성
+      const createdVersion = await createEvidenceVersion(
+        evidenceId,
+        request,
+      );
+
+      if (
+        !mountedRef.current ||
+        versionCreateRequestSequenceRef.current !== requestSequence
+      ) {
+        return;
+      }
+
+      // 2. 기존 버전 목록 요청 무효화
+      versionListRequestSequenceRef.current += 1;
+
+      // 3. 최신 버전 목록 재조회
+      setVersionsLoading("LOADING");
+      setVersionsError("");
+
+      const refreshedVersions =
+        await getEvidenceVersions(evidenceId);
+
+      if (
+        !mountedRef.current ||
+        versionCreateRequestSequenceRef.current !== requestSequence
+      ) {
+        return;
+      }
+
+      setVersions(refreshedVersions);
+      setVersionsLoading("SUCCEEDED");
+
+      // 4. 생성된 버전 선택
+      setSelectedVersionNumber(createdVersion.versionNumber);
+
+      // 5. 제출 완료 표시
+      setVersionSubmitSuccess(
+        `Version ${createdVersion.versionNumber} 생성이 완료되었습니다.`,
+      );
+
+      setIsVersionFormOpen(false);
+      setVersionForm(createEmptyVersionForm());
+    } catch (error: unknown) {
+      if (
+        !mountedRef.current ||
+        versionCreateRequestSequenceRef.current !== requestSequence
+      ) {
+        return;
+      }
+
+      setVersionSubmitError(getErrorMessage(error));
+    } finally {
+      if (
+        mountedRef.current &&
+        versionCreateRequestSequenceRef.current === requestSequence
+      ) {
+        setVersionSubmitting(false);
+      }
+    }
+  }
 
   // 현재 Evidence의 검증 상태 스타일
   const statusStyle = evidence
@@ -597,11 +839,238 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
             </div>
           </section>
 
-          {/* Evidence 버전 목록 */}
+          {/* Evidence 버전 목록 및 버전 생성 */}
           <section style={styles.section}>
-            <h3 style={styles.sectionHeading}>
-              Evidence Versions
-            </h3>
+            <div style={styles.sectionHeader}>
+              <h3 style={styles.sectionHeading}>
+                Evidence Versions
+              </h3>
+
+              <button
+                type="button"
+                onClick={handleOpenVersionForm}
+                disabled={versionSubmitting}
+                style={styles.createVersionButton}
+              >
+                새 버전 제출
+              </button>
+            </div>
+
+            {versionSubmitSuccess && (
+              <div role="status" style={styles.successBox}>
+                {versionSubmitSuccess}
+              </div>
+            )}
+
+            {versionSubmitError && !isVersionFormOpen && (
+              <div role="alert" style={styles.errorBox}>
+                {versionSubmitError}
+              </div>
+            )}
+
+            {/* 신규 버전 제출 폼 */}
+            {isVersionFormOpen && (
+              <form
+                onSubmit={handleCreateVersion}
+                style={styles.versionForm}
+              >
+                <h4 style={styles.formHeading}>
+                  신규 증적 버전 등록
+                </h4>
+
+                <div style={styles.formField}>
+                  <label htmlFor="version-evidence-type">
+                    증적 유형 <span style={styles.requiredMark}>*</span>
+                  </label>
+
+                  <select
+                    id="version-evidence-type"
+                    name="evidenceType"
+                    value={versionForm.evidenceType}
+                    onChange={handleVersionFormChange}
+                    required
+                    disabled={versionSubmitting}
+                    style={styles.formInput}
+                  >
+                    {EVIDENCE_TYPES.map((type) => (
+                      <option key={type} value={type}>
+                        {EVIDENCE_TYPE_LABELS[type]}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div style={styles.formField}>
+                  <label htmlFor="version-title">
+                    제목 <span style={styles.requiredMark}>*</span>
+                  </label>
+
+                  <input
+                    id="version-title"
+                    name="title"
+                    type="text"
+                    value={versionForm.title}
+                    onChange={handleVersionFormChange}
+                    maxLength={200}
+                    required
+                    disabled={versionSubmitting}
+                    placeholder="증적 제목을 입력하세요."
+                    style={styles.formInput}
+                  />
+                </div>
+
+                <div style={styles.formField}>
+                  <label htmlFor="version-description">
+                    설명
+                  </label>
+
+                  <textarea
+                    id="version-description"
+                    name="description"
+                    value={versionForm.description}
+                    onChange={handleVersionFormChange}
+                    rows={3}
+                    disabled={versionSubmitting}
+                    placeholder="증적에 대한 설명을 입력하세요."
+                    style={styles.formTextarea}
+                  />
+                </div>
+
+                <div style={styles.formField}>
+                  <label htmlFor="version-file-name">
+                    파일명
+                  </label>
+
+                  <input
+                    id="version-file-name"
+                    name="fileName"
+                    type="text"
+                    value={versionForm.fileName}
+                    onChange={handleVersionFormChange}
+                    maxLength={255}
+                    disabled={versionSubmitting}
+                    placeholder="예: test-result.pdf"
+                    style={styles.formInput}
+                  />
+                </div>
+
+                <div style={styles.formField}>
+                  <label htmlFor="version-file-path">
+                    파일 경로
+                  </label>
+
+                  <input
+                    id="version-file-path"
+                    name="filePath"
+                    type="text"
+                    value={versionForm.filePath}
+                    onChange={handleVersionFormChange}
+                    maxLength={1000}
+                    disabled={versionSubmitting}
+                    placeholder="파일 저장 경로"
+                    style={styles.formInput}
+                  />
+                </div>
+
+                <div style={styles.runtimeFields}>
+                  <h5 style={styles.runtimeHeading}>
+                    Automation Runtime 연계 정보
+                  </h5>
+
+                  <p style={styles.runtimeDescription}>
+                    Runtime 파일 메타데이터와 연결할 경우 입력합니다.
+                    sourceFileId를 입력하면 백엔드에서 Runtime 파일
+                    메타데이터를 조회합니다.
+                  </p>
+
+                  <div style={styles.formField}>
+                    <label htmlFor="version-source-file-id">
+                      Source File ID
+                    </label>
+
+                    <input
+                      id="version-source-file-id"
+                      name="sourceFileId"
+                      type="text"
+                      value={versionForm.sourceFileId}
+                      onChange={handleVersionFormChange}
+                      maxLength={64}
+                      disabled={versionSubmitting}
+                      placeholder="Runtime file_id"
+                      style={styles.formInput}
+                    />
+                  </div>
+
+                  <div style={styles.formField}>
+                    <label htmlFor="version-execution-uuid">
+                      Execution UUID
+                    </label>
+
+                    <input
+                      id="version-execution-uuid"
+                      name="executionUuid"
+                      type="text"
+                      value={versionForm.executionUuid}
+                      onChange={handleVersionFormChange}
+                      maxLength={64}
+                      disabled={versionSubmitting}
+                      placeholder="Runtime execution UUID"
+                      style={styles.formInput}
+                    />
+                  </div>
+
+                  <div style={styles.formField}>
+                    <label htmlFor="version-source-job-id">
+                      Source Job ID
+                    </label>
+
+                    <input
+                      id="version-source-job-id"
+                      name="sourceJobId"
+                      type="text"
+                      value={versionForm.sourceJobId}
+                      onChange={handleVersionFormChange}
+                      maxLength={64}
+                      disabled={versionSubmitting}
+                      placeholder="Runtime source job ID"
+                      style={styles.formInput}
+                    />
+                  </div>
+                </div>
+
+                {versionSubmitError && (
+                  <div role="alert" style={styles.errorBox}>
+                    버전 생성 실패: {versionSubmitError}
+                  </div>
+                )}
+
+                <div style={styles.formActions}>
+                  <button
+                    type="button"
+                    onClick={handleCloseVersionForm}
+                    disabled={versionSubmitting}
+                    style={styles.cancelButton}
+                  >
+                    취소
+                  </button>
+
+                  <button
+                    type="submit"
+                    disabled={versionSubmitting}
+                    style={{
+                      ...styles.submitButton,
+                      ...(versionSubmitting
+                        ? styles.disabledButton
+                        : {}),
+                    }}
+                  >
+                    {versionSubmitting
+                      ? "제출 중..."
+                      : "버전 생성"}
+                  </button>
+                </div>
+              </form>
+            )}
 
             {versionsLoading === "LOADING" && (
               <p style={styles.mutedText}>
@@ -1060,6 +1529,15 @@ const styles: Record<string, CSSProperties> = {
     minWidth: 0,
   },
 
+  sectionHeader: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    flexWrap: "wrap",
+    gap: 12,
+    marginBottom: 12,
+  },
+
   sectionHeading: {
     marginTop: 0,
     marginBottom: 12,
@@ -1087,6 +1565,137 @@ const styles: Record<string, CSSProperties> = {
   longText: {
     whiteSpace: "pre-wrap",
     overflowWrap: "anywhere",
+  },
+
+  createVersionButton: {
+    padding: "8px 14px",
+    border: "1px solid #1976d2",
+    borderRadius: 6,
+    backgroundColor: "#ffffff",
+    color: "#1976d2",
+    cursor: "pointer",
+    fontSize: 13,
+    fontWeight: 600,
+  },
+
+  versionForm: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 14,
+    marginBottom: 20,
+    padding: 16,
+    border: "1px solid #d6e4f0",
+    borderRadius: 8,
+    backgroundColor: "#f8fbff",
+  },
+
+  formHeading: {
+    margin: 0,
+    fontSize: 15,
+  },
+
+  formField: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 6,
+    fontSize: 13,
+    fontWeight: 600,
+  },
+
+  requiredMark: {
+    color: "#c62828",
+  },
+
+  formInput: {
+    boxSizing: "border-box",
+    width: "100%",
+    minHeight: 38,
+    padding: "8px 10px",
+    border: "1px solid #cccccc",
+    borderRadius: 5,
+    backgroundColor: "#ffffff",
+    color: "#333333",
+    fontSize: 14,
+    fontWeight: 400,
+  },
+
+  formTextarea: {
+    boxSizing: "border-box",
+    width: "100%",
+    padding: "10px",
+    border: "1px solid #cccccc",
+    borderRadius: 5,
+    backgroundColor: "#ffffff",
+    color: "#333333",
+    fontSize: 14,
+    fontWeight: 400,
+    resize: "vertical",
+    fontFamily: "inherit",
+  },
+
+  runtimeFields: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 12,
+    padding: 14,
+    border: "1px solid #e0e0e0",
+    borderRadius: 6,
+    backgroundColor: "#ffffff",
+  },
+
+  runtimeHeading: {
+    margin: 0,
+    fontSize: 14,
+  },
+
+  runtimeDescription: {
+    margin: 0,
+    color: "#666666",
+    fontSize: 12,
+    lineHeight: 1.5,
+    fontWeight: 400,
+  },
+
+  formActions: {
+    display: "flex",
+    justifyContent: "flex-end",
+    gap: 8,
+    marginTop: 4,
+  },
+
+  cancelButton: {
+    padding: "9px 16px",
+    border: "1px solid #cccccc",
+    borderRadius: 6,
+    backgroundColor: "#ffffff",
+    color: "#555555",
+    cursor: "pointer",
+  },
+
+  submitButton: {
+    padding: "9px 16px",
+    border: "1px solid #1976d2",
+    borderRadius: 6,
+    backgroundColor: "#1976d2",
+    color: "#ffffff",
+    cursor: "pointer",
+    fontWeight: 600,
+  },
+
+  disabledButton: {
+    borderColor: "#bdbdbd",
+    backgroundColor: "#bdbdbd",
+    cursor: "not-allowed",
+  },
+
+  successBox: {
+    marginBottom: 12,
+    padding: 12,
+    border: "1px solid #c8e6c9",
+    borderRadius: 6,
+    backgroundColor: "#e8f5e9",
+    color: "#2e7d32",
+    fontSize: 14,
   },
 
   versionSelector: {
