@@ -7,12 +7,19 @@ import {
   type CSSProperties,
 } from "react";
 
-import type { Evidence } from "../types/evidence";
+import type {
+  Evidence,
+  EvidenceVersion,
+  EvidenceVerificationHistory,
+} from "../types/evidence";
 
 import {
   createEvidenceOcrJob,
   refreshEvidenceOcrJob,
   uploadOcrFile,
+  getEvidenceVersions,
+  getEvidenceVersion,
+  getEvidenceVersionVerificationHistory,
   type EvidenceOcrJob,
 } from "../api/evidenceApi";
 
@@ -21,6 +28,12 @@ interface EvidenceDetailProps {
 }
 
 type OcrStatus = "IDLE" | "PENDING" | "SUCCEEDED" | "FAILED";
+
+type VersionLoadingStatus =
+  | "IDLE"
+  | "LOADING"
+  | "SUCCEEDED"
+  | "FAILED";
 
 const OCR_POLL_INTERVAL_MS = 2000;
 const OCR_MAX_ATTEMPTS = 15;
@@ -31,10 +44,13 @@ function getVerificationStatusLabel(
   switch (status) {
     case "APPROVED":
       return "승인";
+
     case "REJECTED":
       return "반려";
+
     case "PENDING":
       return "검증 대기";
+
     default:
       return status;
   }
@@ -93,7 +109,7 @@ function getErrorMessage(error: unknown): string {
     return error.message;
   }
 
-  return "OCR 처리 중 알 수 없는 오류가 발생했습니다.";
+  return "처리 중 알 수 없는 오류가 발생했습니다.";
 }
 
 function sleep(ms: number): Promise<void> {
@@ -102,34 +118,64 @@ function sleep(ms: number): Promise<void> {
 
 function EvidenceDetail({ evidence }: EvidenceDetailProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // OCR 요청 식별
   const requestSequenceRef = useRef(0);
+
+  // 버전 목록 요청 식별
+  const versionListRequestSequenceRef = useRef(0);
+
+  // 버전 상세 및 검증 이력 요청 식별
+  const versionDetailRequestSequenceRef = useRef(0);
+
   const mountedRef = useRef(true);
 
+  // OCR 상태
   const [ocrStatus, setOcrStatus] = useState<OcrStatus>("IDLE");
   const [ocrJob, setOcrJob] = useState<EvidenceOcrJob | null>(null);
   const [ocrError, setOcrError] = useState("");
 
+  // Evidence 버전 목록
+  const [versions, setVersions] = useState<EvidenceVersion[]>([]);
+  const [versionsLoading, setVersionsLoading] =
+    useState<VersionLoadingStatus>("IDLE");
+  const [versionsError, setVersionsError] = useState("");
+
+  // 선택된 버전 번호
+  const [selectedVersionNumber, setSelectedVersionNumber] =
+    useState<number | null>(null);
+
+  // 선택된 버전 상세 정보
+  const [selectedVersion, setSelectedVersion] =
+    useState<EvidenceVersion | null>(null);
+
+  // 선택된 버전의 검증 이력
+  const [verificationHistory, setVerificationHistory] =
+    useState<EvidenceVerificationHistory[]>([]);
+
+  // 버전 상세 조회 상태
+  const [versionDetailLoading, setVersionDetailLoading] =
+    useState(false);
+  const [versionDetailError, setVersionDetailError] = useState("");
+
+  // 검증 이력 조회 상태
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyError, setHistoryError] = useState("");
+
+  // 컴포넌트 마운트 및 언마운트 처리
   useEffect(() => {
     mountedRef.current = true;
 
     return () => {
       mountedRef.current = false;
+
       requestSequenceRef.current += 1;
+      versionListRequestSequenceRef.current += 1;
+      versionDetailRequestSequenceRef.current += 1;
     };
   }, []);
 
-  useEffect(() => {
-    requestSequenceRef.current += 1;
-
-    setOcrStatus("IDLE");
-    setOcrJob(null);
-    setOcrError("");
-
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
-  }, [evidence?.id]);
-
+  // 현재 OCR 요청인지 확인
   const isCurrentRequest = useCallback(
     (requestSequence: number): boolean =>
       mountedRef.current &&
@@ -137,10 +183,191 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
     [],
   );
 
+  // 현재 버전 목록 요청인지 확인
+  const isCurrentVersionListRequest = useCallback(
+    (requestSequence: number): boolean =>
+      mountedRef.current &&
+      versionListRequestSequenceRef.current === requestSequence,
+    [],
+  );
+
+  // 현재 버전 상세 및 검증 이력 요청인지 확인
+  const isCurrentVersionDetailRequest = useCallback(
+    (requestSequence: number): boolean =>
+      mountedRef.current &&
+      versionDetailRequestSequenceRef.current === requestSequence,
+    [],
+  );
+
+  // Evidence 변경 시 OCR 및 버전 화면 초기화
+  useEffect(() => {
+    // 진행 중인 요청 무효화
+    requestSequenceRef.current += 1;
+    versionListRequestSequenceRef.current += 1;
+    versionDetailRequestSequenceRef.current += 1;
+
+    // OCR 상태 초기화
+    setOcrStatus("IDLE");
+    setOcrJob(null);
+    setOcrError("");
+
+    // 버전 목록 초기화
+    setVersions([]);
+    setVersionsLoading("IDLE");
+    setVersionsError("");
+
+    // 선택된 버전 초기화
+    setSelectedVersionNumber(null);
+    setSelectedVersion(null);
+    setVerificationHistory([]);
+
+    // 버전 상세 상태 초기화
+    setVersionDetailLoading(false);
+    setVersionDetailError("");
+
+    // 검증 이력 상태 초기화
+    setHistoryLoading(false);
+    setHistoryError("");
+
+    // 파일 입력 초기화
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  }, [evidence?.id]);
+
+  // Evidence 선택 시 버전 목록 조회
+  useEffect(() => {
+    if (!evidence) {
+      return;
+    }
+
+    const evidenceId = evidence.id;
+    const requestSequence =
+      ++versionListRequestSequenceRef.current;
+
+    async function loadVersions() {
+      setVersionsLoading("LOADING");
+      setVersionsError("");
+
+      try {
+        const result = await getEvidenceVersions(evidenceId);
+
+        if (!isCurrentVersionListRequest(requestSequence)) {
+          return;
+        }
+
+        setVersions(result);
+        setVersionsLoading("SUCCEEDED");
+
+        if (result.length > 0) {
+          // Backend에서 최신 버전부터 반환하므로 첫 번째 항목 사용
+          setSelectedVersionNumber(result[0].versionNumber);
+        } else {
+          setSelectedVersionNumber(null);
+          setSelectedVersion(null);
+          setVerificationHistory([]);
+        }
+      } catch (error: unknown) {
+        if (!isCurrentVersionListRequest(requestSequence)) {
+          return;
+        }
+
+        setVersionsLoading("FAILED");
+        setVersionsError(getErrorMessage(error));
+      }
+    }
+
+    void loadVersions();
+
+    return () => {
+      versionListRequestSequenceRef.current += 1;
+    };
+  }, [evidence?.id, isCurrentVersionListRequest]);
+
+  // 버전 선택 시 상세 정보 및 검증 이력 조회
+  useEffect(() => {
+    if (!evidence || selectedVersionNumber === null) {
+      versionDetailRequestSequenceRef.current += 1;
+      return;
+    }
+
+    const evidenceId = evidence.id;
+    const versionNumber = selectedVersionNumber;
+
+    const requestSequence =
+      ++versionDetailRequestSequenceRef.current;
+
+    async function loadVersionDetails() {
+      setSelectedVersion(null);
+      setVerificationHistory([]);
+
+      setVersionDetailLoading(true);
+      setVersionDetailError("");
+
+      setHistoryLoading(true);
+      setHistoryError("");
+
+      // 버전 상세와 검증 이력을 병렬 조회
+      const [versionResult, historyResult] =
+        await Promise.allSettled([
+          getEvidenceVersion(evidenceId, versionNumber),
+          getEvidenceVersionVerificationHistory(
+            evidenceId,
+            versionNumber,
+          ),
+        ]);
+
+      if (!isCurrentVersionDetailRequest(requestSequence)) {
+        return;
+      }
+
+      // 버전 상세 조회 결과 처리
+      if (versionResult.status === "fulfilled") {
+        setSelectedVersion(versionResult.value);
+        setVersionDetailLoading(false);
+      } else {
+        setVersionDetailLoading(false);
+        setVersionDetailError(
+          getErrorMessage(versionResult.reason),
+        );
+      }
+
+      // 검증 이력 조회 결과 처리
+      if (historyResult.status === "fulfilled") {
+        setVerificationHistory(historyResult.value);
+        setHistoryLoading(false);
+      } else {
+        setHistoryLoading(false);
+        setHistoryError(
+          getErrorMessage(historyResult.reason),
+        );
+      }
+    }
+
+    void loadVersionDetails();
+
+    return () => {
+      versionDetailRequestSequenceRef.current += 1;
+    };
+  }, [
+    evidence?.id,
+    selectedVersionNumber,
+    isCurrentVersionDetailRequest,
+  ]);
+
+  // 현재 Evidence의 검증 상태 스타일
   const statusStyle = evidence
     ? getVerificationStatusStyle(evidence.verificationStatus)
     : undefined;
 
+  // 선택한 버전의 파일 정보를 우선 표시
+  const displayedFileName =
+    selectedVersion?.fileName || evidence?.fileName || null;
+
+  const displayedFilePath =
+    selectedVersion?.filePath || evidence?.filePath || null;
+
+  // OCR 실행 버튼 클릭
   function handleOcrButtonClick() {
     if (!evidence || ocrStatus === "PENDING") {
       return;
@@ -150,11 +377,29 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
     fileInputRef.current?.click();
   }
 
+  // 버전 선택 변경
+  function handleVersionChange(
+    event: ChangeEvent<HTMLSelectElement>,
+  ) {
+    const versionNumber = Number(event.target.value);
+
+    if (!Number.isInteger(versionNumber)) {
+      return;
+    }
+
+    setSelectedVersionNumber(versionNumber);
+  }
+
+  // OCR 작업 완료까지 상태 재조회
   async function waitForOcrResult(
     jobId: number,
     requestSequence: number,
   ): Promise<EvidenceOcrJob> {
-    for (let attempt = 0; attempt < OCR_MAX_ATTEMPTS; attempt += 1) {
+    for (
+      let attempt = 0;
+      attempt < OCR_MAX_ATTEMPTS;
+      attempt += 1
+    ) {
       if (!isCurrentRequest(requestSequence)) {
         throw new Error(
           "증적 선택이 변경되어 OCR 화면 갱신을 중단했습니다.",
@@ -192,6 +437,7 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
     );
   }
 
+  // OCR 파일 선택 및 작업 실행
   async function handleFileChange(
     event: ChangeEvent<HTMLInputElement>,
   ) {
@@ -200,7 +446,11 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
 
     event.target.value = "";
 
-    if (!file || !selectedEvidence || ocrStatus === "PENDING") {
+    if (
+      !file ||
+      !selectedEvidence ||
+      ocrStatus === "PENDING"
+    ) {
       return;
     }
 
@@ -277,6 +527,7 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
     <div style={styles.container}>
       <div style={styles.header}>
         <h2 style={styles.heading}>Evidence Detail</h2>
+
         <p style={styles.subheading}>
           Selected evidence information
         </p>
@@ -288,6 +539,7 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
         </div>
       ) : (
         <>
+          {/* 증적 기본 정보 */}
           <section style={styles.section}>
             <h3 style={styles.sectionHeading}>증적 정보</h3>
 
@@ -345,17 +597,287 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
             </div>
           </section>
 
+          {/* Evidence 버전 목록 */}
           <section style={styles.section}>
-            <h3 style={styles.sectionHeading}>Attached Evidence</h3>
+            <h3 style={styles.sectionHeading}>
+              Evidence Versions
+            </h3>
+
+            {versionsLoading === "LOADING" && (
+              <p style={styles.mutedText}>
+                버전 목록을 불러오는 중입니다.
+              </p>
+            )}
+
+            {versionsLoading === "FAILED" && (
+              <div role="alert" style={styles.errorBox}>
+                버전 목록 조회 실패: {versionsError}
+              </div>
+            )}
+
+            {versionsLoading === "SUCCEEDED" &&
+              versions.length === 0 && (
+                <p style={styles.mutedText}>
+                  등록된 버전이 없습니다.
+                </p>
+              )}
+
+            {versions.length > 0 && (
+              <>
+                <div style={styles.versionSelector}>
+                  <label
+                    htmlFor="evidence-version"
+                    style={styles.versionLabel}
+                  >
+                    버전 선택
+                  </label>
+
+                  <select
+                    id="evidence-version"
+                    value={selectedVersionNumber ?? ""}
+                    onChange={handleVersionChange}
+                    style={styles.versionSelect}
+                  >
+                    {versions.map((version, index) => (
+                      <option
+                        key={version.id}
+                        value={version.versionNumber}
+                      >
+                        Version {version.versionNumber}
+                        {index === 0 ? " (최신)" : ""}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div style={styles.versionList}>
+                  {versions.map((version, index) => (
+                    <button
+                      key={version.id}
+                      type="button"
+                      onClick={() =>
+                        setSelectedVersionNumber(
+                          version.versionNumber,
+                        )
+                      }
+                      style={{
+                        ...styles.versionItem,
+                        ...(selectedVersionNumber ===
+                        version.versionNumber
+                          ? styles.versionItemSelected
+                          : {}),
+                      }}
+                    >
+                      <span style={styles.versionItemTitle}>
+                        Version {version.versionNumber}
+                        {index === 0 ? " · 최신" : ""}
+                      </span>
+
+                      <span style={styles.versionItemMeta}>
+                        {version.fileName || "파일명 없음"}
+                      </span>
+
+                      <span style={styles.versionItemMeta}>
+                        제출: {formatDate(version.submittedAt)}
+                      </span>
+
+                      <span
+                        style={{
+                          ...styles.statusBadge,
+                          ...getVerificationStatusStyle(
+                            version.verificationStatus,
+                          ),
+                        }}
+                      >
+                        {getVerificationStatusLabel(
+                          version.verificationStatus,
+                        )}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </section>
+
+          {/* 선택된 버전 상세 및 검증 이력 */}
+          {selectedVersionNumber !== null && (
+            <>
+              <section style={styles.section}>
+                <h3 style={styles.sectionHeading}>
+                  Version {selectedVersionNumber} Detail
+                </h3>
+
+                {versionDetailLoading && (
+                  <p style={styles.mutedText}>
+                    선택한 버전의 상세 정보를 불러오는 중입니다.
+                  </p>
+                )}
+
+                {versionDetailError && (
+                  <div role="alert" style={styles.errorBox}>
+                    버전 상세 조회 실패: {versionDetailError}
+                  </div>
+                )}
+
+                {selectedVersion && (
+                  <div style={styles.infoGrid}>
+                    <strong>Version ID</strong>
+                    <span>{selectedVersion.id}</span>
+
+                    <strong>Version Number</strong>
+                    <span>{selectedVersion.versionNumber}</span>
+
+                    <strong>Title</strong>
+                    <span>{selectedVersion.title || "-"}</span>
+
+                    <strong>Evidence Type</strong>
+                    <span>{selectedVersion.evidenceType || "-"}</span>
+
+                    <strong>Description</strong>
+                    <span style={styles.longText}>
+                      {selectedVersion.description || "-"}
+                    </span>
+
+                    <strong>File Name</strong>
+                    <span>{selectedVersion.fileName || "-"}</span>
+
+                    <strong>File Path</strong>
+                    <span style={styles.longText}>
+                      {selectedVersion.filePath || "-"}
+                    </span>
+
+                    <strong>Source File ID</strong>
+                    <span style={styles.longText}>
+                      {selectedVersion.sourceFileId || "-"}
+                    </span>
+
+                    <strong>Execution UUID</strong>
+                    <span style={styles.longText}>
+                      {selectedVersion.executionUuid || "-"}
+                    </span>
+
+                    <strong>Source Job ID</strong>
+                    <span>{selectedVersion.sourceJobId || "-"}</span>
+
+                    <strong>Submitted By ID</strong>
+                    <span>
+                      {selectedVersion.submittedById ?? "-"}
+                    </span>
+
+                    <strong>Submitted At</strong>
+                    <span>
+                      {formatDate(selectedVersion.submittedAt)}
+                    </span>
+
+                    <strong>Verification Status</strong>
+                    <span>
+                      <span
+                        style={{
+                          ...styles.statusBadge,
+                          ...getVerificationStatusStyle(
+                            selectedVersion.verificationStatus,
+                          ),
+                        }}
+                      >
+                        {getVerificationStatusLabel(
+                          selectedVersion.verificationStatus,
+                        )}
+                      </span>
+                    </span>
+
+                    <strong>Verified By ID</strong>
+                    <span>
+                      {selectedVersion.verifiedById ?? "-"}
+                    </span>
+
+                    <strong>Verified At</strong>
+                    <span>
+                      {formatDate(selectedVersion.verifiedAt)}
+                    </span>
+
+                    <strong>Verification Remark</strong>
+                    <span style={styles.longText}>
+                      {selectedVersion.verificationRemark || "-"}
+                    </span>
+                  </div>
+                )}
+              </section>
+
+              {/* 버전별 검증 이력 */}
+              <section style={styles.section}>
+                <h3 style={styles.sectionHeading}>
+                  Version {selectedVersionNumber} Verification History
+                </h3>
+
+                {historyLoading && (
+                  <p style={styles.mutedText}>
+                    검증 이력을 불러오는 중입니다.
+                  </p>
+                )}
+
+                {historyError && (
+                  <div role="alert" style={styles.errorBox}>
+                    검증 이력 조회 실패: {historyError}
+                  </div>
+                )}
+
+                {!historyLoading &&
+                  !historyError &&
+                  verificationHistory.length === 0 && (
+                    <p style={styles.mutedText}>
+                      해당 버전에 등록된 검증 이력이 없습니다.
+                    </p>
+                  )}
+
+                {verificationHistory.length > 0 && (
+                  <div style={styles.historyList}>
+                    {verificationHistory.map((history) => (
+                      <div
+                        key={history.id}
+                        style={styles.historyItem}
+                      >
+                        <div style={styles.historyHeader}>
+                          <strong>
+                            {getVerificationStatusLabel(
+                              history.verificationStatus,
+                            )}
+                          </strong>
+
+                          <span style={styles.historyDate}>
+                            {formatDate(history.verifiedAt)}
+                          </span>
+                        </div>
+
+                        <div style={styles.historyMeta}>
+                          검증자 ID: {history.verifiedById ?? "-"}
+                        </div>
+
+                        <div style={styles.historyRemark}>
+                          {history.remark || "검증 의견 없음"}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </section>
+            </>
+          )}
+
+          {/* 첨부 파일 */}
+          <section style={styles.section}>
+            <h3 style={styles.sectionHeading}>
+              Attached Evidence
+            </h3>
 
             <div style={styles.fileCard}>
               <div style={styles.fileName}>
-                {evidence.fileName || "첨부 파일 없음"}
+                {displayedFileName || "첨부 파일 없음"}
               </div>
 
               <div style={styles.fileDescription}>
-                {evidence.filePath
-                  ? "파일 경로 정보가 등록되어 있습니다."
+                {displayedFilePath
+                  ? `파일 경로: ${displayedFilePath}`
                   : "파일 경로 정보 없음"}
               </div>
 
@@ -390,6 +912,7 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
             </div>
           </section>
 
+          {/* OCR 결과 */}
           <section style={styles.section}>
             <h3 style={styles.sectionHeading}>OCR Result</h3>
 
@@ -438,6 +961,7 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
                   ocrJob.warnings.length > 0 && (
                     <div style={styles.warningBox}>
                       <strong>Warnings</strong>
+
                       <ul style={styles.warningList}>
                         {ocrJob.warnings.map((warning, index) => (
                           <li key={`${index}-${warning}`}>
@@ -460,6 +984,7 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
             )}
           </section>
 
+          {/* 현재 증적의 검증 정보 */}
           <section style={styles.section}>
             <h3 style={styles.sectionHeading}>Verification</h3>
 
@@ -560,6 +1085,102 @@ const styles: Record<string, CSSProperties> = {
   },
 
   longText: {
+    whiteSpace: "pre-wrap",
+    overflowWrap: "anywhere",
+  },
+
+  versionSelector: {
+    display: "flex",
+    alignItems: "center",
+    gap: 12,
+    marginBottom: 12,
+  },
+
+  versionLabel: {
+    fontSize: 14,
+    fontWeight: 600,
+  },
+
+  versionSelect: {
+    minWidth: 180,
+    padding: "8px 10px",
+    border: "1px solid #cccccc",
+    borderRadius: 6,
+    backgroundColor: "#ffffff",
+    fontSize: 14,
+  },
+
+  versionList: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 8,
+  },
+
+  versionItem: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "flex-start",
+    gap: 6,
+    width: "100%",
+    padding: 12,
+    border: "1px solid #e0e0e0",
+    borderRadius: 6,
+    backgroundColor: "#ffffff",
+    cursor: "pointer",
+    textAlign: "left",
+  },
+
+  versionItemSelected: {
+    border: "1px solid #1976d2",
+    backgroundColor: "#f3f8ff",
+  },
+
+  versionItemTitle: {
+    fontSize: 14,
+    fontWeight: 700,
+  },
+
+  versionItemMeta: {
+    color: "#666666",
+    fontSize: 12,
+  },
+
+  historyList: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 10,
+  },
+
+  historyItem: {
+    padding: 12,
+    border: "1px solid #e0e0e0",
+    borderRadius: 6,
+    backgroundColor: "#fafafa",
+  },
+
+  historyHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    flexWrap: "wrap",
+    gap: 8,
+    fontSize: 14,
+  },
+
+  historyDate: {
+    color: "#666666",
+    fontSize: 12,
+  },
+
+  historyMeta: {
+    marginTop: 8,
+    color: "#666666",
+    fontSize: 12,
+  },
+
+  historyRemark: {
+    marginTop: 8,
+    fontSize: 13,
     whiteSpace: "pre-wrap",
     overflowWrap: "anywhere",
   },

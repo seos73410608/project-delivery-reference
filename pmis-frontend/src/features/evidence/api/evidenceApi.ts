@@ -1,5 +1,12 @@
+
 import apiClient from '@/api/client';
-import type { ApiResponse, Evidence, EvidenceType } from '../types/evidence';
+import type {
+  ApiResponse,
+  Evidence,
+  EvidenceType,
+  EvidenceVersion,
+  EvidenceVerificationHistory,
+} from '../types/evidence';
 
 const EVIDENCE_REQUIREMENTS_API = '/evidence-requirements';
 const PROJECTS_API = '/projects';
@@ -131,6 +138,63 @@ export async function getEvidence(
 ): Promise<Evidence> {
   const response = await apiClient.get<ApiResponse<Evidence>>(
     `${EVIDENCE_API}/${evidenceId}`,
+  );
+
+  return response.data.data;
+}
+
+/**
+ * 증적 버전 목록 조회
+ *
+ * GET /api/evidence/{evidenceId}/versions
+ *
+ * Backend: List<EvidenceVersionResponse>
+ * 최신 버전부터 반환하므로 첫 번째 항목이 최신 버전이다.
+ */
+export async function getEvidenceVersions(
+  evidenceId: number,
+): Promise<EvidenceVersion[]> {
+  const response = await apiClient.get<ApiResponse<EvidenceVersion[]>>(
+    `${EVIDENCE_API}/${evidenceId}/versions`,
+  );
+
+  return response.data.data;
+}
+
+/**
+ * 증적 특정 버전 상세 조회
+ *
+ * GET /api/evidence/{evidenceId}/versions/{versionNumber}
+ *
+ * Backend: EvidenceVersionResponse
+ */
+export async function getEvidenceVersion(
+  evidenceId: number,
+  versionNumber: number,
+): Promise<EvidenceVersion> {
+  const response = await apiClient.get<ApiResponse<EvidenceVersion>>(
+    `${EVIDENCE_API}/${evidenceId}/versions/${versionNumber}`,
+  );
+
+  return response.data.data;
+}
+
+/**
+ * 증적 특정 버전의 검증 이력 조회
+ *
+ * GET /api/evidence/{evidenceId}/versions/{versionNumber}/verification-history
+ *
+ * Backend: List<EvidenceVerificationHistoryResponse>
+ * 검증 이력이 없으면 빈 배열을 반환한다.
+ */
+export async function getEvidenceVersionVerificationHistory(
+  evidenceId: number,
+  versionNumber: number,
+): Promise<EvidenceVerificationHistory[]> {
+  const response = await apiClient.get<
+    ApiResponse<EvidenceVerificationHistory[]>
+  >(
+    `${EVIDENCE_API}/${evidenceId}/versions/${versionNumber}/verification-history`,
   );
 
   return response.data.data;

@@ -99,6 +99,57 @@ export interface Evidence {
 }
 
 /**
+ * 증적 버전 정보
+ *
+ * GET /api/evidence/{id}/versions
+ * GET /api/evidence/{id}/versions/{versionNumber}
+ *
+ * Backend: EvidenceVersionResponse
+ */
+export interface EvidenceVersion {
+  id: number;
+  evidenceId: number;
+  versionNumber: number;
+
+  evidenceType: EvidenceType;
+  title: string;
+  description: string | null;
+
+  fileName: string | null;
+  filePath: string | null;
+
+  sourceFileId: string | null;
+  executionUuid: string | null;
+  sourceJobId: string | null;
+
+  submittedById: number | null;
+  submittedAt: string | null;
+
+  verificationStatus: VerificationStatus;
+  verifiedById: number | null;
+  verifiedAt: string | null;
+  verificationRemark: string | null;
+}
+
+/**
+ * 증적 버전 검증 이력
+ *
+ * GET /api/evidence/{id}/versions/{versionNumber}/verification-history
+ *
+ * Backend: EvidenceVerificationHistoryResponse
+ */
+export interface EvidenceVerificationHistory {
+  id: number;
+  evidenceId: number;
+  versionNumber: number;
+
+  verificationStatus: VerificationStatus;
+  verifiedById: number | null;
+  verifiedAt: string | null;
+  remark: string | null;
+}
+
+/**
  * OCR 입력 파일 업로드 응답
  */
 export interface OcrUploadResponse {
