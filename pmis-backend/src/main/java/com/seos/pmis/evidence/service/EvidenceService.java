@@ -526,6 +526,111 @@ public class EvidenceService {
         return evidenceMapper.toResponse(evidence);
     }
 
+    /**
+     * 특정 Evidence Version 검증 처리
+     *
+     * 정책:
+     * 1. 지정한 Evidence Version만 검증한다.
+     * 2. Verification History는 지정한 Version에 연결한다.
+     * 3. 지정한 Version이 최신 버전인 경우에만
+     *    부모 Evidence의 대표 검증 상태를 갱신한다.
+     * 4. 과거 버전 검증은 부모 Evidence에 영향을 주지 않는다.
+     *
+     * @param evidenceId Evidence ID
+     * @param versionNumber 검증 대상 Version 번호
+     * @param request 검증 요청
+     * @return Evidence 응답
+     */
+    @Transactional
+    public EvidenceResponse verifyVersion(
+            Long evidenceId,
+            Integer versionNumber,
+            EvidenceVerificationRequest request
+    ) {
+        // 1. Version 번호 검증
+        if (versionNumber == null || versionNumber < 1) {
+             throw new BusinessException(
+                     EvidenceErrorCode.EVIDENCE_VERSION_NUMBER_INVALID
+             );
+        }
+
+        // 2. Evidence 조회
+        Evidence evidence = getEvidence(evidenceId);
+
+        // 3. 지정한 Evidence Version 조회
+        EvidenceVersion version = evidenceVersionRepository
+                .findByEvidenceIdAndVersionNumber(evidenceId, versionNumber)
+                .orElseThrow(() -> new BusinessException(
+                        EvidenceErrorCode.EVIDENCE_NOT_FOUND
+                ));
+
+        // 4. Verification 요청 검증
+        VerificationStatus status = request.getStatus();
+        String remark = request.getRemark();
+
+        if (status == null || status == VerificationStatus.PENDING) {
+            throw new BusinessException(
+                    EvidenceErrorCode.EVIDENCE_VERIFICATION_NOT_ALLOWED
+            );
+        }
+
+        if (status == VerificationStatus.REJECTED
+                && !hasText(remark)) {
+            throw new BusinessException(
+                    EvidenceErrorCode.EVIDENCE_VERIFICATION_REMARK_REQUIRED
+            );
+        }
+
+        // 5. 검증자 및 검증 일시
+        User verifiedBy = getCurrentUser();
+        LocalDateTime verifiedAt = LocalDateTime.now();
+
+        // 6. 지정한 Version의 검증 상태 갱신
+        version.verify(
+                status,
+                verifiedBy,
+                verifiedAt,
+                remark
+        );
+
+        // 7. 최신 Version 여부 확인
+        EvidenceVersion latestVersion = evidenceVersionRepository
+                .findTopByEvidenceIdOrderByVersionNumberDesc(evidenceId)
+                .orElseThrow(() -> new BusinessException(
+                         EvidenceErrorCode.EVIDENCE_NOT_FOUND
+                ));
+
+        boolean isLatestVersion =
+                version.getVersionNumber().equals(
+                       latestVersion.getVersionNumber()
+                );
+
+        // 8. 최신 Version인 경우에만 부모 Evidence 갱신
+        if (isLatestVersion) {
+             evidence.verify(
+                    status,
+                    verifiedBy,
+                    verifiedAt,
+                    remark
+             );
+        }
+
+        // 9. 지정한 Version에 Verification History 생성
+        EvidenceVerificationHistory history =
+                EvidenceVerificationHistory.create(
+                        version,
+                        status,
+                        verifiedBy,
+                        verifiedAt,
+                        remark
+                );
+
+        evidenceVerificationHistoryRepository.save(history);
+
+        // 10. Evidence 응답 반환
+        return evidenceMapper.toResponse(evidence);
+    }
+
     // =========================================================================
     // 내부 조회 및 검증
     // =========================================================================

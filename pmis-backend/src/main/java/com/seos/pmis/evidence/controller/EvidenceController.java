@@ -12,6 +12,7 @@ import com.seos.pmis.evidence.dto.response.EvidenceVersionResponse;
 import com.seos.pmis.evidence.dto.response.EvidenceVerificationHistoryResponse;
 import com.seos.pmis.evidence.service.EvidenceService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -315,4 +316,21 @@ public class EvidenceController {
                 )
         );
     }
+
+    /**
+     * 특정 Evidence Version 검증
+     *
+     * 지정한 버전의 검증 상태와 이력을 관리한다.
+     * 최신 버전인 경우에만 Evidence 대표 검증 상태를 갱신한다.
+     */
+    @PatchMapping("/evidence/{id}/versions/{versionNumber}/verification")
+    public ApiResponse<EvidenceResponse> verifyVersion(
+            @PathVariable Long id,
+            @PathVariable @Min(1) Integer versionNumber,
+            @Valid @RequestBody EvidenceVerificationRequest request
+    ) {
+        return ApiResponse.success(
+                evidenceService.verifyVersion(id, versionNumber, request)
+        );
+    }    
 }

@@ -145,6 +145,12 @@ public enum EvidenceErrorCode implements ErrorCode {
             "요청한 Runtime 실행 UUID 또는 Job ID가 파일 메타데이터와 일치하지 않습니다."
     ),
 
+    EVIDENCE_VERSION_NUMBER_INVALID(
+           HttpStatus.BAD_REQUEST,
+           "EVIDENCE_VERSION_NUMBER_INVALID",
+           "Evidence Version 번호는 1 이상이어야 합니다."
+    ),
+
     RUNTIME_API_UNAVAILABLE(
             HttpStatus.BAD_GATEWAY,
             "RUNTIME_API_UNAVAILABLE",
