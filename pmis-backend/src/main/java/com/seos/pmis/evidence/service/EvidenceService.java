@@ -9,6 +9,7 @@ import com.seos.pmis.evidence.dto.request.EvidenceSearchRequest;
 import com.seos.pmis.evidence.dto.request.EvidenceUpdateRequest;
 import com.seos.pmis.evidence.dto.request.EvidenceVerificationRequest;
 import com.seos.pmis.evidence.dto.request.EvidenceVersionCreateRequest;
+import com.seos.pmis.evidence.dto.request.EvidenceVersionUploadRequest;
 import com.seos.pmis.evidence.dto.response.EvidenceResponse;
 import com.seos.pmis.evidence.dto.response.EvidenceVersionResponse;
 import com.seos.pmis.evidence.dto.response.EvidenceVerificationHistoryResponse;
@@ -27,6 +28,7 @@ import com.seos.pmis.evidence.repository.InspectionItemRepository;
 import com.seos.pmis.evidence.specification.EvidenceSpecification;
 import com.seos.pmis.integration.runtime.client.RuntimeApiClient;
 import com.seos.pmis.integration.runtime.dto.RuntimeOutputFileResponse;
+import com.seos.pmis.integration.runtime.dto.RuntimePmisFileResponse;
 import com.seos.pmis.project.entity.Project;
 import com.seos.pmis.project.repository.ProjectRepository;
 import com.seos.pmis.user.entity.User;
@@ -36,11 +38,15 @@ import com.seos.pmis.wbs.repository.WbsRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.client.RestClientException;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
@@ -49,6 +55,8 @@ import java.util.Objects;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class EvidenceService {
+
+    private static final long MAX_EVIDENCE_FILE_SIZE = 50L * 1024 * 1024;
 
     private final EvidenceRepository evidenceRepository;
     private final EvidenceRequirementRepository evidenceRequirementRepository;
@@ -175,6 +183,132 @@ public class EvidenceService {
                 ));
 
         return evidenceMapper.toVersionResponse(version);
+    }
+
+    /**
+     * 특정 Evidence 버전의 Automation Runtime 파일 메타데이터 조회
+     *
+     * 일반 Evidence 파일 업로드로 저장된 sourceFileId를 사용한다.
+     * 기존 Job output 파일 조회 API와는 별도로 처리한다.
+     *
+     * GET /api/evidence/{id}/versions/{versionNumber}/file/metadata
+     */
+    public RuntimePmisFileResponse findVersionFileMetadata(
+            Long evidenceId,
+            Integer versionNumber
+    ) {
+        // 1. Evidence 존재 여부 확인
+        getEvidence(evidenceId);
+
+        // 2. 버전 번호 검증
+        if (versionNumber == null || versionNumber < 1) {
+            throw new BusinessException(
+                    EvidenceErrorCode.EVIDENCE_NOT_FOUND
+            );
+        }
+
+        // 3. 해당 Evidence에 속한 버전 조회
+        EvidenceVersion version = evidenceVersionRepository
+                .findByEvidenceIdAndVersionNumber(
+                        evidenceId,
+                        versionNumber
+                )
+                .orElseThrow(() -> new BusinessException(
+                        EvidenceErrorCode.EVIDENCE_NOT_FOUND
+                ));
+
+        // 4. Runtime 파일 ID 확인
+        String sourceFileId = version.getSourceFileId();
+
+        if (!hasText(sourceFileId)) {
+            throw new BusinessException(
+                    EvidenceErrorCode.RUNTIME_FILE_METADATA_INVALID
+            );
+        }
+
+        // 5. Automation Runtime 일반 파일 메타데이터 조회
+        try {
+            RuntimePmisFileResponse runtimeFile =
+                    runtimeApiClient.getPmisFileMetadata(sourceFileId);
+
+            // 6. 응답 검증
+            validatePmisFileMetadata(runtimeFile);
+
+            if (!Objects.equals(
+                    sourceFileId,
+                    runtimeFile.getFileId()
+            )) {
+                throw new BusinessException(
+                        EvidenceErrorCode.RUNTIME_FILE_METADATA_INVALID
+                );
+            }
+
+            return runtimeFile;
+
+        } catch (RestClientException exception) {
+            throw new BusinessException(
+                    EvidenceErrorCode.RUNTIME_API_UNAVAILABLE
+            );
+        }
+    }
+    /**
+     * 특정 Evidence 버전의 파일 바이너리 다운로드
+     *
+     * 일반 PMIS 파일 API를 사용하며 기존 Job Output 파일 API와 분리한다.
+     *
+     * GET /api/evidence/{id}/versions/{versionNumber}/file
+     */
+    public byte[] downloadVersionFileContent(
+            Long evidenceId,
+            Integer versionNumber
+    ) {
+        // 1. Evidence 존재 여부 확인
+        getEvidence(evidenceId);
+
+        // 2. 버전 번호 검증
+        if (versionNumber == null || versionNumber < 1) {
+            throw new BusinessException(
+                    EvidenceErrorCode.EVIDENCE_NOT_FOUND
+            );
+        }
+
+        // 3. 해당 Evidence에 속한 버전 조회
+        EvidenceVersion version = evidenceVersionRepository
+                .findByEvidenceIdAndVersionNumber(
+                        evidenceId,
+                        versionNumber
+                )
+                .orElseThrow(() -> new BusinessException(
+                        EvidenceErrorCode.EVIDENCE_NOT_FOUND
+                ));
+
+        // 4. Runtime 파일 ID 확인
+        String sourceFileId = version.getSourceFileId();
+
+        if (!hasText(sourceFileId)) {
+            throw new BusinessException(
+                    EvidenceErrorCode.RUNTIME_FILE_METADATA_INVALID
+            );
+        }
+
+        // 5. Runtime 일반 파일 바이너리 다운로드
+        try {
+            byte[] fileContent =
+                    runtimeApiClient.downloadPmisFileContent(sourceFileId);
+
+            if (fileContent == null || fileContent.length == 0) {
+                throw new BusinessException(
+                        EvidenceErrorCode.RUNTIME_FILE_METADATA_INVALID
+                );
+            }
+
+            return fileContent;
+
+        } catch (RestClientException exception) {
+            throw new BusinessException(
+                    EvidenceErrorCode.RUNTIME_API_UNAVAILABLE
+            );
+        }
     }
 
     /**
@@ -353,6 +487,114 @@ public class EvidenceService {
                 evidenceVersionRepository.save(version);
 
         return evidenceMapper.toVersionResponse(savedVersion);
+    }
+
+    // =========================================================================
+    // 일반 Evidence 파일 업로드
+    // =========================================================================
+
+    /**
+     * 일반 Evidence 파일을 Automation Runtime에 업로드한 후
+     * 반환된 file_id를 EvidenceVersion.sourceFileId에 저장한다.
+     *
+     * Runtime에는 바이너리 파일을 저장하고 PMIS DB에는 파일 참조와
+     * 버전별 업무 메타데이터만 저장한다.
+     */
+    @Transactional
+    public EvidenceVersionResponse uploadVersion(
+            Long evidenceId,
+            MultipartFile file,
+            EvidenceVersionUploadRequest request
+    ) {
+        Evidence evidence = getEvidence(evidenceId);
+        User submittedBy = getCurrentUser();
+
+        validateEvidenceUploadFile(file);
+
+        String originalFilename = file.getOriginalFilename();
+        MediaType mediaType = resolveMediaType(file.getContentType());
+
+        RuntimePmisFileResponse runtimeFile;
+
+        try {
+            runtimeFile = runtimeApiClient.uploadPmisFile(
+                    originalFilename,
+                    mediaType,
+                    file.getBytes()
+            );
+        } catch (IOException | RestClientException exception) {
+            throw new BusinessException(
+                    EvidenceErrorCode.RUNTIME_API_UNAVAILABLE
+            );
+        }
+
+        validatePmisFileMetadata(runtimeFile);
+
+        int nextVersionNumber = evidenceVersionRepository
+                .findTopByEvidenceIdOrderByVersionNumberDesc(evidenceId)
+                .map(version -> version.getVersionNumber() + 1)
+                .orElse(1);
+
+        LocalDateTime submittedAt = LocalDateTime.now();
+
+        EvidenceVersion version = EvidenceVersion.createNewVersion(
+                evidence,
+                nextVersionNumber,
+                request.getEvidenceType(),
+                request.getTitle(),
+                request.getDescription(),
+                runtimeFile.getOriginalFilename(),
+                null,
+                runtimeFile.getFileId(),
+                null,
+                null,
+                submittedBy,
+                submittedAt
+        );
+
+        EvidenceVersion savedVersion =
+                evidenceVersionRepository.save(version);
+
+        return evidenceMapper.toVersionResponse(savedVersion);
+    }
+
+    private void validateEvidenceUploadFile(MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new BusinessException(
+                    EvidenceErrorCode.EVIDENCE_FILE_EMPTY
+            );
+        }
+
+        if (file.getSize() > MAX_EVIDENCE_FILE_SIZE) {
+            throw new BusinessException(
+                    EvidenceErrorCode.EVIDENCE_FILE_SIZE_EXCEEDED
+            );
+        }
+    }
+
+    private MediaType resolveMediaType(String contentType) {
+        if (!hasText(contentType)) {
+            return MediaType.APPLICATION_OCTET_STREAM;
+        }
+
+        try {
+            return MediaType.parseMediaType(contentType);
+        } catch (IllegalArgumentException exception) {
+            return MediaType.APPLICATION_OCTET_STREAM;
+        }
+    }
+
+    private void validatePmisFileMetadata(
+            RuntimePmisFileResponse runtimeFile
+    ) {
+        if (runtimeFile == null
+                || !hasText(runtimeFile.getFileId())
+                || !hasText(runtimeFile.getOriginalFilename())
+                || !hasText(runtimeFile.getSha256())) {
+            throw new BusinessException(
+                    EvidenceErrorCode.RUNTIME_FILE_METADATA_INVALID
+            );
+        }
     }
 
     // =========================================================================

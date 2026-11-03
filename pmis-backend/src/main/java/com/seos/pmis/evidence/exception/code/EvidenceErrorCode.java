@@ -150,6 +150,18 @@ public enum EvidenceErrorCode implements ErrorCode {
            "EVIDENCE_VERSION_NUMBER_INVALID",
            "Evidence Version 번호는 1 이상이어야 합니다."
     ),
+    
+    EVIDENCE_FILE_EMPTY(
+            HttpStatus.BAD_REQUEST,
+            "EVIDENCE_FILE_EMPTY",
+            "업로드할 파일이 비어 있습니다."
+    ),
+
+    EVIDENCE_FILE_SIZE_EXCEEDED(
+            HttpStatus.PAYLOAD_TOO_LARGE,
+            "EVIDENCE_FILE_SIZE_EXCEEDED",
+            "업로드 파일은 최대 50 MiB까지 허용됩니다."
+    ),
 
     RUNTIME_API_UNAVAILABLE(
             HttpStatus.BAD_GATEWAY,

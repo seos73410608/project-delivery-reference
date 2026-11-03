@@ -1,3 +1,4 @@
+
 package com.seos.pmis.integration.runtime.service;
 
 import com.seos.pmis.common.exception.BusinessException;
@@ -10,6 +11,7 @@ import com.seos.pmis.integration.runtime.dto.RuntimeOcrJobStatusResponse;
 import com.seos.pmis.integration.runtime.dto.RuntimeOcrResultResponse;
 import com.seos.pmis.integration.runtime.dto.RuntimeOcrUploadResponse;
 import com.seos.pmis.integration.runtime.dto.RuntimeOutputFileResponse;
+import com.seos.pmis.integration.runtime.dto.RuntimePmisFileResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -27,6 +29,12 @@ import java.util.function.Supplier;
  * Runtime API 호출과 예외 변환을 담당한다.
  * 외부 API 오류의 세부 계약이 확정되기 전까지
  * 기존 PMIS 오류 응답 규격을 유지한다.
+ *
+ * 담당 기능:
+ * 1. Job 실행 결과 파일 조회
+ * 2. PMIS 일반 파일 업로드 및 조회
+ * 3. OCR 이미지 업로드
+ * 4. OCR 작업 생성 및 조회
  */
 @Slf4j
 @Service
@@ -37,6 +45,9 @@ public class RuntimeService {
 
     /**
      * 실행 결과 파일 목록 조회
+     *
+     * @param executionUuid Runtime 실행 UUID
+     * @return 실행 결과 파일 목록
      */
     public List<RuntimeOutputFileResponse> getExecutionFiles(
             String executionUuid
@@ -48,9 +59,14 @@ public class RuntimeService {
     }
 
     /**
-     * 파일 메타데이터 조회
+     * Job 실행 결과 파일 메타데이터 조회
+     *
+     * @param fileId Runtime 파일 ID
+     * @return 파일 메타데이터
      */
-    public RuntimeOutputFileResponse getFileMetadata(String fileId) {
+    public RuntimeOutputFileResponse getFileMetadata(
+            String fileId
+    ) {
         return execute(
                 "getFileMetadata",
                 () -> runtimeApiClient.getFileMetadata(fileId)
@@ -58,12 +74,79 @@ public class RuntimeService {
     }
 
     /**
-     * 파일 내용 다운로드
+     * Job 실행 결과 파일 다운로드
+     *
+     * @param fileId Runtime 파일 ID
+     * @return 파일 바이너리
      */
-    public byte[] downloadFileContent(String fileId) {
+    public byte[] downloadFileContent(
+            String fileId
+    ) {
         return execute(
                 "downloadFileContent",
                 () -> runtimeApiClient.downloadFileContent(fileId)
+        );
+    }
+
+    /**
+     * PMIS 일반 파일 업로드
+     *
+     * API:
+     * POST /api/v1/pmis/files
+     *
+     * @param fileName 업로드할 파일명
+     * @param mediaType 파일 MIME 타입
+     * @param fileContent 파일 바이너리
+     * @return PMIS 일반 파일 업로드 결과
+     */
+    public RuntimePmisFileResponse uploadPmisFile(
+            String fileName,
+            MediaType mediaType,
+            byte[] fileContent
+    ) {
+        return execute(
+                "uploadPmisFile",
+                () -> runtimeApiClient.uploadPmisFile(
+                        fileName,
+                        mediaType,
+                        fileContent
+                )
+        );
+    }
+
+    /**
+     * PMIS 일반 파일 메타데이터 조회
+     *
+     * API:
+     * GET /api/v1/pmis/files/{file_id}
+     *
+     * @param fileId Runtime PMIS 파일 ID
+     * @return PMIS 일반 파일 메타데이터
+     */
+    public RuntimePmisFileResponse getPmisFileMetadata(
+            String fileId
+    ) {
+        return execute(
+                "getPmisFileMetadata",
+                () -> runtimeApiClient.getPmisFileMetadata(fileId)
+        );
+    }
+
+    /**
+     * PMIS 일반 파일 다운로드
+     *
+     * API:
+     * GET /api/v1/pmis/files/{file_id}/content
+     *
+     * @param fileId Runtime PMIS 파일 ID
+     * @return 파일 바이너리
+     */
+    public byte[] downloadPmisFileContent(
+            String fileId
+    ) {
+        return execute(
+                "downloadPmisFileContent",
+                () -> runtimeApiClient.downloadPmisFileContent(fileId)
         );
     }
 
@@ -73,7 +156,7 @@ public class RuntimeService {
      * @param fileName 업로드할 파일명
      * @param mediaType 이미지 MIME 타입
      * @param fileContent 이미지 바이너리
-     * @return 업로드 결과
+     * @return OCR 이미지 업로드 결과
      */
     public RuntimeOcrUploadResponse uploadImage(
             String fileName,
@@ -197,6 +280,7 @@ public class RuntimeService {
     ) {
         try {
             return action.get();
+
         } catch (RestClientResponseException exception) {
             log.warn(
                     "Runtime API returned an HTTP error. operation={}, status={}",
@@ -208,6 +292,7 @@ public class RuntimeService {
                     EvidenceErrorCode.RUNTIME_API_UNAVAILABLE,
                     exception
             );
+
         } catch (RestClientException exception) {
             log.error(
                     "Runtime API communication failed. operation={}, exceptionType={}",
@@ -219,6 +304,7 @@ public class RuntimeService {
                     EvidenceErrorCode.RUNTIME_API_UNAVAILABLE,
                     exception
             );
+
         } catch (IllegalStateException exception) {
             log.error(
                     "Runtime API returned an invalid response. operation={}, exceptionType={}",
