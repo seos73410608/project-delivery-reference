@@ -10,6 +10,7 @@ import com.seos.pmis.evidence.dto.request.EvidenceVersionUploadRequest;
 import com.seos.pmis.evidence.dto.response.EvidenceResponse;
 import com.seos.pmis.evidence.dto.response.EvidenceVersionResponse;
 import com.seos.pmis.evidence.dto.response.EvidenceVerificationHistoryResponse;
+import com.seos.pmis.integration.runtime.dto.RuntimePmisFileResponse;
 import com.seos.pmis.evidence.enums.EvidenceType;
 import com.seos.pmis.evidence.service.EvidenceService;
 
@@ -231,6 +232,26 @@ public class EvidenceController {
     ) {
         return ApiResponse.success(
                 evidenceService.findVersion(id, versionNumber)
+        );
+    }
+    
+    /**
+     * Evidence 특정 버전의 Runtime 파일 메타데이터 조회
+     *
+     * GET /api/evidence/{id}/versions/{versionNumber}/file/metadata
+     */
+    @GetMapping(
+            "/evidence/{id}/versions/{versionNumber}/file/metadata"
+    )
+    public ApiResponse<RuntimePmisFileResponse> findVersionFileMetadata(
+            @PathVariable Long id,
+            @PathVariable @Min(1) Integer versionNumber
+    ) {
+        return ApiResponse.success(
+                evidenceService.findVersionFileMetadata(
+                        id,
+                        versionNumber
+                )
         );
     }
 

@@ -186,6 +186,73 @@ public class EvidenceService {
     }
 
     /**
+     * 특정 Evidence 버전의 Automation Runtime 파일 메타데이터 조회
+     *
+     * 일반 Evidence 파일 업로드로 저장된 sourceFileId를 사용한다.
+     * 기존 Job output 파일 조회 API와는 별도로 처리한다.
+     *
+     * GET /api/evidence/{id}/versions/{versionNumber}/file/metadata
+     */
+    public RuntimePmisFileResponse findVersionFileMetadata(
+            Long evidenceId,
+            Integer versionNumber
+    ) {
+        // 1. Evidence 존재 여부 확인
+        getEvidence(evidenceId);
+
+        // 2. 버전 번호 검증
+        if (versionNumber == null || versionNumber < 1) {
+            throw new BusinessException(
+                    EvidenceErrorCode.EVIDENCE_NOT_FOUND
+            );
+        }
+
+        // 3. 해당 Evidence에 속한 버전 조회
+        EvidenceVersion version = evidenceVersionRepository
+                .findByEvidenceIdAndVersionNumber(
+                        evidenceId,
+                        versionNumber
+                )
+                .orElseThrow(() -> new BusinessException(
+                        EvidenceErrorCode.EVIDENCE_NOT_FOUND
+                ));
+
+        // 4. Runtime 파일 ID 확인
+        String sourceFileId = version.getSourceFileId();
+
+        if (!hasText(sourceFileId)) {
+            throw new BusinessException(
+                    EvidenceErrorCode.RUNTIME_FILE_METADATA_INVALID
+            );
+        }
+
+        // 5. Automation Runtime 일반 파일 메타데이터 조회
+        try {
+            RuntimePmisFileResponse runtimeFile =
+                    runtimeApiClient.getPmisFileMetadata(sourceFileId);
+
+            // 6. 응답 검증
+            validatePmisFileMetadata(runtimeFile);
+
+            if (!Objects.equals(
+                    sourceFileId,
+                    runtimeFile.getFileId()
+            )) {
+                throw new BusinessException(
+                        EvidenceErrorCode.RUNTIME_FILE_METADATA_INVALID
+                );
+            }
+
+            return runtimeFile;
+
+        } catch (RestClientException exception) {
+            throw new BusinessException(
+                    EvidenceErrorCode.RUNTIME_API_UNAVAILABLE
+            );
+        }
+    }
+
+    /**
      * 특정 Evidence 버전의 검증 이력을 최신순으로 조회한다.
      *
      * GET /api/evidence/{id}/versions/{versionNumber}/verification-history
