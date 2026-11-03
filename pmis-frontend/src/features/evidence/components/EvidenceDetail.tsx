@@ -23,8 +23,10 @@ import {
   getEvidenceVersions,
   getEvidenceVersion,
   getEvidenceVersionVerificationHistory,
+  verifyEvidenceVersion,
   type EvidenceOcrJob,
   type EvidenceVersionCreateRequest,
+  type EvidenceVersionVerificationRequest,
 } from "../api/evidenceApi";
 
 interface EvidenceDetailProps {
@@ -181,7 +183,14 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
   // 버전 생성 요청 식별
   const versionCreateRequestSequenceRef = useRef(0);
 
+  // 버전 검증 요청 식별
+  const verificationRequestSequenceRef = useRef(0);
+
   const mountedRef = useRef(true);
+
+  // API 응답을 반영할 상세 화면용 Evidence 상태
+  const [currentEvidence, setCurrentEvidence] =
+    useState<Evidence | null>(evidence);
 
   // OCR 상태
   const [ocrStatus, setOcrStatus] = useState<OcrStatus>("IDLE");
@@ -231,6 +240,22 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
   const [versionSubmitSuccess, setVersionSubmitSuccess] =
     useState("");
 
+  // 버전별 검증 처리 상태
+  const [verificationSubmitting, setVerificationSubmitting] =
+    useState(false);
+
+  const [verificationStatusInput, setVerificationStatusInput] =
+    useState<"APPROVED" | "REJECTED">("APPROVED");
+
+  const [verificationRemarkInput, setVerificationRemarkInput] =
+    useState("");
+
+  const [verificationSubmitError, setVerificationSubmitError] =
+    useState("");
+
+  const [verificationSubmitSuccess, setVerificationSubmitSuccess] =
+    useState("");
+
   // 컴포넌트 마운트 및 언마운트 처리
   useEffect(() => {
     mountedRef.current = true;
@@ -242,8 +267,14 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
       versionListRequestSequenceRef.current += 1;
       versionDetailRequestSequenceRef.current += 1;
       versionCreateRequestSequenceRef.current += 1;
+      verificationRequestSequenceRef.current += 1;
     };
   }, []);
+
+  // 부모에서 전달받은 Evidence 변경 반영
+  useEffect(() => {
+    setCurrentEvidence(evidence);
+  }, [evidence]);
 
   // 현재 OCR 요청인지 확인
   const isCurrentRequest = useCallback(
@@ -271,43 +302,42 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
 
   // Evidence 변경 시 OCR 및 버전 화면 초기화
   useEffect(() => {
-    // 진행 중인 요청 무효화
     requestSequenceRef.current += 1;
     versionListRequestSequenceRef.current += 1;
     versionDetailRequestSequenceRef.current += 1;
     versionCreateRequestSequenceRef.current += 1;
+    verificationRequestSequenceRef.current += 1;
 
-    // OCR 상태 초기화
     setOcrStatus("IDLE");
     setOcrJob(null);
     setOcrError("");
 
-    // 버전 목록 초기화
     setVersions([]);
     setVersionsLoading("IDLE");
     setVersionsError("");
 
-    // 선택된 버전 초기화
     setSelectedVersionNumber(null);
     setSelectedVersion(null);
     setVerificationHistory([]);
 
-    // 버전 상세 상태 초기화
     setVersionDetailLoading(false);
     setVersionDetailError("");
 
-    // 검증 이력 상태 초기화
     setHistoryLoading(false);
     setHistoryError("");
 
-    // 신규 버전 폼 초기화
     setIsVersionFormOpen(false);
     setVersionForm(createEmptyVersionForm());
     setVersionSubmitting(false);
     setVersionSubmitError("");
     setVersionSubmitSuccess("");
 
-    // 파일 입력 초기화
+    setVerificationSubmitting(false);
+    setVerificationStatusInput("APPROVED");
+    setVerificationRemarkInput("");
+    setVerificationSubmitError("");
+    setVerificationSubmitSuccess("");
+
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -338,7 +368,6 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
         setVersionsLoading("SUCCEEDED");
 
         if (result.length > 0) {
-          // Backend에서 최신 버전부터 반환하므로 첫 번째 항목 사용
           setSelectedVersionNumber(result[0].versionNumber);
         } else {
           setSelectedVersionNumber(null);
@@ -385,7 +414,6 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
       setHistoryLoading(true);
       setHistoryError("");
 
-      // 버전 상세와 검증 이력을 병렬 조회
       const [versionResult, historyResult] =
         await Promise.allSettled([
           getEvidenceVersion(evidenceId, versionNumber),
@@ -399,7 +427,6 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
         return;
       }
 
-      // 버전 상세 조회 결과 처리
       if (versionResult.status === "fulfilled") {
         setSelectedVersion(versionResult.value);
         setVersionDetailLoading(false);
@@ -410,7 +437,6 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
         );
       }
 
-      // 검증 이력 조회 결과 처리
       if (historyResult.status === "fulfilled") {
         setVerificationHistory(historyResult.value);
         setHistoryLoading(false);
@@ -535,7 +561,6 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
     setVersionSubmitSuccess("");
 
     try {
-      // 1. 신규 버전 생성
       const createdVersion = await createEvidenceVersion(
         evidenceId,
         request,
@@ -548,10 +573,8 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
         return;
       }
 
-      // 2. 기존 버전 목록 요청 무효화
       versionListRequestSequenceRef.current += 1;
 
-      // 3. 최신 버전 목록 재조회
       setVersionsLoading("LOADING");
       setVersionsError("");
 
@@ -568,10 +591,8 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
       setVersions(refreshedVersions);
       setVersionsLoading("SUCCEEDED");
 
-      // 4. 생성된 버전 선택
       setSelectedVersionNumber(createdVersion.versionNumber);
 
-      // 5. 제출 완료 표시
       setVersionSubmitSuccess(
         `Version ${createdVersion.versionNumber} 생성이 완료되었습니다.`,
       );
@@ -598,16 +619,22 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
   }
 
   // 현재 Evidence의 검증 상태 스타일
-  const statusStyle = evidence
-    ? getVerificationStatusStyle(evidence.verificationStatus)
+  const statusStyle = currentEvidence
+    ? getVerificationStatusStyle(
+        currentEvidence.verificationStatus,
+      )
     : undefined;
 
   // 선택한 버전의 파일 정보를 우선 표시
   const displayedFileName =
-    selectedVersion?.fileName || evidence?.fileName || null;
+    selectedVersion?.fileName ||
+    currentEvidence?.fileName ||
+    null;
 
   const displayedFilePath =
-    selectedVersion?.filePath || evidence?.filePath || null;
+    selectedVersion?.filePath ||
+    currentEvidence?.filePath ||
+    null;
 
   // OCR 실행 버튼 클릭
   function handleOcrButtonClick() {
@@ -629,7 +656,185 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
       return;
     }
 
+    setVerificationSubmitError("");
+    setVerificationSubmitSuccess("");
     setSelectedVersionNumber(versionNumber);
+  }
+
+  // 선택된 Evidence 버전 검증
+  async function handleVerifySelectedVersion(
+    event: FormEvent<HTMLFormElement>,
+  ) {
+    event.preventDefault();
+
+    if (
+      !evidence ||
+      !selectedVersion ||
+      selectedVersionNumber === null ||
+      verificationSubmitting
+    ) {
+      return;
+    }
+
+    const evidenceId = evidence.id;
+    const versionNumber = selectedVersionNumber;
+    const remark = verificationRemarkInput.trim();
+
+    if (
+      verificationStatusInput === "REJECTED" &&
+      !remark
+    ) {
+      setVerificationSubmitError(
+        "반려 처리 시 검증 의견을 입력해야 합니다.",
+      );
+      return;
+    }
+
+    const request: EvidenceVersionVerificationRequest = {
+      status: verificationStatusInput,
+      remark: remark || null,
+    };
+
+    const requestSequence =
+      ++verificationRequestSequenceRef.current;
+
+    setVerificationSubmitting(true);
+    setVerificationSubmitError("");
+    setVerificationSubmitSuccess("");
+
+    try {
+      // 1. 선택된 버전 번호를 지정하여 검증 요청
+      const updatedEvidence = await verifyEvidenceVersion(
+        evidenceId,
+        versionNumber,
+        request,
+      );
+
+      if (
+        !mountedRef.current ||
+        verificationRequestSequenceRef.current !== requestSequence
+      ) {
+        return;
+      }
+
+      /*
+       * 2. API 응답의 Evidence 대표 정보 갱신
+       *
+       * 주의:
+       * 응답의 verificationStatus는 Evidence 대표 상태다.
+       * 선택된 버전의 상태로 직접 사용하면 안 된다.
+       * 선택 버전 상태는 아래에서 getEvidenceVersion()으로 재조회한다.
+       */
+      setCurrentEvidence(updatedEvidence);
+
+      // 3. 버전 목록 및 상세/이력 요청 무효화
+      const listRequestSequence =
+        ++versionListRequestSequenceRef.current;
+
+      const detailRequestSequence =
+        ++versionDetailRequestSequenceRef.current;
+
+      setVersionsLoading("LOADING");
+      setVersionsError("");
+
+      setVersionDetailLoading(true);
+      setVersionDetailError("");
+
+      setHistoryLoading(true);
+      setHistoryError("");
+
+      // 4. 버전 목록, 선택 버전 상세, 검증 이력 병렬 재조회
+      const [
+        versionsResult,
+        versionResult,
+        historyResult,
+      ] = await Promise.allSettled([
+        getEvidenceVersions(evidenceId),
+        getEvidenceVersion(evidenceId, versionNumber),
+        getEvidenceVersionVerificationHistory(
+          evidenceId,
+          versionNumber,
+        ),
+      ]);
+
+      if (
+        !mountedRef.current ||
+        verificationRequestSequenceRef.current !== requestSequence
+      ) {
+        return;
+      }
+
+      // 5. 버전 목록 갱신
+      if (
+        versionListRequestSequenceRef.current ===
+        listRequestSequence
+      ) {
+        if (versionsResult.status === "fulfilled") {
+          setVersions(versionsResult.value);
+          setVersionsLoading("SUCCEEDED");
+        } else {
+          setVersionsLoading("FAILED");
+          setVersionsError(
+            getErrorMessage(versionsResult.reason),
+          );
+        }
+      }
+
+      // 6. 선택 버전 상세 갱신
+      if (
+        versionDetailRequestSequenceRef.current ===
+        detailRequestSequence
+      ) {
+        if (versionResult.status === "fulfilled") {
+          setSelectedVersion(versionResult.value);
+          setVersionDetailLoading(false);
+        } else {
+          setVersionDetailLoading(false);
+          setVersionDetailError(
+            getErrorMessage(versionResult.reason),
+          );
+        }
+
+        // 7. 선택 버전 검증 이력 갱신
+        if (historyResult.status === "fulfilled") {
+          setVerificationHistory(historyResult.value);
+          setHistoryLoading(false);
+        } else {
+          setHistoryLoading(false);
+          setHistoryError(
+            getErrorMessage(historyResult.reason),
+          );
+        }
+      }
+
+      setVerificationSubmitSuccess(
+        `Version ${versionNumber} ${
+          verificationStatusInput === "APPROVED"
+            ? "승인"
+            : "반려"
+        } 처리가 완료되었습니다.`,
+      );
+
+      setVerificationRemarkInput("");
+    } catch (error: unknown) {
+      if (
+        !mountedRef.current ||
+        verificationRequestSequenceRef.current !== requestSequence
+      ) {
+        return;
+      }
+
+      setVerificationSubmitError(
+        getErrorMessage(error),
+      );
+    } finally {
+      if (
+        mountedRef.current &&
+        verificationRequestSequenceRef.current === requestSequence
+      ) {
+        setVerificationSubmitting(false);
+      }
+    }
   }
 
   // OCR 작업 완료까지 상태 재조회
@@ -775,7 +980,7 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
         </p>
       </div>
 
-      {!evidence ? (
+      {!currentEvidence ? (
         <div style={styles.emptyState}>
           증적 목록에서 항목을 선택하면 상세 정보가 표시됩니다.
         </div>
@@ -788,23 +993,24 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
             <div style={styles.infoGrid}>
               <strong>Evidence ID</strong>
               <span>
-                {evidence.evidenceKey || `#${evidence.id}`}
+                {currentEvidence.evidenceKey ||
+                  `#${currentEvidence.id}`}
               </span>
 
               <strong>Title</strong>
-              <span>{evidence.title || "-"}</span>
+              <span>{currentEvidence.title || "-"}</span>
 
               <strong>Evidence Type</strong>
-              <span>{evidence.evidenceType || "-"}</span>
+              <span>{currentEvidence.evidenceType || "-"}</span>
 
               <strong>Project ID</strong>
-              <span>{evidence.projectId}</span>
+              <span>{currentEvidence.projectId}</span>
 
               <strong>Requirement ID</strong>
-              <span>{evidence.requirementId}</span>
+              <span>{currentEvidence.requirementId}</span>
 
               <strong>WBS ID</strong>
-              <span>{evidence.wbsId ?? "-"}</span>
+              <span>{currentEvidence.wbsId ?? "-"}</span>
 
               <strong>Status</strong>
               <span>
@@ -815,26 +1021,28 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
                   }}
                 >
                   {getVerificationStatusLabel(
-                    evidence.verificationStatus,
+                    currentEvidence.verificationStatus,
                   )}
                 </span>
               </span>
 
               <strong>Submitted By</strong>
-              <span>{evidence.submittedByName || "-"}</span>
+              <span>{currentEvidence.submittedByName || "-"}</span>
 
               <strong>Submitted Date</strong>
-              <span>{formatDate(evidence.submittedAt)}</span>
+              <span>
+                {formatDate(currentEvidence.submittedAt)}
+              </span>
 
               <strong>Verified By</strong>
-              <span>{evidence.verifiedByName || "-"}</span>
+              <span>{currentEvidence.verifiedByName || "-"}</span>
 
               <strong>Verified Date</strong>
-              <span>{formatDate(evidence.verifiedAt)}</span>
+              <span>{formatDate(currentEvidence.verifiedAt)}</span>
 
               <strong>Description</strong>
               <span style={styles.longText}>
-                {evidence.description || "-"}
+                {currentEvidence.description || "-"}
               </span>
             </div>
           </section>
@@ -1124,11 +1332,13 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
                     <button
                       key={version.id}
                       type="button"
-                      onClick={() =>
+                      onClick={() => {
+                        setVerificationSubmitError("");
+                        setVerificationSubmitSuccess("");
                         setSelectedVersionNumber(
                           version.versionNumber,
-                        )
-                      }
+                        );
+                      }}
                       style={{
                         ...styles.versionItem,
                         ...(selectedVersionNumber ===
@@ -1270,6 +1480,124 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
                       {selectedVersion.verificationRemark || "-"}
                     </span>
                   </div>
+                )}
+              </section>
+
+              {/* 선택 버전 검증 처리 */}
+              <section style={styles.section}>
+                <h3 style={styles.sectionHeading}>
+                  Version {selectedVersionNumber} Verification
+                </h3>
+
+                <p style={styles.verificationDescription}>
+                  선택한 버전에 대해서만 검증을 수행합니다.
+                  과거 버전을 검증해도 Evidence 대표 검증 상태는
+                  변경되지 않습니다.
+                </p>
+
+                {verificationSubmitSuccess && (
+                  <div role="status" style={styles.successBox}>
+                    {verificationSubmitSuccess}
+                  </div>
+                )}
+
+                {verificationSubmitError && (
+                  <div role="alert" style={styles.errorBox}>
+                    {verificationSubmitError}
+                  </div>
+                )}
+
+                {selectedVersion && (
+                  <form
+                    onSubmit={handleVerifySelectedVersion}
+                    style={styles.verificationForm}
+                  >
+                    <div style={styles.formField}>
+                      <label htmlFor="version-verification-status">
+                        검증 결과
+                      </label>
+
+                      <select
+                        id="version-verification-status"
+                        value={verificationStatusInput}
+                        onChange={(event) => {
+                          setVerificationStatusInput(
+                            event.target.value as
+                              | "APPROVED"
+                              | "REJECTED",
+                          );
+
+                          setVerificationSubmitError("");
+                          setVerificationSubmitSuccess("");
+                        }}
+                        disabled={verificationSubmitting}
+                        style={styles.formInput}
+                      >
+                        <option value="APPROVED">승인</option>
+                        <option value="REJECTED">반려</option>
+                      </select>
+                    </div>
+
+                    <div style={styles.formField}>
+                      <label htmlFor="version-verification-remark">
+                        검증 의견
+                        {verificationStatusInput === "REJECTED" && (
+                          <span style={styles.requiredMark}> *</span>
+                        )}
+                      </label>
+
+                      <textarea
+                        id="version-verification-remark"
+                        value={verificationRemarkInput}
+                        onChange={(event) => {
+                          setVerificationRemarkInput(
+                            event.target.value,
+                          );
+
+                          setVerificationSubmitError("");
+                          setVerificationSubmitSuccess("");
+                        }}
+                        rows={3}
+                        maxLength={2000}
+                        disabled={verificationSubmitting}
+                        placeholder={
+                          verificationStatusInput === "REJECTED"
+                            ? "반려 사유를 입력해 주세요."
+                            : "검증 의견을 입력할 수 있습니다."
+                        }
+                        style={styles.formTextarea}
+                      />
+
+                      {verificationStatusInput === "REJECTED" && (
+                        <span style={styles.fieldHelp}>
+                          반려 처리 시 검증 의견은 필수입니다.
+                        </span>
+                      )}
+                    </div>
+
+                    <div style={styles.formActions}>
+                      <button
+                        type="submit"
+                        disabled={
+                          verificationSubmitting ||
+                          versionDetailLoading ||
+                          !selectedVersion
+                        }
+                        style={{
+                          ...styles.submitButton,
+                          ...(verificationSubmitting
+                            ? styles.disabledButton
+                            : {}),
+                        }}
+                      >
+                        {verificationSubmitting
+                          ? "검증 처리 중..."
+                          : verificationStatusInput === "APPROVED"
+                            ? "선택 버전 승인"
+                            : "선택 버전 반려"}
+                      </button>
+                    </div>
+                  </form>
                 )}
               </section>
 
@@ -1453,13 +1781,20 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
             )}
           </section>
 
-          {/* 현재 증적의 검증 정보 */}
+          {/* 현재 Evidence 대표 검증 정보 */}
           <section style={styles.section}>
-            <h3 style={styles.sectionHeading}>Verification</h3>
+            <h3 style={styles.sectionHeading}>
+              Evidence Verification Summary
+            </h3>
+
+            <p style={styles.verificationDescription}>
+              아래 정보는 선택된 버전이 아닌 Evidence 전체의 대표
+              검증 상태입니다.
+            </p>
 
             <div style={styles.infoGrid}>
               <strong>Verifier</strong>
-              <span>{evidence.verifiedByName || "-"}</span>
+              <span>{currentEvidence.verifiedByName || "-"}</span>
 
               <strong>Result</strong>
               <span
@@ -1469,13 +1804,13 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
                 }}
               >
                 {getVerificationStatusLabel(
-                  evidence.verificationStatus,
+                  currentEvidence.verificationStatus,
                 )}
               </span>
 
               <strong>Comment</strong>
               <span style={styles.longText}>
-                {evidence.verificationRemark || "-"}
+                {currentEvidence.verificationRemark || "-"}
               </span>
             </div>
           </section>
@@ -1752,6 +2087,30 @@ const styles: Record<string, CSSProperties> = {
   versionItemMeta: {
     color: "#666666",
     fontSize: 12,
+  },
+
+  verificationDescription: {
+    marginTop: 0,
+    marginBottom: 14,
+    color: "#666666",
+    fontSize: 13,
+    lineHeight: 1.6,
+  },
+
+  verificationForm: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 14,
+    padding: 16,
+    border: "1px solid #d6e4f0",
+    borderRadius: 8,
+    backgroundColor: "#f8fbff",
+  },
+
+  fieldHelp: {
+    color: "#c62828",
+    fontSize: 12,
+    fontWeight: 400,
   },
 
   historyList: {

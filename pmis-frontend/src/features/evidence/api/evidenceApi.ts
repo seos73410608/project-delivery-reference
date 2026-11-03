@@ -1,3 +1,4 @@
+
 import apiClient from '@/api/client';
 import type {
   ApiResponse,
@@ -48,6 +49,22 @@ export interface EvidenceVersionCreateRequest {
   sourceFileId?: string | null;
   executionUuid?: string | null;
   sourceJobId?: string | null;
+}
+
+/**
+ * 증적 버전 검증 요청 DTO
+ *
+ * PATCH /api/evidence/{evidenceId}/versions/{versionNumber}/verification
+ *
+ * 허용 상태:
+ * - APPROVED
+ * - REJECTED
+ *
+ * PENDING은 검증 결과로 사용할 수 없다.
+ */
+export interface EvidenceVersionVerificationRequest {
+  status: 'APPROVED' | 'REJECTED';
+  remark?: string | null;
 }
 
 /**
@@ -233,6 +250,32 @@ export async function getEvidenceVersionVerificationHistory(
     ApiResponse<EvidenceVerificationHistory[]>
   >(
     `${EVIDENCE_API}/${evidenceId}/versions/${versionNumber}/verification-history`,
+  );
+
+  return response.data.data;
+}
+
+/**
+ * 증적 특정 버전 검증
+ *
+ * PATCH /api/evidence/{evidenceId}/versions/{versionNumber}/verification
+ *
+ * Backend: EvidenceResponse
+ *
+ * 주의:
+ * - 응답의 verificationStatus는 Evidence 대표 검증 상태다.
+ * - 선택한 Version의 검증 상태는 getEvidenceVersion()으로 재조회한다.
+ * - 과거 Version 검증 시 Evidence 대표 상태는 변경되지 않는다.
+ * - 최신 Version 검증 시 Evidence 대표 상태도 함께 변경된다.
+ */
+export async function verifyEvidenceVersion(
+  evidenceId: number,
+  versionNumber: number,
+  request: EvidenceVersionVerificationRequest,
+): Promise<Evidence> {
+  const response = await apiClient.patch<ApiResponse<Evidence>>(
+    `${EVIDENCE_API}/${evidenceId}/versions/${versionNumber}/verification`,
+    request,
   );
 
   return response.data.data;
