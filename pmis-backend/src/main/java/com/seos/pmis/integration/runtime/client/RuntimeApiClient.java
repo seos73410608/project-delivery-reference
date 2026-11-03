@@ -1,3 +1,4 @@
+
 package com.seos.pmis.integration.runtime.client;
 
 import com.seos.pmis.integration.runtime.config.RuntimeProperties;
@@ -8,6 +9,7 @@ import com.seos.pmis.integration.runtime.dto.RuntimeOcrResultResponse;
 import com.seos.pmis.integration.runtime.dto.RuntimeOcrUploadResponse;
 import com.seos.pmis.integration.runtime.dto.RuntimeOutputFileResponse;
 import com.seos.pmis.integration.runtime.dto.RuntimeOcrJobByRequestIdResponse;
+import com.seos.pmis.integration.runtime.dto.RuntimePmisFileResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.ByteArrayResource;
@@ -25,12 +27,16 @@ import java.util.List;
  *
  * 담당 기능:
  * 1. 실행 결과 파일 목록 조회
- * 2. 파일 메타데이터 조회
- * 3. 파일 바이너리 조회
- * 4. OCR 대상 이미지 업로드
- * 5. OCR 작업 생성
- * 6. OCR 작업 상태 조회
- * 7. OCR 결과 조회
+ * 2. Job 실행 결과 파일 메타데이터 조회
+ * 3. Job 실행 결과 파일 바이너리 조회
+ * 4. PMIS 일반 파일 업로드
+ * 5. PMIS 일반 파일 메타데이터 조회
+ * 6. PMIS 일반 파일 바이너리 조회
+ * 7. OCR 대상 이미지 업로드
+ * 8. OCR 작업 생성
+ * 9. OCR 작업 상태 조회
+ * 10. OCR 결과 조회
+ * 11. PMIS 요청 ID 기반 OCR 작업 복구
  *
  * 업무 규칙과 증적 등록 처리는 Service 계층에서 담당한다.
  */
@@ -79,7 +85,7 @@ public class RuntimeApiClient {
     }
 
     /**
-     * 파일 메타데이터 조회
+     * Job 실행 결과 파일 메타데이터 조회
      *
      * API:
      * GET /api/v1/files/{file_id}
@@ -111,7 +117,7 @@ public class RuntimeApiClient {
     }
 
     /**
-     * 파일 바이너리 조회
+     * Job 실행 결과 파일 바이너리 조회
      *
      * API:
      * GET /api/v1/files/{file_id}/content
@@ -154,7 +160,7 @@ public class RuntimeApiClient {
      * @param fileName 업로드할 파일명
      * @param mediaType 이미지 MIME 타입 (image/png 또는 image/jpeg)
      * @param fileContent 이미지 바이너리
-     * @return 업로드 결과
+     * @return OCR 이미지 업로드 결과
      */
     public RuntimeOcrUploadResponse uploadImage(
             String fileName,
@@ -256,7 +262,7 @@ public class RuntimeApiClient {
         return response;
     }
 
-     /**
+    /**
      * PMIS 요청 ID를 이용한 OCR 작업 조회 및 복구
      *
      * API:
@@ -314,6 +320,122 @@ public class RuntimeApiClient {
         if (response == null) {
             throw new IllegalStateException(
                     "Runtime API returned an empty OCR result response."
+            );
+        }
+
+        return response;
+    }
+
+    /**
+     * PMIS 일반 파일 업로드
+     *
+     * API:
+     * POST /api/v1/pmis/files
+     *
+     * Content-Type:
+     * multipart/form-data
+     *
+     * @param fileName 업로드할 파일명
+     * @param mediaType 파일 MIME 타입
+     * @param fileContent 파일 바이너리
+     * @return PMIS 일반 파일 업로드 결과
+     */
+    public RuntimePmisFileResponse uploadPmisFile(
+            String fileName,
+            MediaType mediaType,
+            byte[] fileContent
+    ) {
+        MultipartBodyBuilder bodyBuilder = new MultipartBodyBuilder();
+
+        ByteArrayResource fileResource =
+                new ByteArrayResource(fileContent) {
+                    @Override
+                    public String getFilename() {
+                        return fileName;
+                    }
+                };
+
+        bodyBuilder.part("file", fileResource)
+                .contentType(mediaType)
+                .filename(fileName);
+
+        RuntimePmisFileResponse response =
+                createRestClient()
+                        .post()
+                        .uri("/api/v1/pmis/files")
+                        .contentType(MediaType.MULTIPART_FORM_DATA)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .body(bodyBuilder.build())
+                        .retrieve()
+                        .body(RuntimePmisFileResponse.class);
+
+        if (response == null) {
+            throw new IllegalStateException(
+                    "Runtime API returned an empty PMIS file upload response."
+            );
+        }
+
+        return response;
+    }
+
+    /**
+     * PMIS 일반 파일 메타데이터 조회
+     *
+     * API:
+     * GET /api/v1/pmis/files/{file_id}
+     *
+     * @param fileId Runtime PMIS 파일 ID
+     * @return PMIS 일반 파일 메타데이터
+     */
+    public RuntimePmisFileResponse getPmisFileMetadata(
+            String fileId
+    ) {
+        RuntimePmisFileResponse response =
+                createRestClient()
+                        .get()
+                        .uri(
+                                "/api/v1/pmis/files/{fileId}",
+                                fileId
+                        )
+                        .accept(MediaType.APPLICATION_JSON)
+                        .retrieve()
+                        .body(RuntimePmisFileResponse.class);
+
+        if (response == null) {
+            throw new IllegalStateException(
+                    "Runtime API returned an empty PMIS file metadata response."
+            );
+        }
+
+        return response;
+    }
+
+    /**
+     * PMIS 일반 파일 바이너리 다운로드
+     *
+     * API:
+     * GET /api/v1/pmis/files/{file_id}/content
+     *
+     * @param fileId Runtime PMIS 파일 ID
+     * @return 파일 바이너리 데이터
+     */
+    public byte[] downloadPmisFileContent(
+            String fileId
+    ) {
+        byte[] response =
+                createRestClient()
+                        .get()
+                        .uri(
+                                "/api/v1/pmis/files/{fileId}/content",
+                                fileId
+                        )
+                        .accept(MediaType.APPLICATION_OCTET_STREAM)
+                        .retrieve()
+                        .body(byte[].class);
+
+        if (response == null) {
+            throw new IllegalStateException(
+                    "Runtime API returned an empty PMIS file content response."
             );
         }
 
