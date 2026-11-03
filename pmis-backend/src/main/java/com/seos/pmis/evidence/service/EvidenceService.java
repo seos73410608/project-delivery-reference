@@ -251,6 +251,65 @@ public class EvidenceService {
             );
         }
     }
+    /**
+     * 특정 Evidence 버전의 파일 바이너리 다운로드
+     *
+     * 일반 PMIS 파일 API를 사용하며 기존 Job Output 파일 API와 분리한다.
+     *
+     * GET /api/evidence/{id}/versions/{versionNumber}/file
+     */
+    public byte[] downloadVersionFileContent(
+            Long evidenceId,
+            Integer versionNumber
+    ) {
+        // 1. Evidence 존재 여부 확인
+        getEvidence(evidenceId);
+
+        // 2. 버전 번호 검증
+        if (versionNumber == null || versionNumber < 1) {
+            throw new BusinessException(
+                    EvidenceErrorCode.EVIDENCE_NOT_FOUND
+            );
+        }
+
+        // 3. 해당 Evidence에 속한 버전 조회
+        EvidenceVersion version = evidenceVersionRepository
+                .findByEvidenceIdAndVersionNumber(
+                        evidenceId,
+                        versionNumber
+                )
+                .orElseThrow(() -> new BusinessException(
+                        EvidenceErrorCode.EVIDENCE_NOT_FOUND
+                ));
+
+        // 4. Runtime 파일 ID 확인
+        String sourceFileId = version.getSourceFileId();
+
+        if (!hasText(sourceFileId)) {
+            throw new BusinessException(
+                    EvidenceErrorCode.RUNTIME_FILE_METADATA_INVALID
+            );
+        }
+
+        // 5. Runtime 일반 파일 바이너리 다운로드
+        try {
+            byte[] fileContent =
+                    runtimeApiClient.downloadPmisFileContent(sourceFileId);
+
+            if (fileContent == null || fileContent.length == 0) {
+                throw new BusinessException(
+                        EvidenceErrorCode.RUNTIME_FILE_METADATA_INVALID
+                );
+            }
+
+            return fileContent;
+
+        } catch (RestClientException exception) {
+            throw new BusinessException(
+                    EvidenceErrorCode.RUNTIME_API_UNAVAILABLE
+            );
+        }
+    }
 
     /**
      * 특정 Evidence 버전의 검증 이력을 최신순으로 조회한다.

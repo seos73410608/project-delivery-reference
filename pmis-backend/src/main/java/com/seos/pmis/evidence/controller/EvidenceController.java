@@ -10,9 +10,9 @@ import com.seos.pmis.evidence.dto.request.EvidenceVersionUploadRequest;
 import com.seos.pmis.evidence.dto.response.EvidenceResponse;
 import com.seos.pmis.evidence.dto.response.EvidenceVersionResponse;
 import com.seos.pmis.evidence.dto.response.EvidenceVerificationHistoryResponse;
-import com.seos.pmis.integration.runtime.dto.RuntimePmisFileResponse;
 import com.seos.pmis.evidence.enums.EvidenceType;
 import com.seos.pmis.evidence.service.EvidenceService;
+import com.seos.pmis.integration.runtime.dto.RuntimePmisFileResponse;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
@@ -20,11 +20,15 @@ import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.data.domain.Page;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 /**
@@ -41,6 +45,8 @@ import java.util.List;
  * /api/evidence/{id}/versions
  * /api/evidence/{id}/versions/upload
  * /api/evidence/{id}/versions/{versionNumber}
+ * /api/evidence/{id}/versions/{versionNumber}/file/metadata
+ * /api/evidence/{id}/versions/{versionNumber}/file
  * /api/evidence/{id}/versions/{versionNumber}/verification-history
  */
 @RestController
@@ -183,16 +189,9 @@ public class EvidenceController {
     @ResponseStatus(HttpStatus.CREATED)
     public ApiResponse<EvidenceVersionResponse> uploadVersion(
             @PathVariable Long id,
-
-            @RequestPart("file")
-            MultipartFile file,
-
-            @RequestParam("evidenceType")
-            EvidenceType evidenceType,
-
-            @RequestParam("title")
-            String title,
-
+            @RequestPart("file") MultipartFile file,
+            @RequestParam("evidenceType") EvidenceType evidenceType,
+            @RequestParam("title") String title,
             @RequestParam(value = "description", required = false)
             String description
     ) {
@@ -234,7 +233,7 @@ public class EvidenceController {
                 evidenceService.findVersion(id, versionNumber)
         );
     }
-    
+
     /**
      * Evidence 특정 버전의 Runtime 파일 메타데이터 조회
      *
@@ -253,6 +252,66 @@ public class EvidenceController {
                         versionNumber
                 )
         );
+    }
+
+    /**
+     * Evidence 특정 버전의 파일 다운로드
+     *
+     * GET /api/evidence/{id}/versions/{versionNumber}/file
+     *
+     * Runtime에서 파일 메타데이터와 바이너리를 조회한 후
+     * PMIS를 통해 파일 다운로드 응답을 반환한다.
+     */
+    @GetMapping(
+            "/evidence/{id}/versions/{versionNumber}/file"
+    )
+    public ResponseEntity<byte[]> downloadVersionFile(
+            @PathVariable Long id,
+            @PathVariable @Min(1) Integer versionNumber
+    ) {
+        // 1. Runtime 파일 메타데이터 조회
+        RuntimePmisFileResponse metadata =
+                evidenceService.findVersionFileMetadata(
+                        id,
+                        versionNumber
+                );
+
+        // 2. Runtime 파일 바이너리 다운로드
+        byte[] fileContent =
+                evidenceService.downloadVersionFileContent(
+                        id,
+                        versionNumber
+                );
+
+        // 3. Content-Type 결정
+        MediaType mediaType;
+
+        try {
+            mediaType = MediaType.parseMediaType(
+                    metadata.getContentType()
+            );
+        } catch (IllegalArgumentException | NullPointerException exception) {
+            mediaType = MediaType.APPLICATION_OCTET_STREAM;
+        }
+
+        // 4. 원본 파일명으로 다운로드 헤더 설정
+        ContentDisposition contentDisposition =
+                ContentDisposition.attachment()
+                        .filename(
+                                metadata.getOriginalFilename(),
+                                StandardCharsets.UTF_8
+                        )
+                        .build();
+
+        // 5. 바이너리 HTTP 응답
+        return ResponseEntity.ok()
+                .contentType(mediaType)
+                .contentLength(fileContent.length)
+                .header(
+                        HttpHeaders.CONTENT_DISPOSITION,
+                        contentDisposition.toString()
+                )
+                .body(fileContent);
     }
 
     /**
