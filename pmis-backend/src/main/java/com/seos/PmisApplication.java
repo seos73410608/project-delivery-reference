@@ -1,4 +1,4 @@
-package com.seos.pmis;
+package com.seos;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

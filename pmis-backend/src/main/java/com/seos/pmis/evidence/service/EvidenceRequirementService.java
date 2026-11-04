@@ -1,7 +1,7 @@
 package com.seos.pmis.evidence.service;
 
 import com.seos.pmis.common.exception.BusinessException;
-import com.seos.pmis.common.util.SearchPageableFactory;
+import com.seos.pmis.common.search.SearchPageableFactory;
 import com.seos.pmis.evidence.dto.request.EvidenceRequirementCreateRequest;
 import com.seos.pmis.evidence.dto.request.EvidenceRequirementSearchRequest;
 import com.seos.pmis.evidence.dto.request.EvidenceRequirementUpdateRequest;
@@ -20,11 +20,13 @@ import com.seos.pmis.wbs.repository.WbsRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -86,8 +88,7 @@ public class EvidenceRequirementService {
     public EvidenceRequirementResponse findById(
             Long id
     ) {
-        EvidenceRequirement requirement =
-                getRequirement(id);
+        EvidenceRequirement requirement = getRequirement(id);
 
         return evidenceRequirementMapper.toResponse(
                 requirement
@@ -100,13 +101,28 @@ public class EvidenceRequirementService {
     public Page<EvidenceRequirementResponse> search(
             EvidenceRequirementSearchRequest request
     ) {
-        Pageable pageable =
-                SearchPageableFactory.create(
-                        request.getPage(),
-                        request.getSize(),
-                        request.getSortBy(),
-                        request.getDirection()
-                );
+        Pageable pageable = SearchPageableFactory.create(
+                request.getPage(),
+                request.getSize(),
+                request.getSortBy(),
+                request.getDirection() != null
+                        ? request.getDirection().name()
+                        : null,
+                "sortOrder",
+                Sort.Direction.ASC,
+                Set.of(
+                        "id",
+                        "requirementKey",
+                        "title",
+                        "requirementType",
+                        "required",
+                        "dueDate",
+                        "status",
+                        "sortOrder",
+                        "createdAt",
+                        "updatedAt"
+                )
+        );
 
         var specification =
                 EvidenceRequirementSpecification
@@ -155,13 +171,11 @@ public class EvidenceRequirementService {
             Long projectId,
             EvidenceRequirementCreateRequest request
     ) {
-        Project project =
-                getProject(projectId);
+        Project project = getProject(projectId);
 
-        Wbs wbs =
-                getOptionalWbs(
-                        request.getWbsId()
-                );
+        Wbs wbs = getOptionalWbs(
+                request.getWbsId()
+        );
 
         if (wbs != null) {
             validateWbsBelongsToProject(
@@ -170,8 +184,7 @@ public class EvidenceRequirementService {
             );
         }
 
-        String requirementKey =
-                generateRequirementKey(projectId);
+        String requirementKey = generateRequirementKey(projectId);
 
         EvidenceRequirement requirement =
                 evidenceRequirementMapper.toEntity(
@@ -182,9 +195,7 @@ public class EvidenceRequirementService {
                 );
 
         EvidenceRequirement saved =
-                evidenceRequirementRepository.save(
-                        requirement
-                );
+                evidenceRequirementRepository.save(requirement);
 
         /*
          * 생성 직후 Requirement 상태를
@@ -198,9 +209,7 @@ public class EvidenceRequirementService {
          */
         refreshStatus(saved);
 
-        return evidenceRequirementMapper.toResponse(
-                saved
-        );
+        return evidenceRequirementMapper.toResponse(saved);
     }
 
     /**
@@ -211,13 +220,11 @@ public class EvidenceRequirementService {
             Long id,
             EvidenceRequirementUpdateRequest request
     ) {
-        EvidenceRequirement requirement =
-                getRequirement(id);
+        EvidenceRequirement requirement = getRequirement(id);
 
-        Wbs wbs =
-                getOptionalWbs(
-                        request.getWbsId()
-                );
+        Wbs wbs = getOptionalWbs(
+                request.getWbsId()
+        );
 
         if (wbs != null) {
             validateWbsBelongsToProject(
@@ -238,9 +245,7 @@ public class EvidenceRequirementService {
          */
         refreshStatus(requirement);
 
-        return evidenceRequirementMapper.toResponse(
-                requirement
-        );
+        return evidenceRequirementMapper.toResponse(requirement);
     }
 
     /**
@@ -250,11 +255,8 @@ public class EvidenceRequirementService {
      * V1에서는 삭제하지 않는다.
      */
     @Transactional
-    public void delete(
-            Long id
-    ) {
-        EvidenceRequirement requirement =
-                getRequirement(id);
+    public void delete(Long id) {
+        EvidenceRequirement requirement = getRequirement(id);
 
         /*
          * Requirement에 연결된 Evidence가 존재하면
@@ -269,9 +271,7 @@ public class EvidenceRequirementService {
             );
         }
 
-        evidenceRequirementRepository.delete(
-                requirement
-        );
+        evidenceRequirementRepository.delete(requirement);
     }
 
     /**
@@ -295,11 +295,8 @@ public class EvidenceRequirementService {
      *     + 아직 기한 미도래
      */
     @Transactional
-    public void refreshStatus(
-            Long requirementId
-    ) {
-        EvidenceRequirement requirement =
-                getRequirement(requirementId);
+    public void refreshStatus(Long requirementId) {
+        EvidenceRequirement requirement = getRequirement(requirementId);
 
         refreshStatus(requirement);
     }
@@ -307,17 +304,13 @@ public class EvidenceRequirementService {
     /**
      * Evidence Requirement 상태 갱신
      */
-    private void refreshStatus(
-            EvidenceRequirement requirement
-    ) {
+    private void refreshStatus(EvidenceRequirement requirement) {
         /*
          * 필수 증적이 아닌 경우
          * 다른 조건보다 우선하여 NOT_REQUIRED 처리한다.
          */
         if (!requirement.getRequired()) {
-            requirement.changeStatus(
-                    RequirementStatus.NOT_REQUIRED
-            );
+            requirement.changeStatus(RequirementStatus.NOT_REQUIRED);
             return;
         }
 
@@ -325,17 +318,12 @@ public class EvidenceRequirementService {
          * 해당 Requirement에 Evidence가 하나라도 존재하면
          * PRESENT 상태로 변경한다.
          */
-        boolean hasEvidence =
-                !evidenceRepository
-                        .findAllByRequirementId(
-                                requirement.getId()
-                        )
-                        .isEmpty();
+        boolean hasEvidence = !evidenceRepository
+                .findAllByRequirementId(requirement.getId())
+                .isEmpty();
 
         if (hasEvidence) {
-            requirement.changeStatus(
-                    RequirementStatus.PRESENT
-            );
+            requirement.changeStatus(RequirementStatus.PRESENT);
             return;
         }
 
@@ -344,13 +332,8 @@ public class EvidenceRequirementService {
          * Due Date가 지난 경우 MISSING 처리한다.
          */
         if (requirement.getDueDate() != null
-                && requirement.getDueDate().isBefore(
-                        LocalDate.now()
-                )) {
-
-            requirement.changeStatus(
-                    RequirementStatus.MISSING
-            );
+                && requirement.getDueDate().isBefore(LocalDate.now())) {
+            requirement.changeStatus(RequirementStatus.MISSING);
             return;
         }
 
@@ -359,48 +342,35 @@ public class EvidenceRequirementService {
          * 아직 Evidence가 없고 Due Date가 지나지 않은 경우
          * PENDING 상태를 유지한다.
          */
-        requirement.changeStatus(
-                RequirementStatus.PENDING
-        );
+        requirement.changeStatus(RequirementStatus.PENDING);
     }
 
     /**
      * Requirement Entity 조회
      */
-    private EvidenceRequirement getRequirement(
-            Long id
-    ) {
+    private EvidenceRequirement getRequirement(Long id) {
         return evidenceRequirementRepository
                 .findById(id)
-                .orElseThrow(
-                        () -> new BusinessException(
-                                EvidenceErrorCode
-                                        .EVIDENCE_REQUIREMENT_NOT_FOUND
-                        )
-                );
+                .orElseThrow(() -> new BusinessException(
+                        EvidenceErrorCode.EVIDENCE_REQUIREMENT_NOT_FOUND
+                ));
     }
 
     /**
      * Project Entity 조회
      */
-    private Project getProject(
-            Long projectId
-    ) {
+    private Project getProject(Long projectId) {
         return projectRepository
                 .findById(projectId)
-                .orElseThrow(
-                        () -> new BusinessException(
-                                EvidenceErrorCode.PROJECT_NOT_FOUND
-                        )
-                );
+                .orElseThrow(() -> new BusinessException(
+                        EvidenceErrorCode.PROJECT_NOT_FOUND
+                ));
     }
 
     /**
      * Project 존재 여부 검증
      */
-    private void validateProjectExists(
-            Long projectId
-    ) {
+    private void validateProjectExists(Long projectId) {
         if (!projectRepository.existsById(projectId)) {
             throw new BusinessException(
                     EvidenceErrorCode.PROJECT_NOT_FOUND
@@ -411,24 +381,18 @@ public class EvidenceRequirementService {
     /**
      * WBS Entity 조회
      */
-    private Wbs getWbs(
-            Long wbsId
-    ) {
+    private Wbs getWbs(Long wbsId) {
         return wbsRepository
                 .findById(wbsId)
-                .orElseThrow(
-                        () -> new BusinessException(
-                                EvidenceErrorCode.WBS_NOT_FOUND
-                        )
-                );
+                .orElseThrow(() -> new BusinessException(
+                        EvidenceErrorCode.WBS_NOT_FOUND
+                ));
     }
 
     /**
      * 선택적 WBS 조회
      */
-    private Wbs getOptionalWbs(
-            Long wbsId
-    ) {
+    private Wbs getOptionalWbs(Long wbsId) {
         if (wbsId == null) {
             return null;
         }
@@ -456,45 +420,27 @@ public class EvidenceRequirementService {
      * 프로젝트 단위로
      * EVR-001 형태의 Key를 생성한다.
      */
-    private String generateRequirementKey(
-            Long projectId
-    ) {
+    private String generateRequirementKey(Long projectId) {
         List<EvidenceRequirement> requirements =
                 evidenceRequirementRepository
                         .findAllByProjectId(projectId);
 
-        int nextNumber =
-                requirements.stream()
-                        .map(
-                                EvidenceRequirement
-                                        ::getRequirementKey
-                        )
-                        .filter(key -> key != null)
-                        .filter(
-                                key -> key.startsWith("EVR-")
-                        )
-                        .map(
-                                key -> key.substring(4)
-                        )
-                        .mapToInt(
-                                this::parseKeyNumber
-                        )
-                        .max()
-                        .orElse(0)
-                        + 1;
+        int nextNumber = requirements.stream()
+                .map(EvidenceRequirement::getRequirementKey)
+                .filter(key -> key != null)
+                .filter(key -> key.startsWith("EVR-"))
+                .map(key -> key.substring(4))
+                .mapToInt(this::parseKeyNumber)
+                .max()
+                .orElse(0) + 1;
 
-        return String.format(
-                "EVR-%03d",
-                nextNumber
-        );
+        return String.format("EVR-%03d", nextNumber);
     }
 
     /**
      * Requirement Key 숫자 부분 파싱
      */
-    private int parseKeyNumber(
-            String value
-    ) {
+    private int parseKeyNumber(String value) {
         try {
             return Integer.parseInt(value);
         } catch (NumberFormatException exception) {

@@ -1,9 +1,8 @@
-
 package com.seos.pmis.evidence.service;
 
 import com.seos.pmis.common.exception.BusinessException;
 import com.seos.pmis.common.exception.code.CommonErrorCode;
-import com.seos.pmis.common.util.SearchPageableFactory;
+import com.seos.pmis.common.search.SearchPageableFactory;
 import com.seos.pmis.evidence.dto.request.EvidenceCreateRequest;
 import com.seos.pmis.evidence.dto.request.EvidenceSearchRequest;
 import com.seos.pmis.evidence.dto.request.EvidenceUpdateRequest;
@@ -38,6 +37,7 @@ import com.seos.pmis.wbs.repository.WbsRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -50,6 +50,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -115,12 +116,27 @@ public class EvidenceService {
         return evidenceMapper.toResponse(getEvidence(id));
     }
 
+
     public Page<EvidenceResponse> search(EvidenceSearchRequest request) {
         Pageable pageable = SearchPageableFactory.create(
                 request.getPage(),
                 request.getSize(),
                 request.getSortBy(),
-                request.getDirection()
+                request.getDirection() != null
+                        ? request.getDirection().name()
+                        : null,
+                "submittedAt",
+                Sort.Direction.DESC,
+                Set.of(
+                        "id",
+                        "evidenceKey",
+                        "evidenceType",
+                        "title",
+                        "submittedAt",
+                        "verificationStatus",
+                        "createdAt",
+                        "updatedAt"
+                )
         );
 
         var specification = EvidenceSpecification
