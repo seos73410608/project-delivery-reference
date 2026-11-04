@@ -1,4 +1,4 @@
-package com.seos.pmis.common.search;
+package com.seos.common.search;
 
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;

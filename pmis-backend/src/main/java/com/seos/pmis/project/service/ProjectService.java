@@ -1,7 +1,7 @@
 package com.seos.pmis.project.service;
 
-import com.seos.pmis.common.exception.BusinessException;
-import com.seos.pmis.common.exception.code.CommonErrorCode;
+import com.seos.common.exception.BusinessException;
+import com.seos.common.exception.code.CommonErrorCode;
 import com.seos.pmis.project.dto.request.CreateProjectRequest;
 import com.seos.pmis.project.dto.request.ProjectSearchRequest;
 import com.seos.pmis.project.dto.request.UpdateProjectRequest;

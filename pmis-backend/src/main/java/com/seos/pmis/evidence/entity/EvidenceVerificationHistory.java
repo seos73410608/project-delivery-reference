@@ -1,7 +1,7 @@
 
 package com.seos.pmis.evidence.entity;
 
-import com.seos.pmis.common.entity.BaseEntity;
+import com.seos.common.entity.BaseEntity;
 import com.seos.pmis.evidence.enums.VerificationStatus;
 import com.seos.pmis.user.entity.User;
 import jakarta.persistence.*;

@@ -7,7 +7,7 @@ import com.seos.pmis.change.dto.request.ChangeStatusUpdateRequest;
 import com.seos.pmis.change.dto.request.ChangeUpdateRequest;
 import com.seos.pmis.change.dto.response.ChangeResponse;
 import com.seos.pmis.change.service.ChangeService;
-import com.seos.pmis.common.response.ApiResponse;
+import com.seos.common.response.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;

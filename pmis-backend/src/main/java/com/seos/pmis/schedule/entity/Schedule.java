@@ -1,6 +1,6 @@
 package com.seos.pmis.schedule.entity;
 
-import com.seos.pmis.common.entity.BaseEntity;
+import com.seos.common.entity.BaseEntity;
 import com.seos.pmis.project.entity.Project;
 import com.seos.pmis.wbs.entity.Wbs;
 import jakarta.persistence.*;

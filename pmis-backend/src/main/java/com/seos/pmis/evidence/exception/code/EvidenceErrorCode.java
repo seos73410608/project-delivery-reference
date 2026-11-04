@@ -1,6 +1,6 @@
 package com.seos.pmis.evidence.exception.code;
 
-import com.seos.pmis.common.exception.code.ErrorCode;
+import com.seos.common.exception.code.ErrorCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

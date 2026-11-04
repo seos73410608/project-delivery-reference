@@ -1,6 +1,6 @@
 package com.seos.pmis.evidence.entity;
 
-import com.seos.pmis.common.entity.BaseEntity;
+import com.seos.common.entity.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

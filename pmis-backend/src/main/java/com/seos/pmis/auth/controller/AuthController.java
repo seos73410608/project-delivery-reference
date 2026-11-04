@@ -4,7 +4,7 @@ import com.seos.pmis.auth.dto.request.LoginRequest;
 import com.seos.pmis.auth.dto.request.RefreshTokenRequest;
 import com.seos.pmis.auth.dto.response.LoginResponse;
 import com.seos.pmis.auth.service.AuthService;
-import com.seos.pmis.common.response.ApiResponse;
+import com.seos.common.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;

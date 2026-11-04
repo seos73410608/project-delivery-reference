@@ -1,7 +1,7 @@
 
 package com.seos.pmis.integration.runtime.service;
 
-import com.seos.pmis.common.exception.BusinessException;
+import com.seos.common.exception.BusinessException;
 import com.seos.pmis.evidence.exception.code.EvidenceErrorCode;
 import com.seos.pmis.integration.runtime.client.RuntimeApiClient;
 import com.seos.pmis.integration.runtime.dto.RuntimeOcrJobByRequestIdResponse;

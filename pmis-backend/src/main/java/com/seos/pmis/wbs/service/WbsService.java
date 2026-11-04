@@ -1,6 +1,6 @@
 package com.seos.pmis.wbs.service;
 
-import com.seos.pmis.common.search.SearchPageableFactory;
+import com.seos.common.search.SearchPageableFactory;
 import com.seos.pmis.project.entity.Project;
 import com.seos.pmis.project.repository.ProjectRepository;
 import com.seos.pmis.wbs.dto.request.WbsCreateRequest;

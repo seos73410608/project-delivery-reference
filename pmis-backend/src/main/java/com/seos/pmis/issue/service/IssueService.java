@@ -1,8 +1,8 @@
 package com.seos.pmis.issue.service;
 
-import com.seos.pmis.common.exception.BusinessException;
-import com.seos.pmis.common.exception.code.CommonErrorCode;
-import com.seos.pmis.common.search.SearchPageableFactory;
+import com.seos.common.exception.BusinessException;
+import com.seos.common.exception.code.CommonErrorCode;
+import com.seos.common.search.SearchPageableFactory;
 import com.seos.pmis.issue.dto.request.IssueCreateRequest;
 import com.seos.pmis.issue.dto.request.IssueSearchRequest;
 import com.seos.pmis.issue.dto.request.IssueStatusUpdateRequest;

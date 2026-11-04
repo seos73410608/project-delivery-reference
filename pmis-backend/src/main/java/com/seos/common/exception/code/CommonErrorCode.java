@@ -1,4 +1,4 @@
-package com.seos.pmis.common.exception.code;
+package com.seos.common.exception.code;
 
 import lombok.Getter;
 import org.springframework.http.HttpStatus;

@@ -1,8 +1,8 @@
-package com.seos.pmis.common.exception;
+package com.seos.common.exception;
 
-import com.seos.pmis.common.exception.code.CommonErrorCode;
-import com.seos.pmis.common.exception.code.ErrorCode;
-import com.seos.pmis.common.response.ApiResponse;
+import com.seos.common.exception.code.CommonErrorCode;
+import com.seos.common.exception.code.ErrorCode;
+import com.seos.common.response.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authorization.AuthorizationDeniedException;

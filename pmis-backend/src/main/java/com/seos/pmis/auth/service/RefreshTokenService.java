@@ -2,8 +2,8 @@ package com.seos.pmis.auth.service;
 
 import com.seos.pmis.auth.entity.RefreshToken;
 import com.seos.pmis.auth.repository.RefreshTokenRepository;
-import com.seos.pmis.common.exception.BusinessException;
-import com.seos.pmis.common.exception.code.CommonErrorCode;
+import com.seos.common.exception.BusinessException;
+import com.seos.common.exception.code.CommonErrorCode;
 import com.seos.pmis.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

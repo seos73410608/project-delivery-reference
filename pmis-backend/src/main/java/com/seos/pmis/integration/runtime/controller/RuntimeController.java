@@ -1,6 +1,6 @@
 package com.seos.pmis.integration.runtime.controller;
 
-import com.seos.pmis.common.response.ApiResponse;
+import com.seos.common.response.ApiResponse;
 import com.seos.pmis.integration.runtime.dto.RuntimeOcrJobRequest;
 import com.seos.pmis.integration.runtime.dto.RuntimeOcrJobResponse;
 import com.seos.pmis.integration.runtime.dto.RuntimeOcrJobStatusResponse;

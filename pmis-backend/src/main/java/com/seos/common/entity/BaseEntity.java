@@ -1,4 +1,4 @@
-package com.seos.pmis.common.entity;
+package com.seos.common.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.EntityListeners;

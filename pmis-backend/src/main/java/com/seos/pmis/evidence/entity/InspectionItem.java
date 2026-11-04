@@ -1,6 +1,6 @@
 package com.seos.pmis.evidence.entity;
 
-import com.seos.pmis.common.entity.BaseEntity;
+import com.seos.common.entity.BaseEntity;
 import com.seos.pmis.evidence.enums.InspectionItemResult;
 import jakarta.persistence.*;
 import lombok.AccessLevel;

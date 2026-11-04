@@ -1,6 +1,6 @@
 package com.seos.pmis.evidence.controller;
 
-import com.seos.pmis.common.response.ApiResponse;
+import com.seos.common.response.ApiResponse;
 import com.seos.pmis.evidence.dto.request.EvidenceRequirementCreateRequest;
 import com.seos.pmis.evidence.dto.request.EvidenceRequirementSearchRequest;
 import com.seos.pmis.evidence.dto.request.EvidenceRequirementUpdateRequest;

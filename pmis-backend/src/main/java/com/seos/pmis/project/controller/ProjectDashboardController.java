@@ -1,6 +1,6 @@
 package com.seos.pmis.project.controller;
 
-import com.seos.pmis.common.response.ApiResponse;
+import com.seos.common.response.ApiResponse;
 import com.seos.pmis.project.dto.response.ProjectDashboardResponse;
 import com.seos.pmis.project.service.ProjectDashboardService;
 import io.swagger.v3.oas.annotations.Operation;

@@ -1,6 +1,6 @@
 package com.seos.pmis.wbs.entity;
 
-import com.seos.pmis.common.entity.BaseEntity;
+import com.seos.common.entity.BaseEntity;
 import com.seos.pmis.project.entity.Project;
 import jakarta.persistence.*;
 import lombok.AccessLevel;

@@ -1,6 +1,6 @@
 package com.seos.pmis.auth.entity;
 
-import com.seos.pmis.common.entity.BaseEntity;
+import com.seos.common.entity.BaseEntity;
 import com.seos.pmis.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;

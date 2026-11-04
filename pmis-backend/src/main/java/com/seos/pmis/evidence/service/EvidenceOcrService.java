@@ -1,6 +1,6 @@
 package com.seos.pmis.evidence.service;
 
-import com.seos.pmis.common.exception.BusinessException;
+import com.seos.common.exception.BusinessException;
 import com.seos.pmis.evidence.entity.Evidence;
 import com.seos.pmis.evidence.entity.EvidenceOcrJob;
 import com.seos.pmis.evidence.exception.code.EvidenceErrorCode;

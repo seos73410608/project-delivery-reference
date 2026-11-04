@@ -1,6 +1,6 @@
 package com.seos.pmis.evidence.entity;
 
-import com.seos.pmis.common.entity.BaseEntity;
+import com.seos.common.entity.BaseEntity;
 import com.seos.pmis.evidence.enums.RequirementStatus;
 import com.seos.pmis.evidence.enums.RequirementType;
 import com.seos.pmis.project.entity.Project;

@@ -1,6 +1,6 @@
 package com.seos.pmis.evidence.service;
 
-import com.seos.pmis.common.exception.BusinessException;
+import com.seos.common.exception.BusinessException;
 import com.seos.pmis.evidence.dto.request.InspectionCreateRequest;
 import com.seos.pmis.evidence.dto.request.InspectionItemCreateRequest;
 import com.seos.pmis.evidence.dto.request.InspectionItemResultUpdateRequest;

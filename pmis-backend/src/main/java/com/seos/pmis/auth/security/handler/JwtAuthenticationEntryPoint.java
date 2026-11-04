@@ -1,8 +1,8 @@
 package com.seos.pmis.auth.security.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.seos.pmis.common.exception.code.CommonErrorCode;
-import com.seos.pmis.common.response.ApiResponse;
+import com.seos.common.exception.code.CommonErrorCode;
+import com.seos.common.response.ApiResponse;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

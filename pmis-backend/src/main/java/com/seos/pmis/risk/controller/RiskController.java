@@ -1,6 +1,6 @@
 package com.seos.pmis.risk.controller;
 
-import com.seos.pmis.common.response.ApiResponse;
+import com.seos.common.response.ApiResponse;
 import com.seos.pmis.risk.dto.request.RiskCreateRequest;
 import com.seos.pmis.risk.dto.request.RiskSearchRequest;
 import com.seos.pmis.risk.dto.request.RiskStatusUpdateRequest;

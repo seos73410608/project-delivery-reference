@@ -1,7 +1,7 @@
 package com.seos.pmis.auth.controller;
 
 import com.seos.pmis.auth.security.jwt.JwtProvider;
-import com.seos.pmis.common.response.ApiResponse;
+import com.seos.common.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;

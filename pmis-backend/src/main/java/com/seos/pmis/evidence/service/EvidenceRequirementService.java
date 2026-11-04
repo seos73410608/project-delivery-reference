@@ -1,7 +1,7 @@
 package com.seos.pmis.evidence.service;
 
-import com.seos.pmis.common.exception.BusinessException;
-import com.seos.pmis.common.search.SearchPageableFactory;
+import com.seos.common.exception.BusinessException;
+import com.seos.common.search.SearchPageableFactory;
 import com.seos.pmis.evidence.dto.request.EvidenceRequirementCreateRequest;
 import com.seos.pmis.evidence.dto.request.EvidenceRequirementSearchRequest;
 import com.seos.pmis.evidence.dto.request.EvidenceRequirementUpdateRequest;

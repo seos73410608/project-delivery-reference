@@ -1,7 +1,7 @@
 package com.seos.pmis.risk.service;
 
-import com.seos.pmis.common.exception.BusinessException;
-import com.seos.pmis.common.search.SearchPageableFactory;
+import com.seos.common.exception.BusinessException;
+import com.seos.common.search.SearchPageableFactory;
 import com.seos.pmis.risk.dto.request.RiskCreateRequest;
 import com.seos.pmis.risk.dto.request.RiskSearchRequest;
 import com.seos.pmis.risk.dto.request.RiskStatusUpdateRequest;

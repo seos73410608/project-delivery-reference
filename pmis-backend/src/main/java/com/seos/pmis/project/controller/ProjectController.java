@@ -1,6 +1,6 @@
 package com.seos.pmis.project.controller;
 
-import com.seos.pmis.common.response.ApiResponse;
+import com.seos.common.response.ApiResponse;
 import com.seos.pmis.project.dto.request.CreateProjectRequest;
 import com.seos.pmis.project.dto.request.ProjectSearchRequest;
 import com.seos.pmis.project.dto.request.UpdateProjectRequest;

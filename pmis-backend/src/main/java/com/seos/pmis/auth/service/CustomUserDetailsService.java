@@ -1,8 +1,8 @@
 package com.seos.pmis.auth.service;
 
 import com.seos.pmis.auth.security.principal.UserPrincipal;
-import com.seos.pmis.common.exception.BusinessException;
-import com.seos.pmis.common.exception.code.CommonErrorCode;
+import com.seos.common.exception.BusinessException;
+import com.seos.common.exception.code.CommonErrorCode;
 import com.seos.pmis.user.entity.User;
 import com.seos.pmis.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;

@@ -1,7 +1,7 @@
-package com.seos.pmis.common.response;
+package com.seos.common.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.seos.pmis.common.exception.code.ErrorCode;
+import com.seos.common.exception.code.ErrorCode;
 import lombok.Getter;
 
 @Getter
