@@ -15,6 +15,13 @@ const RUNTIME_OCR_API = '/runtime/ocr';
 const EVIDENCE_OCR_JOBS_API = '/evidence-ocr-jobs';
 
 /**
+ * Evidence 파일 최대 업로드 크기
+ *
+ * Backend 제한: 50 MiB
+ */
+export const MAX_EVIDENCE_FILE_SIZE = 50 * 1024 * 1024;
+
+/**
  * 증적 등록 요청 DTO
  *
  * POST /api/evidence-requirements/{requirementId}/evidence
@@ -49,6 +56,42 @@ export interface EvidenceVersionCreateRequest {
   sourceFileId?: string | null;
   executionUuid?: string | null;
   sourceJobId?: string | null;
+}
+
+/**
+ * Evidence 파일 업로드 요청 DTO
+ *
+ * POST /api/evidence/{evidenceId}/versions/upload
+ *
+ * multipart/form-data
+ */
+export interface EvidenceVersionFileUploadRequest {
+  file: File;
+  evidenceType: EvidenceType;
+  title: string;
+  description?: string | null;
+}
+
+/**
+ * Evidence Version 파일 메타데이터 응답 DTO
+ *
+ * GET /api/evidence/{evidenceId}/versions/{versionNumber}/file/metadata
+ *
+ * Backend 응답 필드:
+ * - file_id
+ * - original_filename
+ * - content_type
+ * - file_size
+ * - sha256
+ * - created_at
+ */
+export interface EvidenceVersionFileMetadata {
+  file_id: string;
+  original_filename: string;
+  content_type: string;
+  file_size: number;
+  sha256: string;
+  created_at: string;
 }
 
 /**
@@ -185,6 +228,8 @@ export async function getEvidence(
  * 성공 상태: 201 Created
  *
  * Backend가 다음 버전 번호와 제출 시각 등을 생성한다.
+ *
+ * 파일 바이너리 업로드 없이 Version 메타데이터만 생성할 때 사용한다.
  */
 export async function createEvidenceVersion(
   evidenceId: number,
@@ -193,6 +238,57 @@ export async function createEvidenceVersion(
   const response = await apiClient.post<ApiResponse<EvidenceVersion>>(
     `${EVIDENCE_API}/${evidenceId}/versions`,
     request,
+  );
+
+  return response.data.data;
+}
+
+/**
+ * 증적 파일 업로드 및 버전 생성
+ *
+ * POST /api/evidence/{evidenceId}/versions/upload
+ *
+ * multipart/form-data
+ *
+ * 요청 필드:
+ * - file
+ * - evidenceType
+ * - title
+ * - description (선택)
+ *
+ * Backend가 파일 바이너리 업로드와 EvidenceVersion 생성을 함께 처리한다.
+ *
+ * 업로드 성공 응답:
+ * ApiResponse<EvidenceVersion>
+ *
+ * 주의:
+ * 이 API 성공 후 createEvidenceVersion()을 별도로 호출하지 않는다.
+ */
+export async function uploadEvidenceVersionFile(
+  evidenceId: number,
+  request: EvidenceVersionFileUploadRequest,
+): Promise<EvidenceVersion> {
+  if (request.file.size > MAX_EVIDENCE_FILE_SIZE) {
+    throw new Error('파일 크기는 50 MiB를 초과할 수 없습니다.');
+  }
+
+  if (request.file.size === 0) {
+    throw new Error('빈 파일은 업로드할 수 없습니다.');
+  }
+
+  const formData = new FormData();
+
+  formData.append('file', request.file);
+  formData.append('evidenceType', request.evidenceType);
+  formData.append('title', request.title);
+
+  if (request.description?.trim()) {
+    formData.append('description', request.description.trim());
+  }
+
+  const response = await apiClient.post<ApiResponse<EvidenceVersion>>(
+    `${EVIDENCE_API}/${evidenceId}/versions/upload`,
+    formData,
   );
 
   return response.data.data;
@@ -232,6 +328,58 @@ export async function getEvidenceVersion(
   );
 
   return response.data.data;
+}
+
+/**
+ * 증적 특정 버전의 파일 메타데이터 조회
+ *
+ * GET /api/evidence/{evidenceId}/versions/{versionNumber}/file/metadata
+ *
+ * Backend 응답:
+ * - file_id
+ * - original_filename
+ * - content_type
+ * - file_size
+ * - sha256
+ * - created_at
+ */
+export async function getEvidenceVersionFileMetadata(
+  evidenceId: number,
+  versionNumber: number,
+): Promise<EvidenceVersionFileMetadata> {
+  const response = await apiClient.get<
+    ApiResponse<EvidenceVersionFileMetadata>
+  >(
+    `${EVIDENCE_API}/${evidenceId}/versions/${versionNumber}/file/metadata`,
+  );
+
+  return response.data.data;
+}
+
+/**
+ * 증적 특정 버전의 파일 다운로드
+ *
+ * GET /api/evidence/{evidenceId}/versions/{versionNumber}/file
+ *
+ * Backend 응답:
+ * - Binary
+ * - Content-Type: Runtime 메타데이터 기준
+ * - Content-Disposition: attachment
+ *
+ * responseType: blob으로 처리한다.
+ */
+export async function downloadEvidenceVersionFile(
+  evidenceId: number,
+  versionNumber: number,
+): Promise<Blob> {
+  const response = await apiClient.get<Blob>(
+    `${EVIDENCE_API}/${evidenceId}/versions/${versionNumber}/file`,
+    {
+      responseType: 'blob',
+    },
+  );
+
+  return response.data;
 }
 
 /**

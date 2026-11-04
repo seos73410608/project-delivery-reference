@@ -1,3 +1,4 @@
+
 import {
   useCallback,
   useEffect,
@@ -24,9 +25,14 @@ import {
   getEvidenceVersion,
   getEvidenceVersionVerificationHistory,
   verifyEvidenceVersion,
+  uploadEvidenceVersionFile,
+  getEvidenceVersionFileMetadata,
+  downloadEvidenceVersionFile,
+  MAX_EVIDENCE_FILE_SIZE,
   type EvidenceOcrJob,
   type EvidenceVersionCreateRequest,
   type EvidenceVersionVerificationRequest,
+  type EvidenceVersionFileMetadata,
 } from "../api/evidenceApi";
 
 interface EvidenceDetailProps {
@@ -96,13 +102,10 @@ function getVerificationStatusLabel(
   switch (status) {
     case "APPROVED":
       return "승인";
-
     case "REJECTED":
       return "반려";
-
     case "PENDING":
       return "검증 대기";
-
     default:
       return status;
   }
@@ -117,13 +120,11 @@ function getVerificationStatusStyle(
         backgroundColor: "#e8f5e9",
         color: "#2e7d32",
       };
-
     case "REJECTED":
       return {
         backgroundColor: "#ffebee",
         color: "#c62828",
       };
-
     case "PENDING":
     default:
       return {
@@ -156,6 +157,22 @@ function formatDate(
   });
 }
 
+function formatFileSize(size: number): string {
+  if (!Number.isFinite(size) || size < 0) {
+    return "-";
+  }
+
+  if (size < 1024) {
+    return `${size} B`;
+  }
+
+  if (size < 1024 * 1024) {
+    return `${(size / 1024).toFixed(1)} KB`;
+  }
+
+  return `${(size / (1024 * 1024)).toFixed(2)} MB`;
+}
+
 function getErrorMessage(error: unknown): string {
   if (error instanceof Error) {
     return error.message;
@@ -169,26 +186,21 @@ function sleep(ms: number): Promise<void> {
 }
 
 function EvidenceDetail({ evidence }: EvidenceDetailProps) {
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  // OCR 전용 파일 입력
+  const ocrFileInputRef = useRef<HTMLInputElement>(null);
 
-  // OCR 요청 식별
+  // Evidence 파일 업로드 전용 파일 입력
+  const evidenceFileInputRef = useRef<HTMLInputElement>(null);
+
   const requestSequenceRef = useRef(0);
-
-  // 버전 목록 요청 식별
   const versionListRequestSequenceRef = useRef(0);
-
-  // 버전 상세 및 검증 이력 요청 식별
   const versionDetailRequestSequenceRef = useRef(0);
-
-  // 버전 생성 요청 식별
   const versionCreateRequestSequenceRef = useRef(0);
-
-  // 버전 검증 요청 식별
   const verificationRequestSequenceRef = useRef(0);
+  const fileMetadataRequestSequenceRef = useRef(0);
 
   const mountedRef = useRef(true);
 
-  // API 응답을 반영할 상세 화면용 Evidence 상태
   const [currentEvidence, setCurrentEvidence] =
     useState<Evidence | null>(evidence);
 
@@ -203,28 +215,23 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
     useState<VersionLoadingStatus>("IDLE");
   const [versionsError, setVersionsError] = useState("");
 
-  // 선택된 버전 번호
   const [selectedVersionNumber, setSelectedVersionNumber] =
     useState<number | null>(null);
 
-  // 선택된 버전 상세 정보
   const [selectedVersion, setSelectedVersion] =
     useState<EvidenceVersion | null>(null);
 
-  // 선택된 버전의 검증 이력
   const [verificationHistory, setVerificationHistory] =
     useState<EvidenceVerificationHistory[]>([]);
 
-  // 버전 상세 조회 상태
   const [versionDetailLoading, setVersionDetailLoading] =
     useState(false);
   const [versionDetailError, setVersionDetailError] = useState("");
 
-  // 검증 이력 조회 상태
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyError, setHistoryError] = useState("");
 
-  // 신규 버전 제출 폼
+  // 신규 버전 폼
   const [isVersionFormOpen, setIsVersionFormOpen] =
     useState(false);
 
@@ -240,7 +247,24 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
   const [versionSubmitSuccess, setVersionSubmitSuccess] =
     useState("");
 
-  // 버전별 검증 처리 상태
+  // 신규 버전 바이너리 파일
+  const [versionFile, setVersionFile] = useState<File | null>(null);
+
+  // 버전 파일 메타데이터
+  const [fileMetadata, setFileMetadata] =
+    useState<EvidenceVersionFileMetadata | null>(null);
+
+  const [fileMetadataLoading, setFileMetadataLoading] =
+    useState(false);
+
+  const [fileMetadataError, setFileMetadataError] = useState("");
+
+  const [fileDownloadLoading, setFileDownloadLoading] =
+    useState(false);
+
+  const [fileDownloadError, setFileDownloadError] = useState("");
+
+  // 버전별 검증
   const [verificationSubmitting, setVerificationSubmitting] =
     useState(false);
 
@@ -256,7 +280,6 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
   const [verificationSubmitSuccess, setVerificationSubmitSuccess] =
     useState("");
 
-  // 컴포넌트 마운트 및 언마운트 처리
   useEffect(() => {
     mountedRef.current = true;
 
@@ -268,15 +291,14 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
       versionDetailRequestSequenceRef.current += 1;
       versionCreateRequestSequenceRef.current += 1;
       verificationRequestSequenceRef.current += 1;
+      fileMetadataRequestSequenceRef.current += 1;
     };
   }, []);
 
-  // 부모에서 전달받은 Evidence 변경 반영
   useEffect(() => {
     setCurrentEvidence(evidence);
   }, [evidence]);
 
-  // 현재 OCR 요청인지 확인
   const isCurrentRequest = useCallback(
     (requestSequence: number): boolean =>
       mountedRef.current &&
@@ -284,7 +306,6 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
     [],
   );
 
-  // 현재 버전 목록 요청인지 확인
   const isCurrentVersionListRequest = useCallback(
     (requestSequence: number): boolean =>
       mountedRef.current &&
@@ -292,7 +313,6 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
     [],
   );
 
-  // 현재 버전 상세 및 검증 이력 요청인지 확인
   const isCurrentVersionDetailRequest = useCallback(
     (requestSequence: number): boolean =>
       mountedRef.current &&
@@ -300,13 +320,14 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
     [],
   );
 
-  // Evidence 변경 시 OCR 및 버전 화면 초기화
+  // Evidence 변경 시 화면 상태 초기화
   useEffect(() => {
     requestSequenceRef.current += 1;
     versionListRequestSequenceRef.current += 1;
     versionDetailRequestSequenceRef.current += 1;
     versionCreateRequestSequenceRef.current += 1;
     verificationRequestSequenceRef.current += 1;
+    fileMetadataRequestSequenceRef.current += 1;
 
     setOcrStatus("IDLE");
     setOcrJob(null);
@@ -328,9 +349,16 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
 
     setIsVersionFormOpen(false);
     setVersionForm(createEmptyVersionForm());
+    setVersionFile(null);
     setVersionSubmitting(false);
     setVersionSubmitError("");
     setVersionSubmitSuccess("");
+
+    setFileMetadata(null);
+    setFileMetadataLoading(false);
+    setFileMetadataError("");
+    setFileDownloadLoading(false);
+    setFileDownloadError("");
 
     setVerificationSubmitting(false);
     setVerificationStatusInput("APPROVED");
@@ -338,12 +366,16 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
     setVerificationSubmitError("");
     setVerificationSubmitSuccess("");
 
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
+    if (ocrFileInputRef.current) {
+      ocrFileInputRef.current.value = "";
+    }
+
+    if (evidenceFileInputRef.current) {
+      evidenceFileInputRef.current.value = "";
     }
   }, [evidence?.id]);
 
-  // Evidence 선택 시 버전 목록 조회
+  // 버전 목록 조회
   useEffect(() => {
     if (!evidence) {
       return;
@@ -391,7 +423,7 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
     };
   }, [evidence?.id, isCurrentVersionListRequest]);
 
-  // 버전 선택 시 상세 정보 및 검증 이력 조회
+  // 선택 버전 상세 및 검증 이력 조회
   useEffect(() => {
     if (!evidence || selectedVersionNumber === null) {
       versionDetailRequestSequenceRef.current += 1;
@@ -459,25 +491,86 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
     isCurrentVersionDetailRequest,
   ]);
 
+  // 선택 버전 파일 메타데이터 조회
+  useEffect(() => {
+    if (!evidence || selectedVersionNumber === null) {
+      fileMetadataRequestSequenceRef.current += 1;
+      setFileMetadata(null);
+      setFileMetadataLoading(false);
+      setFileMetadataError("");
+      return;
+    }
+
+    const evidenceId = evidence.id;
+    const versionNumber = selectedVersionNumber;
+
+    const requestSequence =
+      ++fileMetadataRequestSequenceRef.current;
+
+    async function loadFileMetadata() {
+      setFileMetadata(null);
+      setFileMetadataLoading(true);
+      setFileMetadataError("");
+
+      try {
+        const metadata = await getEvidenceVersionFileMetadata(
+          evidenceId,
+          versionNumber,
+        );
+
+        if (
+          !mountedRef.current ||
+          fileMetadataRequestSequenceRef.current !== requestSequence
+        ) {
+          return;
+        }
+
+        setFileMetadata(metadata);
+      } catch (error: unknown) {
+        if (
+          !mountedRef.current ||
+          fileMetadataRequestSequenceRef.current !== requestSequence
+        ) {
+          return;
+        }
+
+        setFileMetadataError(getErrorMessage(error));
+      } finally {
+        if (
+          mountedRef.current &&
+          fileMetadataRequestSequenceRef.current === requestSequence
+        ) {
+          setFileMetadataLoading(false);
+        }
+      }
+    }
+
+    void loadFileMetadata();
+
+    return () => {
+      fileMetadataRequestSequenceRef.current += 1;
+    };
+  }, [evidence?.id, selectedVersionNumber]);
+
   // 신규 버전 폼 열기
   function handleOpenVersionForm() {
     if (!evidence || versionSubmitting) {
       return;
     }
 
-    const initialTitle =
-      selectedVersion?.title || evidence.title || "";
-
-    const initialDescription =
-      selectedVersion?.description || evidence.description || "";
-
     setVersionForm({
       evidenceType:
         selectedVersion?.evidenceType ||
         evidence.evidenceType ||
         "DOCUMENT",
-      title: initialTitle,
-      description: initialDescription,
+      title:
+        selectedVersion?.title ||
+        evidence.title ||
+        "",
+      description:
+        selectedVersion?.description ||
+        evidence.description ||
+        "",
       fileName: "",
       filePath: "",
       sourceFileId: "",
@@ -485,12 +578,12 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
       sourceJobId: "",
     });
 
+    setVersionFile(null);
     setVersionSubmitError("");
     setVersionSubmitSuccess("");
     setIsVersionFormOpen(true);
   }
 
-  // 신규 버전 폼 닫기
   function handleCloseVersionForm() {
     if (versionSubmitting) {
       return;
@@ -498,9 +591,13 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
 
     setIsVersionFormOpen(false);
     setVersionSubmitError("");
+    setVersionFile(null);
+
+    if (evidenceFileInputRef.current) {
+      evidenceFileInputRef.current.value = "";
+    }
   }
 
-  // 신규 버전 폼 입력 변경
   function handleVersionFormChange(
     event: ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
@@ -517,7 +614,66 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
     setVersionSubmitSuccess("");
   }
 
-  // 신규 버전 생성 및 목록 갱신
+  // 신규 버전 파일 선택
+  function handleVersionFileChange(
+    event: ChangeEvent<HTMLInputElement>,
+  ) {
+    const file = event.target.files?.[0] ?? null;
+
+    setVersionSubmitError("");
+    setVersionSubmitSuccess("");
+
+    if (!file) {
+      setVersionFile(null);
+      return;
+    }
+
+    if (file.size <= 0) {
+      setVersionSubmitError("빈 파일은 업로드할 수 없습니다.");
+      setVersionFile(null);
+      event.target.value = "";
+      return;
+    }
+
+    if (file.size > MAX_EVIDENCE_FILE_SIZE) {
+      setVersionSubmitError(
+        "파일 크기는 50 MiB 이하여야 합니다.",
+      );
+      setVersionFile(null);
+      event.target.value = "";
+      return;
+    }
+
+    setVersionFile(file);
+
+    // 선택 파일명을 기존 파일명 입력값에도 반영
+    setVersionForm((previous) => ({
+      ...previous,
+      fileName: file.name,
+    }));
+  }
+
+  // 버전 목록 새로고침
+  async function refreshVersionList(
+    evidenceId: number,
+    createdVersionNumber?: number,
+  ) {
+    const refreshedVersions =
+      await getEvidenceVersions(evidenceId);
+
+    if (!mountedRef.current) {
+      return;
+    }
+
+    setVersions(refreshedVersions);
+    setVersionsLoading("SUCCEEDED");
+
+    if (createdVersionNumber !== undefined) {
+      setSelectedVersionNumber(createdVersionNumber);
+    }
+  }
+
+  // 신규 버전 생성 또는 파일 업로드
   async function handleCreateVersion(
     event: FormEvent<HTMLFormElement>,
   ) {
@@ -545,26 +701,49 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
       return;
     }
 
-    const request: EvidenceVersionCreateRequest = {
-      evidenceType: versionForm.evidenceType,
-      title,
-      description: versionForm.description.trim() || null,
-      fileName: versionForm.fileName.trim() || null,
-      filePath: versionForm.filePath.trim() || null,
-      sourceFileId: versionForm.sourceFileId.trim() || null,
-      executionUuid: versionForm.executionUuid.trim() || null,
-      sourceJobId: versionForm.sourceJobId.trim() || null,
-    };
-
     setVersionSubmitting(true);
     setVersionSubmitError("");
     setVersionSubmitSuccess("");
 
     try {
-      const createdVersion = await createEvidenceVersion(
-        evidenceId,
-        request,
-      );
+      let createdVersion: EvidenceVersion;
+
+      if (versionFile) {
+        // 파일이 선택된 경우:
+        // 업로드 API가 파일 업로드와 버전 생성을 함께 처리한다.
+        createdVersion = await uploadEvidenceVersionFile(
+          evidenceId,
+          {
+            file: versionFile,
+            evidenceType: versionForm.evidenceType,
+            title,
+            description:
+              versionForm.description.trim() || null,
+          },
+        );
+      } else {
+        // 파일이 선택되지 않은 경우:
+        // 기존 메타데이터 전용 버전 생성 기능을 유지한다.
+        const request: EvidenceVersionCreateRequest = {
+          evidenceType: versionForm.evidenceType,
+          title,
+          description:
+            versionForm.description.trim() || null,
+          fileName: versionForm.fileName.trim() || null,
+          filePath: versionForm.filePath.trim() || null,
+          sourceFileId:
+            versionForm.sourceFileId.trim() || null,
+          executionUuid:
+            versionForm.executionUuid.trim() || null,
+          sourceJobId:
+            versionForm.sourceJobId.trim() || null,
+        };
+
+        createdVersion = await createEvidenceVersion(
+          evidenceId,
+          request,
+        );
+      }
 
       if (
         !mountedRef.current ||
@@ -578,8 +757,10 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
       setVersionsLoading("LOADING");
       setVersionsError("");
 
-      const refreshedVersions =
-        await getEvidenceVersions(evidenceId);
+      await refreshVersionList(
+        evidenceId,
+        createdVersion.versionNumber,
+      );
 
       if (
         !mountedRef.current ||
@@ -588,17 +769,19 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
         return;
       }
 
-      setVersions(refreshedVersions);
-      setVersionsLoading("SUCCEEDED");
-
-      setSelectedVersionNumber(createdVersion.versionNumber);
-
       setVersionSubmitSuccess(
-        `Version ${createdVersion.versionNumber} 생성이 완료되었습니다.`,
+        versionFile
+          ? `Version ${createdVersion.versionNumber} 파일 업로드 및 버전 생성이 완료되었습니다.`
+          : `Version ${createdVersion.versionNumber} 생성이 완료되었습니다.`,
       );
 
       setIsVersionFormOpen(false);
       setVersionForm(createEmptyVersionForm());
+      setVersionFile(null);
+
+      if (evidenceFileInputRef.current) {
+        evidenceFileInputRef.current.value = "";
+      }
     } catch (error: unknown) {
       if (
         !mountedRef.current ||
@@ -618,15 +801,14 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
     }
   }
 
-  // 현재 Evidence의 검증 상태 스타일
   const statusStyle = currentEvidence
     ? getVerificationStatusStyle(
         currentEvidence.verificationStatus,
       )
     : undefined;
 
-  // 선택한 버전의 파일 정보를 우선 표시
   const displayedFileName =
+    fileMetadata?.original_filename ||
     selectedVersion?.fileName ||
     currentEvidence?.fileName ||
     null;
@@ -636,14 +818,50 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
     currentEvidence?.filePath ||
     null;
 
-  // OCR 실행 버튼 클릭
+  // 선택 버전 파일 다운로드
+  async function handleDownloadVersionFile() {
+    if (!evidence || selectedVersionNumber === null) {
+      return;
+    }
+
+    setFileDownloadLoading(true);
+    setFileDownloadError("");
+
+    try {
+      const blob = await downloadEvidenceVersionFile(
+        evidence.id,
+        selectedVersionNumber,
+      );
+
+      const objectUrl = window.URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+
+      anchor.href = objectUrl;
+      anchor.download =
+        fileMetadata?.original_filename ||
+        selectedVersion?.fileName ||
+        `evidence-${evidence.id}-version-${selectedVersionNumber}`;
+
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+
+      window.URL.revokeObjectURL(objectUrl);
+    } catch (error: unknown) {
+      setFileDownloadError(getErrorMessage(error));
+    } finally {
+      setFileDownloadLoading(false);
+    }
+  }
+
+  // OCR 실행 버튼
   function handleOcrButtonClick() {
     if (!evidence || ocrStatus === "PENDING") {
       return;
     }
 
     setOcrError("");
-    fileInputRef.current?.click();
+    ocrFileInputRef.current?.click();
   }
 
   // 버전 선택 변경
@@ -661,7 +879,7 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
     setSelectedVersionNumber(versionNumber);
   }
 
-  // 선택된 Evidence 버전 검증
+  // 선택 버전 검증
   async function handleVerifySelectedVersion(
     event: FormEvent<HTMLFormElement>,
   ) {
@@ -703,7 +921,6 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
     setVerificationSubmitSuccess("");
 
     try {
-      // 1. 선택된 버전 번호를 지정하여 검증 요청
       const updatedEvidence = await verifyEvidenceVersion(
         evidenceId,
         versionNumber,
@@ -717,17 +934,8 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
         return;
       }
 
-      /*
-       * 2. API 응답의 Evidence 대표 정보 갱신
-       *
-       * 주의:
-       * 응답의 verificationStatus는 Evidence 대표 상태다.
-       * 선택된 버전의 상태로 직접 사용하면 안 된다.
-       * 선택 버전 상태는 아래에서 getEvidenceVersion()으로 재조회한다.
-       */
       setCurrentEvidence(updatedEvidence);
 
-      // 3. 버전 목록 및 상세/이력 요청 무효화
       const listRequestSequence =
         ++versionListRequestSequenceRef.current;
 
@@ -743,7 +951,6 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
       setHistoryLoading(true);
       setHistoryError("");
 
-      // 4. 버전 목록, 선택 버전 상세, 검증 이력 병렬 재조회
       const [
         versionsResult,
         versionResult,
@@ -764,7 +971,6 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
         return;
       }
 
-      // 5. 버전 목록 갱신
       if (
         versionListRequestSequenceRef.current ===
         listRequestSequence
@@ -780,7 +986,6 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
         }
       }
 
-      // 6. 선택 버전 상세 갱신
       if (
         versionDetailRequestSequenceRef.current ===
         detailRequestSequence
@@ -795,7 +1000,6 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
           );
         }
 
-        // 7. 선택 버전 검증 이력 갱신
         if (historyResult.status === "fulfilled") {
           setVerificationHistory(historyResult.value);
           setHistoryLoading(false);
@@ -908,7 +1112,6 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
     setOcrError("");
 
     try {
-      // 1. OCR 입력 파일 업로드
       const uploadedFile = await uploadOcrFile(file);
 
       if (!isCurrentRequest(requestSequence)) {
@@ -921,7 +1124,6 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
         );
       }
 
-      // 2. 현재 선택된 증적의 OCR 작업 생성
       const createdJob = await createEvidenceOcrJob(
         selectedEvidence.id,
         {
@@ -948,7 +1150,6 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
         return;
       }
 
-      // 3. OCR 완료까지 상태 재조회
       const completedJob = await waitForOcrResult(
         createdJob.id,
         requestSequence,
@@ -974,7 +1175,6 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
     <div style={styles.container}>
       <div style={styles.header}>
         <h2 style={styles.heading}>Evidence Detail</h2>
-
         <p style={styles.subheading}>
           Selected evidence information
         </p>
@@ -1076,7 +1276,6 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
               </div>
             )}
 
-            {/* 신규 버전 제출 폼 */}
             {isVersionFormOpen && (
               <form
                 onSubmit={handleCreateVersion}
@@ -1088,7 +1287,8 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
 
                 <div style={styles.formField}>
                   <label htmlFor="version-evidence-type">
-                    증적 유형 <span style={styles.requiredMark}>*</span>
+                    증적 유형
+                    <span style={styles.requiredMark}> *</span>
                   </label>
 
                   <select
@@ -1110,7 +1310,8 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
 
                 <div style={styles.formField}>
                   <label htmlFor="version-title">
-                    제목 <span style={styles.requiredMark}>*</span>
+                    제목
+                    <span style={styles.requiredMark}> *</span>
                   </label>
 
                   <input
@@ -1144,107 +1345,145 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
                   />
                 </div>
 
-                <div style={styles.formField}>
-                  <label htmlFor="version-file-name">
-                    파일명
-                  </label>
-
-                  <input
-                    id="version-file-name"
-                    name="fileName"
-                    type="text"
-                    value={versionForm.fileName}
-                    onChange={handleVersionFormChange}
-                    maxLength={255}
-                    disabled={versionSubmitting}
-                    placeholder="예: test-result.pdf"
-                    style={styles.formInput}
-                  />
-                </div>
-
-                <div style={styles.formField}>
-                  <label htmlFor="version-file-path">
-                    파일 경로
-                  </label>
-
-                  <input
-                    id="version-file-path"
-                    name="filePath"
-                    type="text"
-                    value={versionForm.filePath}
-                    onChange={handleVersionFormChange}
-                    maxLength={1000}
-                    disabled={versionSubmitting}
-                    placeholder="파일 저장 경로"
-                    style={styles.formInput}
-                  />
-                </div>
-
-                <div style={styles.runtimeFields}>
+                {/* 실제 바이너리 파일 업로드 */}
+                <div style={styles.uploadBox}>
                   <h5 style={styles.runtimeHeading}>
-                    Automation Runtime 연계 정보
+                    증적 파일 업로드
                   </h5>
 
                   <p style={styles.runtimeDescription}>
-                    Runtime 파일 메타데이터와 연결할 경우 입력합니다.
-                    sourceFileId를 입력하면 백엔드에서 Runtime 파일
-                    메타데이터를 조회합니다.
+                    파일을 선택하면 파일 업로드와 Evidence 버전 생성이
+                    함께 처리됩니다. 최대 파일 크기는 50 MiB입니다.
+                    파일을 선택하지 않으면 기존 메타데이터 전용 버전
+                    생성 방식으로 처리됩니다.
                   </p>
 
-                  <div style={styles.formField}>
-                    <label htmlFor="version-source-file-id">
-                      Source File ID
-                    </label>
+                  <input
+                    ref={evidenceFileInputRef}
+                    id="version-binary-file"
+                    type="file"
+                    onChange={handleVersionFileChange}
+                    disabled={versionSubmitting}
+                    style={styles.formInput}
+                  />
 
-                    <input
-                      id="version-source-file-id"
-                      name="sourceFileId"
-                      type="text"
-                      value={versionForm.sourceFileId}
-                      onChange={handleVersionFormChange}
-                      maxLength={64}
-                      disabled={versionSubmitting}
-                      placeholder="Runtime file_id"
-                      style={styles.formInput}
-                    />
-                  </div>
-
-                  <div style={styles.formField}>
-                    <label htmlFor="version-execution-uuid">
-                      Execution UUID
-                    </label>
-
-                    <input
-                      id="version-execution-uuid"
-                      name="executionUuid"
-                      type="text"
-                      value={versionForm.executionUuid}
-                      onChange={handleVersionFormChange}
-                      maxLength={64}
-                      disabled={versionSubmitting}
-                      placeholder="Runtime execution UUID"
-                      style={styles.formInput}
-                    />
-                  </div>
-
-                  <div style={styles.formField}>
-                    <label htmlFor="version-source-job-id">
-                      Source Job ID
-                    </label>
-
-                    <input
-                      id="version-source-job-id"
-                      name="sourceJobId"
-                      type="text"
-                      value={versionForm.sourceJobId}
-                      onChange={handleVersionFormChange}
-                      maxLength={64}
-                      disabled={versionSubmitting}
-                      placeholder="Runtime source job ID"
-                      style={styles.formInput}
-                    />
-                  </div>
+                  {versionFile && (
+                    <div style={styles.selectedFileInfo}>
+                      <strong>선택 파일:</strong>{" "}
+                      {versionFile.name}
+                      <br />
+                      <strong>파일 크기:</strong>{" "}
+                      {formatFileSize(versionFile.size)}
+                    </div>
+                  )}
                 </div>
+
+                {/* 기존 메타데이터 전용 등록 필드 */}
+                {!versionFile && (
+                  <>
+                    <div style={styles.formField}>
+                      <label htmlFor="version-file-name">
+                        파일명
+                      </label>
+
+                      <input
+                        id="version-file-name"
+                        name="fileName"
+                        type="text"
+                        value={versionForm.fileName}
+                        onChange={handleVersionFormChange}
+                        maxLength={255}
+                        disabled={versionSubmitting}
+                        placeholder="예: test-result.pdf"
+                        style={styles.formInput}
+                      />
+                    </div>
+
+                    <div style={styles.formField}>
+                      <label htmlFor="version-file-path">
+                        파일 경로
+                      </label>
+
+                      <input
+                        id="version-file-path"
+                        name="filePath"
+                        type="text"
+                        value={versionForm.filePath}
+                        onChange={handleVersionFormChange}
+                        maxLength={1000}
+                        disabled={versionSubmitting}
+                        placeholder="파일 저장 경로"
+                        style={styles.formInput}
+                      />
+                    </div>
+
+                    <div style={styles.runtimeFields}>
+                      <h5 style={styles.runtimeHeading}>
+                        Automation Runtime 연계 정보
+                      </h5>
+
+                      <p style={styles.runtimeDescription}>
+                        Runtime 파일 메타데이터와 연결할 경우 입력합니다.
+                        sourceFileId를 입력하면 백엔드에서 Runtime 파일
+                        메타데이터를 조회합니다.
+                      </p>
+
+                      <div style={styles.formField}>
+                        <label htmlFor="version-source-file-id">
+                          Source File ID
+                        </label>
+
+                        <input
+                          id="version-source-file-id"
+                          name="sourceFileId"
+                          type="text"
+                          value={versionForm.sourceFileId}
+                          onChange={handleVersionFormChange}
+                          maxLength={64}
+                          disabled={versionSubmitting}
+                          placeholder="Runtime file_id"
+                          style={styles.formInput}
+                        />
+                      </div>
+
+                      <div style={styles.formField}>
+                        <label htmlFor="version-execution-uuid">
+                          Execution UUID
+                        </label>
+
+                        <input
+                          id="version-execution-uuid"
+                          name="executionUuid"
+                          type="text"
+                          value={versionForm.executionUuid}
+                          onChange={handleVersionFormChange}
+                          maxLength={64}
+                          disabled={versionSubmitting}
+                          placeholder="Runtime execution UUID"
+                          style={styles.formInput}
+                        />
+                      </div>
+
+                      <div style={styles.formField}>
+                        <label htmlFor="version-source-job-id">
+                          Source Job ID
+                        </label>
+
+                        <input
+                          id="version-source-job-id"
+                          name="sourceJobId"
+                          type="text"
+                          value={versionForm.sourceJobId}
+                          onChange={handleVersionFormChange}
+                          maxLength={64}
+                          disabled={versionSubmitting}
+                          placeholder="Runtime source job ID"
+                          style={styles.formInput}
+                        />
+                      </div>
+                    </div>
+                  </>
+                )}
 
                 {versionSubmitError && (
                   <div role="alert" style={styles.errorBox}>
@@ -1273,8 +1512,12 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
                     }}
                   >
                     {versionSubmitting
-                      ? "제출 중..."
-                      : "버전 생성"}
+                      ? versionFile
+                        ? "파일 업로드 및 버전 생성 중..."
+                        : "제출 중..."
+                      : versionFile
+                        ? "파일 업로드 및 버전 생성"
+                        : "버전 생성"}
                   </button>
                 </div>
               </form>
@@ -1379,7 +1622,7 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
             )}
           </section>
 
-          {/* 선택된 버전 상세 및 검증 이력 */}
+          {/* 선택 버전 상세 및 검증 이력 */}
           {selectedVersionNumber !== null && (
             <>
               <section style={styles.section}>
@@ -1479,6 +1722,95 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
                     <span style={styles.longText}>
                       {selectedVersion.verificationRemark || "-"}
                     </span>
+                  </div>
+                )}
+              </section>
+
+              {/* 선택 버전 파일 메타데이터 및 다운로드 */}
+              <section style={styles.section}>
+                <h3 style={styles.sectionHeading}>
+                  Version {selectedVersionNumber} File
+                </h3>
+
+                {fileMetadataLoading && (
+                  <p style={styles.mutedText}>
+                    파일 메타데이터를 조회하고 있습니다.
+                  </p>
+                )}
+
+                {fileMetadataError && (
+                  <div style={styles.warningBox}>
+                    파일 메타데이터를 조회하지 못했습니다.
+                    <br />
+                    {fileMetadataError}
+                    <p style={styles.runtimeDescription}>
+                      해당 버전에 실제 업로드 파일이 없는 경우
+                      메타데이터 조회가 실패할 수 있습니다.
+                    </p>
+                  </div>
+                )}
+
+                {fileMetadata && (
+                  <>
+                    <div style={styles.infoGrid}>
+                      <strong>Original Filename</strong>
+                      <span style={styles.longText}>
+                        {fileMetadata.original_filename}
+                      </span>
+
+                      <strong>Content Type</strong>
+                      <span>{fileMetadata.content_type}</span>
+
+                      <strong>File Size</strong>
+                      <span>
+                        {formatFileSize(fileMetadata.file_size)}
+                      </span>
+
+                      <strong>SHA-256</strong>
+                      <span style={styles.longText}>
+                        {fileMetadata.sha256}
+                      </span>
+
+                      <strong>File Created At</strong>
+                      <span>
+                        {formatDate(fileMetadata.created_at)}
+                      </span>
+
+                      <strong>Runtime File ID</strong>
+                      <span style={styles.longText}>
+                        {fileMetadata.file_id}
+                      </span>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleDownloadVersionFile}
+                      disabled={fileDownloadLoading}
+                      style={{
+                        ...styles.downloadButton,
+                        ...(fileDownloadLoading
+                          ? styles.disabledButton
+                          : {}),
+                      }}
+                    >
+                      {fileDownloadLoading
+                        ? "다운로드 준비 중..."
+                        : "파일 다운로드"}
+                    </button>
+                  </>
+                )}
+
+                {!fileMetadataLoading &&
+                  !fileMetadata &&
+                  !fileMetadataError && (
+                    <p style={styles.mutedText}>
+                      파일 메타데이터가 없습니다.
+                    </p>
+                  )}
+
+                {fileDownloadError && (
+                  <div role="alert" style={styles.errorBox}>
+                    파일 다운로드 실패: {fileDownloadError}
                   </div>
                 )}
               </section>
@@ -1661,25 +1993,25 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
             </>
           )}
 
-          {/* 첨부 파일 */}
+          {/* OCR 첨부 파일 */}
           <section style={styles.section}>
             <h3 style={styles.sectionHeading}>
-              Attached Evidence
+              OCR Input File
             </h3>
 
             <div style={styles.fileCard}>
               <div style={styles.fileName}>
-                {displayedFileName || "첨부 파일 없음"}
+                {displayedFileName || "선택된 증적 파일 없음"}
               </div>
 
               <div style={styles.fileDescription}>
                 {displayedFilePath
                   ? `파일 경로: ${displayedFilePath}`
-                  : "파일 경로 정보 없음"}
+                  : "OCR을 실행할 파일을 선택해 주세요."}
               </div>
 
               <input
-                ref={fileInputRef}
+                ref={ocrFileInputRef}
                 type="file"
                 accept="image/*,.pdf"
                 onChange={handleFileChange}
@@ -1781,7 +2113,7 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
             )}
           </section>
 
-          {/* 현재 Evidence 대표 검증 정보 */}
+          {/* Evidence 대표 검증 정보 */}
           <section style={styles.section}>
             <h3 style={styles.sectionHeading}>
               Evidence Verification Summary
@@ -1978,6 +2310,25 @@ const styles: Record<string, CSSProperties> = {
     backgroundColor: "#ffffff",
   },
 
+  uploadBox: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 10,
+    padding: 14,
+    border: "1px solid #bbdefb",
+    borderRadius: 6,
+    backgroundColor: "#ffffff",
+  },
+
+  selectedFileInfo: {
+    padding: 10,
+    borderRadius: 5,
+    backgroundColor: "#f1f8e9",
+    color: "#33691e",
+    fontSize: 13,
+    overflowWrap: "anywhere",
+  },
+
   runtimeHeading: {
     margin: 0,
     fontSize: 14,
@@ -2021,6 +2372,17 @@ const styles: Record<string, CSSProperties> = {
     borderColor: "#bdbdbd",
     backgroundColor: "#bdbdbd",
     cursor: "not-allowed",
+  },
+
+  downloadButton: {
+    marginTop: 16,
+    padding: "9px 16px",
+    border: "1px solid #2e7d32",
+    borderRadius: 6,
+    backgroundColor: "#2e7d32",
+    color: "#ffffff",
+    cursor: "pointer",
+    fontWeight: 600,
   },
 
   successBox: {
