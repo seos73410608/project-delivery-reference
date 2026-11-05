@@ -6,8 +6,10 @@ import com.seos.common.response.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authorization.AuthorizationDeniedException;
+import org.springframework.validation.BindException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 @Slf4j
 @RestControllerAdvice
@@ -32,6 +34,43 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(errorCode.getHttpStatus())
                 .body(ApiResponse.fail(errorCode));
+    }
+
+    /**
+     * Request Binding / Validation Exception (400)
+     */
+    @ExceptionHandler(BindException.class)
+    public ResponseEntity<ApiResponse<Void>> handleBindException(
+            BindException exception
+    ) {
+
+        log.warn(
+                "[BindException] message={}",
+                exception.getMessage()
+        );
+
+        return ResponseEntity
+                .status(CommonErrorCode.INVALID_PARAMETER.getHttpStatus())
+                .body(ApiResponse.fail(CommonErrorCode.INVALID_PARAMETER));
+    }
+
+    /**
+     * Request Parameter Type Mismatch (400)
+     */
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ApiResponse<Void>> handleTypeMismatchException(
+            MethodArgumentTypeMismatchException exception
+    ) {
+
+        log.warn(
+                "[MethodArgumentTypeMismatchException] parameter={}, value={}",
+                exception.getName(),
+                exception.getValue()
+        );
+
+        return ResponseEntity
+                .status(CommonErrorCode.INVALID_PARAMETER.getHttpStatus())
+                .body(ApiResponse.fail(CommonErrorCode.INVALID_PARAMETER));
     }
 
     /**

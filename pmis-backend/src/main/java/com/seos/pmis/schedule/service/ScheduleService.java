@@ -15,6 +15,7 @@ import com.seos.pmis.schedule.repository.ScheduleRepository;
 import com.seos.pmis.schedule.specification.ScheduleSpecification;
 import com.seos.pmis.wbs.entity.Wbs;
 import com.seos.pmis.wbs.repository.WbsRepository;
+import com.seos.pmis.task.repository.TaskRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -72,6 +73,8 @@ public class ScheduleService {
     private final ProjectRepository projectRepository;
 
     private final WbsRepository wbsRepository;
+
+    private final TaskRepository taskRepository;
 
 
     /**
@@ -474,14 +477,11 @@ public class ScheduleService {
     }
 
 
+
     /**
      * Schedule 삭제
      *
-     * 현재 Schedule 자체에는 하위 Domain이 없으므로
-     * 기본적으로 삭제를 허용한다.
-     *
-     * 향후 Task / Progress 등이 Schedule에 연결될 경우
-     * 삭제 정책을 확장한다.
+     * 연결된 Task가 존재하는 경우 삭제할 수 없다.
      *
      * @param id Schedule ID
      */
@@ -490,9 +490,18 @@ public class ScheduleService {
 
         Schedule schedule = findSchedule(id);
 
+        /*
+         * 연결된 Task 존재 여부 확인
+         */
+        if (taskRepository.existsBySchedule_Id(id)) {
+
+            throw new IllegalStateException(
+                    "Task가 연결되어 있어 Schedule을 삭제할 수 없습니다."
+            );
+        }
+
         scheduleRepository.delete(schedule);
     }
-
 
     /**
      * Schedule Entity 조회

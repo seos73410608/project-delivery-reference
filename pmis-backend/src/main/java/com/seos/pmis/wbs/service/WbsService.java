@@ -12,6 +12,7 @@ import com.seos.pmis.wbs.entity.Wbs;
 import com.seos.pmis.wbs.entity.WbsStatus;
 import com.seos.pmis.wbs.repository.WbsRepository;
 import com.seos.pmis.wbs.specification.WbsSpecification;
+import com.seos.pmis.task.repository.TaskRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -62,6 +63,7 @@ public class WbsService {
 
     private final WbsRepository wbsRepository;
     private final ProjectRepository projectRepository;
+    private final TaskRepository taskRepository;
 
     /**
      * WBS 생성
@@ -472,6 +474,15 @@ public class WbsService {
 
             throw new IllegalStateException(
                     "하위 WBS가 존재하여 삭제할 수 없습니다."
+            );
+        }
+        /*
+         * 연결된 Task 존재 여부 확인
+         */
+        if (taskRepository.existsByWbs_Id(id)) {
+
+            throw new IllegalStateException(
+                    "Task가 연결되어 있어 WBS를 삭제할 수 없습니다."
             );
         }
 
