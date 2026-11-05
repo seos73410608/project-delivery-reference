@@ -2,14 +2,17 @@
 package com.seos.pmis.task.dto.request;
 
 import com.seos.pmis.task.entity.TaskPriority;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 /**
@@ -21,6 +24,8 @@ import java.time.LocalDate;
  * Service에서 기존 Project와 WBS의 소속 관계를
  * 검증한 후 Entity의 WBS를 변경한다.
  *
+ * WBS ID가 null이면 기존 WBS 연결을 해제한다.
+ *
  * Schedule 및 담당자 변경도
  * Service에서 유효성과 소속 관계를 검증한다.
  */
@@ -30,8 +35,10 @@ public class TaskUpdateRequest {
 
     /**
      * 변경할 WBS ID
+     *
+     * 선택 입력
+     * - null인 경우 WBS 연결 해제
      */
-    @NotNull(message = "WBS ID는 필수입니다.")
     private Long wbsId;
 
     /**
@@ -87,4 +94,24 @@ public class TaskUpdateRequest {
      * 동일 WBS 내 표시 순서
      */
     private Integer sortOrder;
+
+    /**
+     * 계획 공수 (Man-Days)
+     *
+     * 선택 입력
+     * - null인 경우 계획 공수 초기화
+     * - 입력 시 0 초과
+     * - 정수부 최대 8자리, 소수부 최대 2자리
+     */
+    @DecimalMin(
+            value = "0.00",
+            inclusive = false,
+            message = "계획 공수는 0보다 커야 합니다."
+    )
+    @Digits(
+            integer = 8,
+            fraction = 2,
+            message = "계획 공수는 정수부 최대 8자리, 소수부 최대 2자리까지 입력할 수 있습니다."
+    )
+    private BigDecimal plannedManDays;
 }
