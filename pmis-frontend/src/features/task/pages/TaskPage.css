@@ -1,0 +1,1232 @@
+
+/* =========================================
+   Task Page Layout
+========================================= */
+
+.task-page {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+/* 공통 섹션 */
+.task-project-section,
+.task-search-section,
+.task-list-section {
+    padding: 24px;
+    background: var(--color-bg-primary);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+}
+
+/* 공통 섹션 헤더 */
+.task-section-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+.task-section-heading h2 {
+    margin: 0;
+    color: var(--color-text-primary);
+    font-size: 17px;
+    font-weight: 700;
+}
+
+.task-section-heading p {
+    margin: 6px 0 0;
+    color: var(--color-text-secondary);
+    font-size: 13px;
+}
+
+
+/* =========================================
+   Project Selection
+========================================= */
+
+.task-project-select {
+    width: 100%;
+    max-width: 560px;
+    min-height: 42px;
+    padding: 0 12px;
+    color: var(--color-text-primary);
+    background: var(--color-bg-primary);
+    border: 1px solid var(--color-border);
+    border-radius: 7px;
+    font-size: 14px;
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+
+/* =========================================
+   Task Summary Cards
+========================================= */
+
+.task-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.task-summary-card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-height: 112px;
+    padding: 20px;
+    background: var(--color-bg-primary);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    transition:
+        box-shadow 0.2s ease,
+        transform 0.2s ease;
+}
+
+.task-summary-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+}
+
+.task-summary-label {
+    color: var(--color-text-secondary);
+    font-size: 13px;
+}
+
+.task-summary-value {
+    color: var(--color-text-primary);
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.task-summary-caption {
+    color: var(--color-text-secondary);
+    font-size: 11px;
+}
+
+
+/* =========================================
+   Task Search Section
+========================================= */
+
+.task-search-section {
+    padding: 26px;
+    border-top: 3px solid var(--color-primary, #2563eb);
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+}
+
+/* 검색 헤더 */
+.task-search-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding-bottom: 20px;
+    margin-bottom: 22px;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.task-search-title {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.task-search-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    flex-shrink: 0;
+    color: var(--color-primary, #2563eb);
+    background: var(--color-bg-tertiary);
+    border-radius: 10px;
+}
+
+.task-search-eyebrow {
+    display: block;
+    margin-bottom: 5px;
+    color: var(--color-primary, #2563eb);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+.task-search-title h2 {
+    margin: 0;
+    color: var(--color-text-primary);
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.4px;
+}
+
+.task-search-title p {
+    margin: 6px 0 0;
+    color: var(--color-text-secondary);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.task-search-description {
+    padding: 6px 10px;
+    color: var(--color-text-secondary);
+    background: var(--color-bg-tertiary);
+    border-radius: 6px;
+    font-size: 11px;
+    white-space: nowrap;
+}
+
+
+/* =========================================
+   Task Search Fields
+========================================= */
+
+.task-search-grid {
+    display: grid;
+    grid-template-columns: minmax(220px, 2fr) repeat(4, minmax(130px, 1fr));
+    gap: 18px 16px;
+}
+
+.task-search-field {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    min-width: 0;
+}
+
+.task-search-field label {
+    color: var(--color-text-primary);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.task-search-field input,
+.task-search-field select {
+    width: 100%;
+    min-width: 0;
+    height: 42px;
+    padding: 0 12px;
+    color: var(--color-text-primary);
+    background: var(--color-bg-primary);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    font-size: 13px;
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        background-color 0.2s ease;
+}
+
+.task-search-field input::placeholder {
+    color: var(--color-text-secondary);
+    opacity: 0.7;
+}
+
+.task-search-field input:hover,
+.task-search-field select:hover,
+.task-project-select:hover {
+    border-color: var(--color-primary, #2563eb);
+}
+
+.task-search-field input:focus,
+.task-search-field select:focus,
+.task-project-select:focus {
+    outline: none;
+    border-color: var(--color-primary, #2563eb);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.10);
+}
+
+.task-search-field input:disabled,
+.task-search-field select:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+
+/* =========================================
+   Task Search Actions
+========================================= */
+
+.task-search-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding-top: 18px;
+    border-top: 1px solid var(--color-border);
+    margin-top: 22px;
+}
+
+.task-search-hint {
+    color: var(--color-text-secondary);
+    font-size: 12px;
+}
+
+.task-search-buttons {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+
+.task-search-buttons .button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-width: 90px;
+    min-height: 40px;
+    padding: 0 14px;
+    border-radius: 7px;
+    font-size: 13px;
+    font-weight: 600;
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.task-search-buttons .button:not(:disabled):hover {
+    transform: translateY(-1px);
+}
+
+.task-search-buttons .button:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+
+/* =========================================
+   Task List Section
+========================================= */
+
+.task-list-section {
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
+}
+
+.task-list-heading {
+    margin-bottom: 18px;
+}
+
+.task-list-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.task-list-title h2 {
+    margin: 0;
+    color: var(--color-text-primary);
+    font-size: 17px;
+    font-weight: 700;
+}
+
+.task-list-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 27px;
+    height: 24px;
+    padding: 0 7px;
+    color: var(--color-primary, #2563eb);
+    background: var(--color-bg-tertiary);
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+
+/* =========================================
+   Task Table
+========================================= */
+
+.task-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.task-table {
+    width: 100%;
+    border-collapse: collapse;
+    white-space: nowrap;
+    font-size: 13px;
+}
+
+.task-table th {
+    padding: 13px 12px;
+    color: var(--color-text-secondary);
+    background: var(--color-bg-tertiary);
+    border-bottom: 1px solid var(--color-border);
+    text-align: left;
+    font-weight: 600;
+}
+
+.task-table td {
+    padding: 14px 12px;
+    color: var(--color-text-primary);
+    border-bottom: 1px solid var(--color-border);
+    vertical-align: middle;
+}
+
+.task-table tbody tr {
+    transition: background-color 0.15s ease;
+}
+
+.task-table tbody tr:hover {
+    background: var(--color-bg-tertiary);
+}
+
+
+/* Task Name */
+.task-name-cell {
+    min-width: 200px;
+    max-width: 320px;
+}
+
+.task-name-cell strong,
+.task-name-cell span {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.task-name-cell strong {
+    font-weight: 600;
+}
+
+.task-name-cell span {
+    margin-top: 5px;
+    color: var(--color-text-secondary);
+    font-size: 11px;
+}
+
+/* Task 이름 상세 조회 버튼 */
+.task-name-link {
+    display: block;
+    max-width: 100%;
+    padding: 0;
+    overflow: hidden;
+
+    border: none;
+    background: transparent;
+
+    color: var(--color-primary, #2563eb);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: left;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    cursor: pointer;
+}
+
+.task-name-link:hover {
+    color: var(--color-primary, #1d4ed8);
+    text-decoration: underline;
+}
+
+.task-name-link:focus-visible {
+    outline: 2px solid var(--color-primary, #2563eb);
+    outline-offset: 3px;
+    border-radius: 2px;
+}
+
+
+/* WBS */
+.task-wbs-cell {
+    min-width: 220px;
+    max-width: 320px;
+    white-space: normal;
+}
+
+.task-wbs-cell > div {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.task-wbs-cell strong {
+    color: var(--color-text-primary);
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.5;
+}
+
+.task-wbs-cell span {
+    color: var(--color-text-secondary);
+    font-size: 11px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+
+/* =========================================
+   Task Status Badge
+========================================= */
+
+.task-status,
+.task-priority {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 58px;
+    padding: 5px 9px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.task-status--planned {
+    color: #616161;
+    background: #eeeeee;
+}
+
+.task-status--in_progress {
+    color: #1565c0;
+    background: #e3f2fd;
+}
+
+.task-status--on_hold {
+    color: #e65100;
+    background: #fff3e0;
+}
+
+.task-status--completed {
+    color: #2e7d32;
+    background: #e8f5e9;
+}
+
+.task-status--cancelled {
+    color: #c62828;
+    background: #ffebee;
+}
+
+
+/* =========================================
+   Task Priority Badge
+========================================= */
+
+.task-priority--low {
+    color: #616161;
+    background: #eeeeee;
+}
+
+.task-priority--medium {
+    color: #1565c0;
+    background: #e3f2fd;
+}
+
+.task-priority--high {
+    color: #e65100;
+    background: #fff3e0;
+}
+
+.task-priority--critical {
+    color: #c62828;
+    background: #ffebee;
+}
+
+
+/* =========================================
+   Task Progress
+========================================= */
+
+.task-progress {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 105px;
+}
+
+.task-progress__track {
+    width: 65px;
+    height: 7px;
+    overflow: hidden;
+    background: var(--color-bg-tertiary);
+    border-radius: 10px;
+}
+
+.task-progress__bar {
+    height: 100%;
+    background: var(--color-primary, #2563eb);
+    border-radius: 10px;
+    transition: width 0.2s ease;
+}
+
+.task-progress span {
+    min-width: 34px;
+    color: var(--color-text-secondary);
+    font-size: 11px;
+    text-align: right;
+}
+
+
+/* =========================================
+   Loading / Empty / Error Message
+========================================= */
+
+.task-state-message {
+    padding: 48px 20px;
+    color: var(--color-text-secondary);
+    background: var(--color-bg-tertiary);
+    border-radius: 8px;
+    font-size: 13px;
+    text-align: center;
+}
+
+.task-state-message--error {
+    color: #c62828;
+    background: #ffebee;
+}
+
+
+/* =========================================
+   Task Pagination
+========================================= */
+
+.task-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    margin-top: 22px;
+}
+
+.task-pagination span {
+    color: var(--color-text-secondary);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+
+/* =========================================
+   Task Create Success Message
+========================================= */
+
+.task-create-success {
+    padding: 13px 16px;
+    margin-bottom: 18px;
+    border: 1px solid #bbf7d0;
+    border-radius: 8px;
+    background: #f0fdf4;
+    color: #15803d;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+
+/* =========================================
+   Task Modal Common
+========================================= */
+
+.task-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 24px;
+
+    background: rgba(15, 23, 42, 0.58);
+    backdrop-filter: blur(3px);
+}
+
+
+/* =========================================
+   Task Create Modal
+========================================= */
+
+.task-create-modal {
+    width: 100%;
+    max-width: 760px;
+    max-height: calc(100vh - 48px);
+
+    display: flex;
+    flex-direction: column;
+
+    overflow: hidden;
+
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+
+    box-shadow:
+        0 24px 60px rgba(15, 23, 42, 0.22),
+        0 4px 12px rgba(15, 23, 42, 0.08);
+}
+
+/* 모달 헤더 */
+.task-create-modal__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+
+    padding: 26px 30px 22px;
+
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.task-create-modal__header h2 {
+    margin: 7px 0 6px;
+
+    color: #0f172a;
+    font-size: 22px;
+    font-weight: 700;
+}
+
+.task-create-modal__header p {
+    margin: 0;
+
+    color: #64748b;
+    font-size: 13px;
+}
+
+/* 모달 닫기 버튼 */
+.task-modal-close {
+    width: 34px;
+    height: 34px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    flex-shrink: 0;
+
+    border: none;
+    border-radius: 8px;
+
+    background: #f1f5f9;
+    color: #64748b;
+
+    font-size: 25px;
+    line-height: 1;
+
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+}
+
+.task-modal-close:hover:not(:disabled) {
+    background: #e2e8f0;
+    color: #0f172a;
+}
+
+.task-modal-close:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* 모달 내부 등록 폼 */
+.task-create-modal .task-create-form {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+
+    min-height: 0;
+    padding: 26px 30px 30px;
+
+    overflow-y: auto;
+}
+
+.task-create-modal .task-create-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 22px 20px;
+}
+
+.task-create-modal .task-create-field--full {
+    grid-column: 1 / -1;
+}
+
+/* 모달 입력 필드 */
+.task-create-modal .task-search-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    min-width: 0;
+}
+
+.task-create-modal .task-search-field label {
+    color: #334155;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.task-create-modal .task-search-field input,
+.task-create-modal .task-search-field select,
+.task-create-modal .task-search-field textarea {
+    width: 100%;
+    min-height: 42px;
+
+    box-sizing: border-box;
+
+    padding: 10px 12px;
+
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+
+    background: #ffffff;
+    color: #0f172a;
+
+    font-family: inherit;
+    font-size: 13px;
+
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.task-create-modal .task-search-field input:focus,
+.task-create-modal .task-search-field select:focus,
+.task-create-modal .task-search-field textarea:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+}
+
+.task-create-modal .task-search-field input:disabled,
+.task-create-modal .task-search-field select:disabled,
+.task-create-modal .task-search-field textarea:disabled {
+    background: #f1f5f9;
+    color: #94a3b8;
+    cursor: not-allowed;
+}
+
+.task-create-modal .task-search-field textarea {
+    min-height: 110px;
+    resize: vertical;
+}
+
+/* 필수 / 선택 표시 */
+.task-create-modal .required {
+    color: #dc2626;
+}
+
+.task-create-modal .optional-label {
+    margin-left: 8px;
+
+    color: #94a3b8;
+    font-size: 11px;
+    font-weight: 400;
+}
+
+/* 입력 안내 및 글자 수 */
+.task-create-modal .task-create-field-hint {
+    color: #94a3b8;
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+/* 모달 하단 버튼 */
+.task-create-modal__footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+
+    padding-top: 20px;
+
+    border-top: 1px solid #e2e8f0;
+}
+
+.task-create-modal__footer button {
+    min-width: 100px;
+}
+
+
+/* =========================================
+   Task Detail Modal
+========================================= */
+
+.task-detail-modal {
+    width: 100%;
+    max-width: 760px;
+    max-height: calc(100vh - 48px);
+
+    display: flex;
+    flex-direction: column;
+
+    overflow: hidden;
+
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+
+    box-shadow:
+        0 24px 60px rgba(15, 23, 42, 0.22),
+        0 4px 12px rgba(15, 23, 42, 0.08);
+}
+
+/* 상세 정보 본문 */
+.task-detail-modal__body {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+
+    min-height: 0;
+    padding: 26px 30px;
+
+    overflow-y: auto;
+}
+
+/* 상세 정보 제목 및 상태 */
+.task-detail-title {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+
+    padding-bottom: 20px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.task-detail-title > div {
+    min-width: 0;
+}
+
+.task-detail-title h3 {
+    margin: 7px 0 0;
+
+    color: #0f172a;
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1.5;
+
+    overflow-wrap: anywhere;
+}
+
+.task-detail-label {
+    display: block;
+
+    color: #64748b;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+/* 상세 정보 진척률 */
+.task-detail-progress {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    padding: 18px 20px;
+
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+}
+
+.task-detail-progress__heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.task-detail-progress__heading strong {
+    color: #334155;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.task-detail-progress__heading span {
+    color: #2563eb;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.task-detail-progress .task-progress__track {
+    width: 100%;
+    height: 9px;
+    background: #e2e8f0;
+}
+
+/* 상세 정보 항목 그리드 */
+.task-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 20px;
+
+    border-top: 1px solid #e2e8f0;
+}
+
+.task-detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    min-width: 0;
+    padding: 16px 4px;
+
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.task-detail-item > span:first-child {
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.task-detail-item strong {
+    color: #0f172a;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.5;
+
+    overflow-wrap: anywhere;
+}
+
+/* 상세 설명 */
+.task-detail-description {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    padding: 18px 20px;
+
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+}
+
+.task-detail-description > span {
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.task-detail-description p {
+    min-height: 48px;
+    margin: 0;
+
+    color: #334155;
+    font-size: 13px;
+    line-height: 1.7;
+
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+/* 상세 모달 하단 버튼 */
+.task-detail-modal > .task-create-modal__footer {
+    padding: 18px 30px 24px;
+    margin: 0 30px;
+
+    border-top: 1px solid #e2e8f0;
+}
+
+
+/* =========================================
+   Responsive - Tablet
+========================================= */
+
+@media (max-width: 1100px) {
+    .task-search-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .task-search-field--keyword {
+        grid-column: span 2;
+    }
+}
+
+
+/* =========================================
+   Responsive - Mobile
+========================================= */
+
+@media (max-width: 640px) {
+    .task-page {
+        gap: 16px;
+    }
+
+    .task-project-section,
+    .task-search-section,
+    .task-list-section {
+        padding: 16px;
+    }
+
+    .task-summary-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .task-summary-card {
+        min-height: auto;
+    }
+
+    .task-search-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .task-search-description {
+        margin-left: 56px;
+        white-space: normal;
+    }
+
+    .task-search-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .task-search-field--keyword {
+        grid-column: auto;
+    }
+
+    .task-search-actions {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .task-search-hint {
+        line-height: 1.5;
+    }
+
+    .task-search-buttons {
+        justify-content: flex-end;
+    }
+
+    .task-list-heading {
+        align-items: flex-start;
+    }
+
+    .task-pagination {
+        gap: 12px;
+    }
+
+    .task-wbs-cell {
+        min-width: 180px;
+    }
+
+    /* 모바일 공통 모달 */
+    .task-modal-overlay {
+        align-items: flex-end;
+        padding: 0;
+    }
+
+    /* 모바일 등록 모달 */
+    .task-create-modal {
+        width: 100%;
+        max-width: none;
+        max-height: 92vh;
+
+        border-radius: 16px 16px 0 0;
+    }
+
+    .task-create-modal__header {
+        padding: 22px 20px 18px;
+    }
+
+    .task-create-modal .task-create-form {
+        padding: 22px 20px;
+    }
+
+    .task-create-modal .task-create-grid {
+        grid-template-columns: 1fr;
+        gap: 18px;
+    }
+
+    .task-create-modal .task-create-field--full {
+        grid-column: auto;
+    }
+
+    .task-create-modal__footer button {
+        flex: 1;
+    }
+
+    /* 모바일 상세 조회 모달 */
+    .task-detail-modal {
+        width: 100%;
+        max-width: none;
+        max-height: 92vh;
+
+        border-radius: 16px 16px 0 0;
+    }
+
+    .task-detail-modal .task-create-modal__header {
+        padding: 22px 20px 18px;
+    }
+
+    .task-detail-modal__body {
+        gap: 18px;
+        padding: 22px 20px;
+    }
+
+    .task-detail-title {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .task-detail-title h3 {
+        font-size: 18px;
+    }
+
+    .task-detail-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .task-detail-item {
+        padding: 13px 4px;
+    }
+
+    .task-detail-description {
+        padding: 16px;
+    }
+
+    .task-detail-modal > .task-create-modal__footer {
+        padding: 16px 0 20px;
+        margin: 0 20px;
+    }
+
+    .task-detail-modal > .task-create-modal__footer button {
+        width: 100%;
+    }
+}
+
+/* =========================================
+   Task Edit Feature
+========================================= */
+
+.task-row-edit-button {
+    min-width: 54px;
+    min-height: 32px;
+    padding: 0 10px;
+    font-size: 12px;
+}
+
+.task-edit-modal .task-create-form {
+    gap: 18px;
+}
+
+.task-edit-preserved-note {
+    padding: 11px 14px;
+    color: #475569;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+@media (max-width: 640px) {
+    .task-row-edit-button {
+        min-width: 48px;
+        min-height: 30px;
+        padding: 0 8px;
+    }
+
+    .task-edit-modal {
+        width: 100%;
+        max-width: none;
+        max-height: 92vh;
+        border-radius: 16px 16px 0 0;
+    }
+}
+

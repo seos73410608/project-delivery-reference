@@ -21,6 +21,8 @@ import ProjectFormPage from "../features/project/pages/ProjectFormPage";
 
 import SchedulePage from "../features/schedule/SchedulePage";
 
+import TaskPage from "../features/task/pages/TaskPage";
+
 import IssuePage from "../features/issue/IssuePage";
 
 import RiskPage from "../features/risk/RiskPage";
@@ -49,6 +51,7 @@ import RuntimeExecutionFilesPage from "../features/runtime/pages/RuntimeExecutio
  * - /project/:projectId/detail     Project Detail
  * - /project/:projectId/edit       Project Edit
  * - /schedule                      Schedule
+ * - /task                          Task Management
  * - /issue                         Issue
  * - /risk                          Risk
  * - /project/:projectId/change     Change Management
@@ -190,6 +193,18 @@ function AppRouter() {
             path="/schedule"
             element={
               <SchedulePage />
+            }
+          />
+
+
+          {/* ===========================================
+              Task Management
+              =========================================== */}
+
+          <Route
+            path="/task"
+            element={
+              <TaskPage />
             }
           />
 
