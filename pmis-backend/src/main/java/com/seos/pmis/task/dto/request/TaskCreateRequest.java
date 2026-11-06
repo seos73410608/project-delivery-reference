@@ -3,14 +3,16 @@ package com.seos.pmis.task.dto.request;
 
 import com.seos.pmis.task.entity.TaskPriority;
 import com.seos.pmis.task.entity.TaskStatus;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 /**
@@ -34,6 +36,7 @@ import java.time.LocalDate;
  * - startDate
  * - endDate
  * - sortOrder
+ * - plannedManDays
  */
 @Getter
 @NoArgsConstructor
@@ -41,8 +44,9 @@ public class TaskCreateRequest {
 
     /**
      * 소속 WBS ID
+     *
+     * 선택 입력
      */
-    @NotNull(message = "WBS ID는 필수입니다.")
     private Long wbsId;
 
     /**
@@ -102,4 +106,24 @@ public class TaskCreateRequest {
      * 동일 WBS 내 표시 순서
      */
     private Integer sortOrder;
+
+    /**
+     * 계획 공수 (Man-Days)
+     *
+     * 선택 입력
+     * - null: 계획 공수 미입력
+     * - 입력 시 0 초과
+     * - 정수부 최대 8자리, 소수부 최대 2자리
+     */
+    @DecimalMin(
+            value = "0.00",
+            inclusive = false,
+            message = "계획 공수는 0보다 커야 합니다."
+    )
+    @Digits(
+            integer = 8,
+            fraction = 2,
+            message = "계획 공수는 정수부 최대 8자리, 소수부 최대 2자리까지 입력할 수 있습니다."
+    )
+    private BigDecimal plannedManDays;
 }

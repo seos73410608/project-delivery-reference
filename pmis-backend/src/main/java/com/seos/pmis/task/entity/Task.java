@@ -12,6 +12,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Getter
@@ -32,10 +33,10 @@ public class Task extends BaseEntity {
     private Project project;
 
     /**
-     * 소속 WBS
+     * 소속 WBS (선택 사항)
      */
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "wbs_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "wbs_id")
     private Wbs wbs;
 
     /**
@@ -78,6 +79,12 @@ public class Task extends BaseEntity {
     private Integer progressRate;
 
     /**
+     * 계획 공수 (M/D)
+     */
+    @Column(name = "planned_man_days", precision = 10, scale = 2)
+    private BigDecimal plannedManDays;
+
+    /**
      * 작업 우선순위
      */
     @Enumerated(EnumType.STRING)
@@ -110,6 +117,7 @@ public class Task extends BaseEntity {
             String description,
             TaskStatus status,
             Integer progressRate,
+            BigDecimal plannedManDays,
             TaskPriority priority,
             LocalDate startDate,
             LocalDate endDate,
@@ -123,12 +131,14 @@ public class Task extends BaseEntity {
         this.description = description;
         this.status = status != null ? status : TaskStatus.PLANNED;
         this.progressRate = progressRate != null ? progressRate : 0;
+        this.plannedManDays = plannedManDays;
         this.priority = priority != null ? priority : TaskPriority.MEDIUM;
         this.startDate = startDate;
         this.endDate = endDate;
         this.sortOrder = sortOrder != null ? sortOrder : 0;
 
         validateProgressRate(this.progressRate);
+        validatePlannedManDays(this.plannedManDays);
         validateDateRange(this.startDate, this.endDate);
     }
 
@@ -149,6 +159,14 @@ public class Task extends BaseEntity {
         this.priority = priority;
         this.startDate = startDate;
         this.endDate = endDate;
+    }
+
+    /**
+     * 계획 공수 변경
+     */
+    public void changePlannedManDays(BigDecimal plannedManDays) {
+        validatePlannedManDays(plannedManDays);
+        this.plannedManDays = plannedManDays;
     }
 
     /**
@@ -209,6 +227,30 @@ public class Task extends BaseEntity {
         if (progressRate == null || progressRate < 0 || progressRate > 100) {
             throw new IllegalArgumentException(
                     "진척률은 0부터 100 사이의 값이어야 합니다."
+            );
+        }
+    }
+
+    private void validatePlannedManDays(BigDecimal plannedManDays) {
+        if (plannedManDays == null) {
+            return;
+        }
+
+        if (plannedManDays.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException(
+                    "계획 공수는 0보다 커야 합니다."
+            );
+        }
+
+        if (plannedManDays.scale() > 2) {
+            throw new IllegalArgumentException(
+                    "계획 공수는 소수점 둘째 자리까지 입력할 수 있습니다."
+            );
+        }
+
+        if (plannedManDays.precision() - plannedManDays.scale() > 8) {
+            throw new IllegalArgumentException(
+                    "계획 공수의 정수부는 최대 8자리까지 입력할 수 있습니다."
             );
         }
     }

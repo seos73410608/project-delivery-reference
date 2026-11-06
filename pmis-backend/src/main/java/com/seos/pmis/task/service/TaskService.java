@@ -1,7 +1,10 @@
 
 package com.seos.pmis.task.service;
 
+import com.seos.common.exception.BusinessException;
+import com.seos.common.exception.code.CommonErrorCode;
 import com.seos.common.search.SearchPageableFactory;
+import com.seos.pmis.auth.security.principal.UserPrincipal;
 import com.seos.pmis.project.entity.Project;
 import com.seos.pmis.project.repository.ProjectRepository;
 import com.seos.pmis.schedule.entity.Schedule;
@@ -23,6 +26,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -50,7 +55,6 @@ public class TaskService {
             "createdAt",
             "updatedAt"
     );
-
 
     /*
      * Repository
@@ -84,25 +88,33 @@ public class TaskService {
             );
         }
 
+        // 현재 로그인 사용자 및 담당자 지정 권한 확인
+        UserPrincipal currentUser = getCurrentUserPrincipal();
+
         // Project 조회
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new IllegalArgumentException(
                         "존재하지 않는 프로젝트입니다. projectId=" + projectId
                 ));
 
-        // WBS 조회 및 프로젝트 소속 확인
-        Wbs wbs = wbsRepository.findById(request.getWbsId())
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "존재하지 않는 WBS입니다. wbsId=" + request.getWbsId()
-                ));
+        // WBS 조회: 선택 사항
+        Wbs wbs = request.getWbsId() == null
+                ? null
+                : wbsRepository.findById(request.getWbsId())
+                        .orElseThrow(() -> new IllegalArgumentException(
+                                "존재하지 않는 WBS입니다. wbsId="
+                                        + request.getWbsId()
+                        ));
 
-        if (!wbs.getProject().getId().equals(projectId)) {
+        // WBS가 지정된 경우 Project 소속 확인
+        if (wbs != null
+                && !wbs.getProject().getId().equals(projectId)) {
             throw new IllegalArgumentException(
                     "WBS가 요청한 프로젝트에 속하지 않습니다."
             );
         }
 
-        // Schedule 조회 및 프로젝트/WBS 소속 확인
+        // Schedule 조회 및 Project/WBS 소속 확인
         Schedule schedule = request.getScheduleId() == null
                 ? null
                 : scheduleRepository.findById(request.getScheduleId())
@@ -111,22 +123,13 @@ public class TaskService {
                                         + request.getScheduleId()
                         ));
 
-        if (schedule != null) {
+        validateScheduleRelationship(
+                schedule,
+                projectId,
+                wbs
+        );
 
-            if (!schedule.getProject().getId().equals(projectId)) {
-                throw new IllegalArgumentException(
-                        "Schedule이 요청한 프로젝트에 속하지 않습니다."
-                );
-            }
-
-            if (!schedule.getWbs().getId().equals(wbs.getId())) {
-                throw new IllegalArgumentException(
-                        "Schedule과 Task의 WBS가 일치하지 않습니다."
-                );
-            }
-        }
-
-        // 담당자 조회 및 활성화 여부 확인
+        // 담당자 조회
         User assignee = request.getAssigneeId() == null
                 ? null
                 : userRepository.findById(request.getAssigneeId())
@@ -135,12 +138,8 @@ public class TaskService {
                                         + request.getAssigneeId()
                         ));
 
-        if (assignee != null
-                && Boolean.FALSE.equals(assignee.getEnabled())) {
-            throw new IllegalArgumentException(
-                    "비활성화된 사용자는 Task 담당자로 지정할 수 없습니다."
-            );
-        }
+        // 담당자 활성화 여부 및 지정 권한 확인
+        validateAssignee(assignee, currentUser);
 
         // 상태 및 진척률 기본값 적용
         TaskStatus status = request.getStatus() != null
@@ -176,6 +175,7 @@ public class TaskService {
                 .startDate(request.getStartDate())
                 .endDate(request.getEndDate())
                 .sortOrder(request.getSortOrder())
+                .plannedManDays(request.getPlannedManDays())
                 .build();
 
         return TaskResponse.from(taskRepository.save(task));
@@ -201,13 +201,11 @@ public class TaskService {
         // 기존 Task 조회
         Task task = findTask(id);
 
-        // 필수 입력값 검증
-        if (request.getWbsId() == null || request.getWbsId() <= 0) {
-            throw new IllegalArgumentException(
-                    "WBS ID는 양수여야 합니다."
-            );
-        }
+        // 현재 로그인 사용자 및 Task 수정 권한 확인
+        UserPrincipal currentUser = getCurrentUserPrincipal();
+        validateTaskManagementPermission(task, currentUser);
 
+        // 필수 입력값 검증
         if (request.getTaskName() == null
                 || request.getTaskName().isBlank()
                 || request.getTaskName().length() > 200) {
@@ -225,13 +223,18 @@ public class TaskService {
         // 기존 Task의 Project ID
         Long projectId = task.getProject().getId();
 
-        // 변경할 WBS 조회 및 Project 소속 검증
-        Wbs wbs = wbsRepository.findById(request.getWbsId())
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "존재하지 않는 WBS입니다. wbsId=" + request.getWbsId()
-                ));
+        // 변경할 WBS 조회: 선택 사항
+        Wbs wbs = request.getWbsId() == null
+                ? null
+                : wbsRepository.findById(request.getWbsId())
+                        .orElseThrow(() -> new IllegalArgumentException(
+                                "존재하지 않는 WBS입니다. wbsId="
+                                        + request.getWbsId()
+                        ));
 
-        if (!wbs.getProject().getId().equals(projectId)) {
+        // WBS가 지정된 경우 기존 Project 소속 검증
+        if (wbs != null
+                && !wbs.getProject().getId().equals(projectId)) {
             throw new IllegalArgumentException(
                     "WBS가 기존 Task의 프로젝트에 속하지 않습니다."
             );
@@ -246,22 +249,13 @@ public class TaskService {
                                         + request.getScheduleId()
                         ));
 
-        if (schedule != null) {
+        validateScheduleRelationship(
+                schedule,
+                projectId,
+                wbs
+        );
 
-            if (!schedule.getProject().getId().equals(projectId)) {
-                throw new IllegalArgumentException(
-                        "Schedule이 기존 Task의 프로젝트에 속하지 않습니다."
-                );
-            }
-
-            if (!schedule.getWbs().getId().equals(wbs.getId())) {
-                throw new IllegalArgumentException(
-                        "Schedule과 Task의 WBS가 일치하지 않습니다."
-                );
-            }
-        }
-
-        // 변경할 담당자 조회 및 활성화 여부 검증
+        // 변경할 담당자 조회
         User assignee = request.getAssigneeId() == null
                 ? null
                 : userRepository.findById(request.getAssigneeId())
@@ -270,12 +264,8 @@ public class TaskService {
                                         + request.getAssigneeId()
                         ));
 
-        if (assignee != null
-                && Boolean.FALSE.equals(assignee.getEnabled())) {
-            throw new IllegalArgumentException(
-                    "비활성화된 사용자는 Task 담당자로 지정할 수 없습니다."
-            );
-        }
+        // 담당자 활성화 여부 및 지정 권한 확인
+        validateAssignee(assignee, currentUser);
 
         // Task 기본 정보 수정
         task.update(
@@ -287,6 +277,7 @@ public class TaskService {
         );
 
         // WBS, Schedule, 담당자 변경
+        // null인 경우 기존 연결을 해제한다.
         task.changeWbs(wbs);
         task.changeSchedule(schedule);
         task.changeAssignee(assignee);
@@ -300,6 +291,9 @@ public class TaskService {
         if (request.getSortOrder() != null) {
             task.changeSortOrder(request.getSortOrder());
         }
+
+        // 계획 공수: null이면 기존 값 초기화
+        task.changePlannedManDays(request.getPlannedManDays());
 
         return TaskResponse.from(task);
     }
@@ -324,6 +318,10 @@ public class TaskService {
         // 상태 변경 대상 Task 조회
         Task task = findTask(id);
 
+        // 현재 로그인 사용자 및 Task 수정 권한 확인
+        UserPrincipal currentUser = getCurrentUserPrincipal();
+        validateTaskManagementPermission(task, currentUser);
+
         // Task 상태 변경
         task.changeStatus(status);
 
@@ -339,8 +337,12 @@ public class TaskService {
     @Transactional
     public void delete(Long id) {
 
-        // 삭제 대상 Task 조회 및 ID 검증
+        // 삭제 대상 Task 조회
         Task task = findTask(id);
+
+        // 현재 로그인 사용자 및 Task 삭제 권한 확인
+        UserPrincipal currentUser = getCurrentUserPrincipal();
+        validateTaskManagementPermission(task, currentUser);
 
         // Task 삭제
         taskRepository.delete(task);
@@ -370,14 +372,12 @@ public class TaskService {
     public List<TaskResponse> findByProjectId(Long projectId) {
 
         if (projectId == null || projectId <= 0) {
-
             throw new IllegalArgumentException(
                     "Project ID는 양수여야 합니다."
             );
         }
 
         if (!projectRepository.existsById(projectId)) {
-
             throw new IllegalArgumentException(
                     "존재하지 않는 프로젝트입니다. projectId=" + projectId
             );
@@ -399,14 +399,12 @@ public class TaskService {
     public List<TaskResponse> findByWbsId(Long wbsId) {
 
         if (wbsId == null || wbsId <= 0) {
-
             throw new IllegalArgumentException(
                     "WBS ID는 양수여야 합니다."
             );
         }
 
         if (!wbsRepository.existsById(wbsId)) {
-
             throw new IllegalArgumentException(
                     "존재하지 않는 WBS입니다. wbsId=" + wbsId
             );
@@ -428,14 +426,12 @@ public class TaskService {
     public List<TaskResponse> findByScheduleId(Long scheduleId) {
 
         if (scheduleId == null || scheduleId <= 0) {
-
             throw new IllegalArgumentException(
                     "Schedule ID는 양수여야 합니다."
             );
         }
 
         if (!scheduleRepository.existsById(scheduleId)) {
-
             throw new IllegalArgumentException(
                     "존재하지 않는 Schedule입니다. scheduleId=" + scheduleId
             );
@@ -457,14 +453,12 @@ public class TaskService {
     public List<TaskResponse> findByAssigneeId(Long assigneeId) {
 
         if (assigneeId == null || assigneeId <= 0) {
-
             throw new IllegalArgumentException(
                     "담당자 ID는 양수여야 합니다."
             );
         }
 
         if (!userRepository.existsById(assigneeId)) {
-
             throw new IllegalArgumentException(
                     "존재하지 않는 사용자입니다. assigneeId=" + assigneeId
             );
@@ -480,28 +474,12 @@ public class TaskService {
     /**
      * Task 검색
      *
-     * 지원 조건:
-     * - projectId
-     * - wbsId
-     * - scheduleId
-     * - assigneeId
-     * - keyword
-     * - status
-     * - priority
-     * - startDate
-     * - endDate
-     * - page
-     * - size
-     * - sortBy
-     * - direction
-     *
      * @param request 검색 요청
      * @return Task 페이지
      */
     public Page<TaskResponse> search(TaskSearchRequest request) {
 
         if (request == null) {
-
             throw new IllegalArgumentException(
                     "Task 검색 요청은 필수입니다."
             );
@@ -533,8 +511,6 @@ public class TaskService {
     /**
      * 기간별 Task 검색
      *
-     * 지정한 조회 기간과 Task 수행 기간이 겹치는 Task를 검색한다.
-     *
      * @param request 검색 요청
      * @param searchStart 조회 시작일
      * @param searchEnd 조회 종료일
@@ -547,7 +523,6 @@ public class TaskService {
     ) {
 
         if (request == null) {
-
             throw new IllegalArgumentException(
                     "Task 검색 요청은 필수입니다."
             );
@@ -573,10 +548,141 @@ public class TaskService {
 
 
     /**
-     * 검색 요청에 따른 Pageable 생성
+     * Schedule과 Task의 Project/WBS 관계 검증
      *
-     * @param request 검색 요청
-     * @return Pageable
+     * Schedule은 Task와 같은 Project에 속해야 한다.
+     * Task에 WBS가 지정된 경우에만 Schedule의 WBS 일치 여부를 확인한다.
+     */
+    private void validateScheduleRelationship(
+            Schedule schedule,
+            Long projectId,
+            Wbs wbs
+    ) {
+
+        if (schedule == null) {
+            return;
+        }
+
+        if (!schedule.getProject().getId().equals(projectId)) {
+            throw new IllegalArgumentException(
+                    "Schedule이 요청한 프로젝트에 속하지 않습니다."
+            );
+        }
+
+        if (wbs != null
+                && (schedule.getWbs() == null
+                || !schedule.getWbs().getId().equals(wbs.getId()))) {
+            throw new IllegalArgumentException(
+                    "Schedule과 Task의 WBS가 일치하지 않습니다."
+            );
+        }
+    }
+
+
+    /**
+     * 현재 인증된 사용자 조회
+     */
+    private UserPrincipal getCurrentUserPrincipal() {
+
+        Authentication authentication =
+                SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null
+                || !authentication.isAuthenticated()
+                || !(authentication.getPrincipal() instanceof UserPrincipal userPrincipal)) {
+            throw new BusinessException(CommonErrorCode.UNAUTHORIZED);
+        }
+
+        return userPrincipal;
+    }
+
+
+    /**
+     * 담당자 지정 권한 및 활성화 여부 검증
+     *
+     * USER는 본인만 담당자로 지정할 수 있다.
+     * PM/ADMIN은 다른 활성 사용자도 지정할 수 있다.
+     * 담당자 null은 담당자 미지정 또는 해제를 의미한다.
+     */
+    private void validateAssignee(
+            User assignee,
+            UserPrincipal currentUser
+    ) {
+
+        String role = currentUser.getRole();
+
+        if (!isUserRole(role)
+                && !isPrivilegedRole(role)) {
+            throw new BusinessException(CommonErrorCode.ACCESS_DENIED);
+        }
+
+        if (assignee == null) {
+            return;
+        }
+
+        if (Boolean.FALSE.equals(assignee.getEnabled())) {
+            throw new IllegalArgumentException(
+                    "비활성화된 사용자는 Task 담당자로 지정할 수 없습니다."
+            );
+        }
+
+        if (isUserRole(role)
+                && !assignee.getId().equals(currentUser.getUserId())) {
+            throw new BusinessException(CommonErrorCode.ACCESS_DENIED);
+        }
+    }
+
+
+    /**
+     * Task 수정/상태 변경/삭제 권한 검증
+     *
+     * USER는 본인이 담당하는 Task만 관리할 수 있다.
+     * PM/ADMIN은 모든 Task를 관리할 수 있다.
+     */
+    private void validateTaskManagementPermission(
+            Task task,
+            UserPrincipal currentUser
+    ) {
+
+        String role = currentUser.getRole();
+
+        if (isPrivilegedRole(role)) {
+            return;
+        }
+
+        if (isUserRole(role)) {
+
+            User assignee = task.getAssignee();
+
+            if (assignee != null
+                    && assignee.getId().equals(currentUser.getUserId())) {
+                return;
+            }
+        }
+
+        throw new BusinessException(CommonErrorCode.ACCESS_DENIED);
+    }
+
+
+    /**
+     * 일반 사용자 역할 확인
+     */
+    private boolean isUserRole(String role) {
+        return "ROLE_USER".equals(role);
+    }
+
+
+    /**
+     * PM 또는 ADMIN 역할 확인
+     */
+    private boolean isPrivilegedRole(String role) {
+        return "ROLE_PM".equals(role)
+                || "ROLE_ADMIN".equals(role);
+    }
+
+
+    /**
+     * 검색 요청에 따른 Pageable 생성
      */
     private Pageable createPageable(TaskSearchRequest request) {
 
@@ -594,9 +700,6 @@ public class TaskService {
 
     /**
      * 검색 날짜 범위 검증
-     *
-     * @param startDate 검색 시작일
-     * @param endDate 검색 종료일
      */
     private void validateSearchDateRange(
             LocalDate startDate,
@@ -606,7 +709,6 @@ public class TaskService {
         if (startDate != null
                 && endDate != null
                 && endDate.isBefore(startDate)) {
-
             throw new IllegalArgumentException(
                     "검색 종료일은 검색 시작일보다 빠를 수 없습니다."
             );
@@ -616,9 +718,6 @@ public class TaskService {
 
     /**
      * 필수 조회 날짜 범위 검증
-     *
-     * @param startDate 조회 시작일
-     * @param endDate 조회 종료일
      */
     private void validateRequiredDateRange(
             LocalDate startDate,
@@ -626,14 +725,12 @@ public class TaskService {
     ) {
 
         if (startDate == null || endDate == null) {
-
             throw new IllegalArgumentException(
                     "조회 시작일과 종료일은 필수입니다."
             );
         }
 
         if (endDate.isBefore(startDate)) {
-
             throw new IllegalArgumentException(
                     "조회 종료일은 조회 시작일보다 빠를 수 없습니다."
             );
@@ -643,14 +740,10 @@ public class TaskService {
 
     /**
      * Task Entity 조회
-     *
-     * @param id Task ID
-     * @return Task Entity
      */
     private Task findTask(Long id) {
 
         if (id == null || id <= 0) {
-
             throw new IllegalArgumentException(
                     "Task ID는 양수여야 합니다."
             );

@@ -7,6 +7,7 @@ import com.seos.pmis.task.entity.TaskStatus;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -34,6 +35,8 @@ public class TaskResponse {
 
     /**
      * 소속 WBS ID
+     *
+     * WBS 미할당 시 null
      */
     private Long wbsId;
 
@@ -93,6 +96,11 @@ public class TaskResponse {
     private Integer sortOrder;
 
     /**
+     * 계획 공수 (Man-Days)
+     */
+    private BigDecimal plannedManDays;
+
+    /**
      * 생성일시
      */
     private LocalDateTime createdAt;
@@ -113,7 +121,11 @@ public class TaskResponse {
         return TaskResponse.builder()
                 .id(task.getId())
                 .projectId(task.getProject().getId())
-                .wbsId(task.getWbs().getId())
+                .wbsId(
+                        task.getWbs() != null
+                                ? task.getWbs().getId()
+                                : null
+                )
                 .scheduleId(
                         task.getSchedule() != null
                                 ? task.getSchedule().getId()
@@ -137,6 +149,7 @@ public class TaskResponse {
                 .startDate(task.getStartDate())
                 .endDate(task.getEndDate())
                 .sortOrder(task.getSortOrder())
+                .plannedManDays(task.getPlannedManDays())
                 .createdAt(task.getCreatedAt())
                 .updatedAt(task.getUpdatedAt())
                 .build();
