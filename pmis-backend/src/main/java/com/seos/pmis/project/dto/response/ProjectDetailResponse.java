@@ -1,3 +1,4 @@
+
 package com.seos.pmis.project.dto.response;
 
 import com.seos.pmis.project.entity.ProjectPriority;
@@ -5,11 +6,12 @@ import com.seos.pmis.project.entity.ProjectStatus;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Getter
-@Builder
+@Builder(toBuilder = true)
 public class ProjectDetailResponse {
 
     /**
@@ -63,11 +65,27 @@ public class ProjectDetailResponse {
     private ProjectPriority priority;
 
     /**
-     * 프로젝트 진행률(%)
+     * 프로젝트 진척률(%)
      *
-     * 현재는 WBS 연계 전이므로 기본값 0으로 관리합니다.
+     * 전체 Task의 계획 공수를 기준으로 가중 평균 산출합니다.
+     * 집계 가능한 계획 공수가 없으면 null입니다.
      */
-    private int progressRate;
+    private BigDecimal progressRate;
+
+    /**
+     * 전체 계획 공수(MD)
+     */
+    private BigDecimal totalPlannedManDays;
+
+    /**
+     * 가중 완료 공수(MD)
+     */
+    private BigDecimal weightedCompletedManDays;
+
+    /**
+     * 계획 공수가 입력되지 않은 Task 수
+     */
+    private long missingEffortTaskCount;
 
     /**
      * 생성일시

@@ -1,8 +1,12 @@
 .vscode/
-pmis/
+/pmis/
 
 # Local Node.js runtime
 Tools/node-v24.19.0-win-x64/
+
+# Local Claude runtime
+Tools/claude-code-uncompressed.vsix
+Tools/claude-code-uncompressed.zip
 
 # Temporary files
 pmis-frontend/result.txt

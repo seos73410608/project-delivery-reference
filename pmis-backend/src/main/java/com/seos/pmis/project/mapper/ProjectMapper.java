@@ -1,3 +1,4 @@
+
 package com.seos.pmis.project.mapper;
 
 import com.seos.pmis.project.dto.request.CreateProjectRequest;
@@ -56,6 +57,9 @@ public class ProjectMapper {
      * Entity → ProjectDetailResponse
      *
      * 프로젝트 상세 조회용
+     *
+     * 프로젝트 기본 정보만 매핑하며,
+     * 진척률 집계 정보는 ProjectDetailService에서 추가합니다.
      */
     public ProjectDetailResponse toDetailResponse(Project project) {
 
@@ -70,7 +74,6 @@ public class ProjectMapper {
                 .endDate(project.getEndDate())
                 .status(project.getStatus())
                 .priority(project.getPriority())
-                .progressRate(0)
                 .createdAt(project.getCreatedAt())
                 .updatedAt(project.getUpdatedAt())
                 .build();
