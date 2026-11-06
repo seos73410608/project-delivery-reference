@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 
 import type {
@@ -133,26 +134,26 @@ function WbsTreeNode({
     /**
      * WBS Status에 대응하는
      * 공통 Badge modifier
-     *
-     * PLANNED
-     *     → badge--planned
-     *
-     * IN_PROGRESS
-     *     → badge--in-progress
-     *
-     * COMPLETED
-     *     → badge--completed
-     *
-     * ON_HOLD
-     *     → badge--on-hold
-     *
-     * CANCELLED
-     *     → badge--cancelled
      */
     const statusClass =
         `badge--${node.status
             .toLowerCase()
             .replace("_", "-")}`;
+
+
+    /**
+     * WBS 진척률 표시
+     *
+     * null:
+     *     산정 불가
+     *
+     * number:
+     *     소수점 첫째 자리까지 표시
+     */
+    const progressLabel =
+        node.progressRate === null
+            ? "산정 불가"
+            : `${node.progressRate.toFixed(1)}%`;
 
 
     return (
@@ -226,6 +227,23 @@ function WbsTreeNode({
                 <span className="wbs-tree-name">
                     {node.wbsName}
                 </span>
+
+
+                {/* Progress Rate */}
+                {!isVirtualRoot && (
+                    <span
+                        className={[
+                            "wbs-tree-progress",
+                            node.progressRate === null
+                                ? "unavailable"
+                                : "",
+                        ]
+                            .filter(Boolean)
+                            .join(" ")}
+                    >
+                        {progressLabel}
+                    </span>
+                )}
 
 
                 {/* Virtual Root */}

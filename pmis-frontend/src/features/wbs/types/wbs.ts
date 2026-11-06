@@ -26,6 +26,13 @@ export interface WbsResponse {
     sortOrder: number;
     status: WbsStatus;
     description: string | null;
+
+    // Progress Aggregation
+    progressRate: number | null;
+    totalPlannedManDays: number;
+    weightedCompletedManDays: number;
+    missingEffortTaskCount: number;
+
     createdAt: string;
     updatedAt: string;
 }

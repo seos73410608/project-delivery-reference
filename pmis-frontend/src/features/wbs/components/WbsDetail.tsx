@@ -1,3 +1,4 @@
+
 import type {
     WbsTreeResponse,
 } from "@/features/wbs/types/wbs";
@@ -41,6 +42,16 @@ interface WbsDetailProps {
 }
 
 
+/**
+ * 계획 공수 표시
+ */
+function formatManDays(
+    value: number,
+): string {
+    return `${value.toFixed(2)} M/D`;
+}
+
+
 function WbsDetail({
     wbs,
     onEdit,
@@ -66,26 +77,26 @@ function WbsDetail({
     /**
      * WBS Status에 대응하는
      * 공통 Badge modifier
-     *
-     * PLANNED
-     *     → badge--planned
-     *
-     * IN_PROGRESS
-     *     → badge--in-progress
-     *
-     * COMPLETED
-     *     → badge--completed
-     *
-     * ON_HOLD
-     *     → badge--on-hold
-     *
-     * CANCELLED
-     *     → badge--cancelled
      */
     const statusClass =
         `badge--${wbs.status
             .toLowerCase()
             .replace("_", "-")}`;
+
+
+    /**
+     * 진척률 표시
+     *
+     * null:
+     *     산정 불가
+     *
+     * number:
+     *     소수점 첫째 자리까지 표시
+     */
+    const progressLabel =
+        wbs.progressRate === null
+            ? "산정 불가"
+            : `${wbs.progressRate.toFixed(1)}%`;
 
 
     return (
@@ -138,6 +149,122 @@ function WbsDetail({
             <div
                 className="wbs-detail-content"
             >
+
+                {/* Progress */}
+                <section
+                    className="wbs-detail-progress"
+                >
+
+                    <div
+                        className="wbs-detail-progress-header"
+                    >
+
+                        <span>
+                            WBS Progress
+                        </span>
+
+                        <strong
+                            className={
+                                wbs.progressRate === null
+                                    ? "unavailable"
+                                    : ""
+                            }
+                        >
+                            {progressLabel}
+                        </strong>
+
+                    </div>
+
+
+                    {/* Progress Bar */}
+                    {wbs.progressRate !== null && (
+                        <div
+                            className="wbs-detail-progress-bar"
+                            role="progressbar"
+                            aria-label="WBS 진척률"
+                            aria-valuemin={0}
+                            aria-valuemax={100}
+                            aria-valuenow={wbs.progressRate}
+                        >
+
+                            <div
+                                className="wbs-detail-progress-bar-fill"
+                                style={{
+                                    width: `${Math.min(
+                                        100,
+                                        Math.max(
+                                            0,
+                                            wbs.progressRate,
+                                        ),
+                                    )}%`,
+                                }}
+                            />
+
+                        </div>
+                    )}
+
+
+                    {/* Aggregation Metrics */}
+                    <div
+                        className="wbs-detail-progress-metrics"
+                    >
+
+                        <div
+                            className="wbs-detail-progress-metric"
+                        >
+
+                            <span>
+                                총 계획 공수
+                            </span>
+
+                            <strong>
+                                {
+                                    formatManDays(
+                                        wbs.totalPlannedManDays,
+                                    )
+                                }
+                            </strong>
+
+                        </div>
+
+
+                        <div
+                            className="wbs-detail-progress-metric"
+                        >
+
+                            <span>
+                                가중 완료 공수
+                            </span>
+
+                            <strong>
+                                {
+                                    formatManDays(
+                                        wbs.weightedCompletedManDays,
+                                    )
+                                }
+                            </strong>
+
+                        </div>
+
+
+                        <div
+                            className="wbs-detail-progress-metric"
+                        >
+
+                            <span>
+                                계획 공수 미입력 Task
+                            </span>
+
+                            <strong>
+                                {wbs.missingEffortTaskCount}건
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
 
                 {/* WBS ID */}
                 <DetailRow

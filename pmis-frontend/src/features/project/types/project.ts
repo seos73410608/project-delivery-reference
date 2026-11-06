@@ -59,6 +59,19 @@ export interface ProjectSearchParams {
   sort?: string;
 }
 
+/**
+ * Project Detail Response
+ *
+ * GET /api/projects/{projectId}/detail
+ * Backend 프로젝트 상세 응답의 진척률 집계 필드를 포함한다.
+ */
+export interface ProjectDetail extends Project {
+  progressRate: number | null;
+  totalPlannedManDays: number;
+  weightedCompletedManDays: number;
+  missingEffortTaskCount: number;
+}
+
 export interface PageResponse<T> {
   content: T[];
   pageable: {

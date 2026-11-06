@@ -80,6 +80,12 @@ const createVirtualRoot = (
     createdAt: "",
     updatedAt: "",
 
+    // Progress Aggregation
+    progressRate: null,
+    totalPlannedManDays: 0,
+    weightedCompletedManDays: 0,
+    missingEffortTaskCount: 0,
+
     children,
 });
 

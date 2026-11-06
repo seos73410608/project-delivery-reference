@@ -1,3 +1,4 @@
+
 import {
   useCallback,
   useEffect,
@@ -17,7 +18,7 @@ import {
 import ProjectDetail from '../components/ProjectDetail';
 
 import type {
-  Project,
+  ProjectDetail as ProjectDetailType,
 } from '../types/project';
 
 import './ProjectDetailPage.css';
@@ -51,7 +52,7 @@ function ProjectDetailPage() {
   const [
     project,
     setProject,
-  ] = useState<Project | null>(
+  ] = useState<ProjectDetailType | null>(
     null,
   );
 

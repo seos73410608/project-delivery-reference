@@ -1,9 +1,11 @@
+
 import client from '@/api/client';
 
 import type {
   ApiResponse,
   PageResponse,
   Project,
+  ProjectDetail,
   ProjectCreateRequest,
   ProjectSearchParams,
   ProjectUpdateRequest,
@@ -36,8 +38,8 @@ export const getProjects = async (
  */
 export const getProject = async (
   projectId: number,
-): Promise<Project> => {
-  const response = await client.get<ApiResponse<Project>>(
+): Promise<ProjectDetail> => {
+  const response = await client.get<ApiResponse<ProjectDetail>>(
     `${PROJECT_API}/${projectId}/detail`,
   );
 

@@ -1,8 +1,11 @@
+
 /* =========================================================
    Project Detail Component
    ========================================================= */
 
-import type { Project } from '../types/project';
+import type {
+  ProjectDetail as ProjectDetailType,
+} from '../types/project';
 
 import './ProjectDetail.css';
 
@@ -12,7 +15,7 @@ import './ProjectDetail.css';
    ========================================================= */
 
 interface ProjectDetailProps {
-  project: Project;
+  project: ProjectDetailType;
 
   /**
    * 프로젝트 삭제
@@ -42,7 +45,7 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 
-const STATUS_BADGE_CLASSES: Record<Project['status'], string> = {
+const STATUS_BADGE_CLASSES: Record<ProjectDetailType['status'], string> = {
   PLANNING: 'badge--planned',
   IN_PROGRESS: 'badge--in-progress',
   ON_HOLD: 'badge--on-hold',
@@ -57,6 +60,14 @@ const PRIORITY_LABELS: Record<string, string> = {
   HIGH: '높음',
   CRITICAL: '긴급',
 };
+
+
+/* =========================================================
+   Formatting
+   ========================================================= */
+
+const formatManDays = (value: number): string =>
+  `${value.toFixed(2)} M/D`;
 
 
 /* =========================================================
@@ -81,6 +92,12 @@ function ProjectDetail({
 
   const statusBadgeClass =
     STATUS_BADGE_CLASSES[project.status];
+
+
+  const progressLabel =
+    project.progressRate === null
+      ? '산정 불가'
+      : `${project.progressRate.toFixed(1)}%`;
 
 
   return (
@@ -141,6 +158,149 @@ function ProjectDetail({
           >
             {priorityLabel}
           </span>
+
+        </div>
+
+      </div>
+
+
+      {/* ========================================
+          Project Progress
+          ======================================== */}
+
+      <div
+        className="project-detail__card"
+      >
+
+        <div
+          className="project-detail__card-header"
+        >
+
+          <div>
+
+            <span
+              className="project-detail__section-label"
+            >
+              PROJECT PROGRESS
+            </span>
+
+
+            <h3>
+              프로젝트 진척률
+            </h3>
+
+          </div>
+
+        </div>
+
+
+        <div
+          className="project-progress"
+        >
+
+          <div
+            className="project-progress__overview"
+          >
+
+            <div
+              className="project-progress__rate"
+            >
+
+              <span>
+                전체 진척률
+              </span>
+
+
+              <strong
+                className={
+                  project.progressRate === null
+                    ? 'project-progress__unavailable'
+                    : ''
+                }
+              >
+                {progressLabel}
+              </strong>
+
+            </div>
+
+
+            {project.progressRate !== null && (
+
+              <div
+                className="project-progress__bar"
+                role="progressbar"
+                aria-label="프로젝트 진척률"
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={project.progressRate}
+              >
+
+                <div
+                  className="project-progress__bar-fill"
+                  style={{
+                    width: `${Math.min(
+                      100,
+                      Math.max(0, project.progressRate),
+                    )}%`,
+                  }}
+                />
+
+              </div>
+
+            )}
+
+          </div>
+
+
+          <div
+            className="project-progress__metrics"
+          >
+
+            <div
+              className="project-progress__metric"
+            >
+
+              <span>
+                총 계획 공수
+              </span>
+
+              <strong>
+                {formatManDays(project.totalPlannedManDays)}
+              </strong>
+
+            </div>
+
+
+            <div
+              className="project-progress__metric"
+            >
+
+              <span>
+                가중 완료 공수
+              </span>
+
+              <strong>
+                {formatManDays(project.weightedCompletedManDays)}
+              </strong>
+
+            </div>
+
+
+            <div
+              className="project-progress__metric"
+            >
+
+              <span>
+                계획 공수 미입력 Task
+              </span>
+
+              <strong>
+                {project.missingEffortTaskCount}건
+              </strong>
+
+            </div>
+
+          </div>
 
         </div>
 
@@ -402,9 +562,7 @@ function ProjectDetail({
           Actions
           ======================================== */}
 
-      <div
-        className="project-detail__actions"
-      >
+      <div>
 
         <button
           type="button"

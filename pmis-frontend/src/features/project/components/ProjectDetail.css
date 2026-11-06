@@ -119,6 +119,104 @@
 
 
 /* ========================================
+   Project Progress
+   ======================================== */
+
+.project-progress {
+  padding: 20px;
+}
+
+.project-progress__overview {
+  margin-bottom: 24px;
+}
+
+.project-progress__rate {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: 12px;
+}
+
+.project-progress__rate>span {
+  color: var(--color-text-secondary);
+
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.project-progress__rate>strong {
+  color: var(--color-text-primary);
+
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.project-progress__rate>strong.project-progress__unavailable {
+  color: var(--color-text-tertiary);
+
+  font-size: 18px;
+}
+
+.project-progress__bar {
+  overflow: hidden;
+
+  width: 100%;
+  height: 10px;
+
+  border-radius: 999px;
+
+  background: var(--color-bg-secondary);
+}
+
+.project-progress__bar-fill {
+  height: 100%;
+
+  border-radius: inherit;
+
+  background: var(--color-primary);
+
+  transition: width 0.3s ease;
+}
+
+.project-progress__metrics {
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+
+  border-top: 1px solid var(--color-border-light);
+}
+
+.project-progress__metric {
+  display: flex;
+  flex-direction: column;
+
+  gap: 8px;
+
+  padding: 16px 20px;
+}
+
+.project-progress__metric+.project-progress__metric {
+  border-left: 1px solid var(--color-border-light);
+}
+
+.project-progress__metric>span {
+  color: var(--color-text-tertiary);
+
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.project-progress__metric>strong {
+  color: var(--color-text-secondary);
+
+  font-size: 15px;
+  font-weight: 700;
+}
+
+
+/* ========================================
    Information Grid
    ======================================== */
 
@@ -150,14 +248,14 @@
   border-bottom: 0;
 }
 
-.project-detail__item > span:first-child {
+.project-detail__item>span:first-child {
   color: var(--color-text-tertiary);
 
   font-size: 11px;
   font-weight: 600;
 }
 
-.project-detail__item > strong {
+.project-detail__item>strong {
   color: var(--color-text-secondary);
 
   font-size: 13px;
@@ -225,7 +323,7 @@
   padding: 4px 2px;
 }
 
-.project-detail__metadata > div {
+.project-detail__metadata>div {
   display: flex;
   align-items: center;
 
@@ -288,6 +386,15 @@
 
   .project-detail__item:last-child {
     border-bottom: 0;
+  }
+
+  .project-progress__metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .project-progress__metric+.project-progress__metric {
+    border-top: 1px solid var(--color-border-light);
+    border-left: 0;
   }
 
   .project-detail__metadata {
