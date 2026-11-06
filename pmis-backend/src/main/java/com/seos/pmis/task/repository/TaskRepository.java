@@ -1,9 +1,11 @@
+
 package com.seos.pmis.task.repository;
 
 import com.seos.pmis.task.entity.Task;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -20,84 +22,90 @@ import java.util.List;
  * JPA Dirty Checking을 통해 반영한다.
  */
 public interface TaskRepository
-        extends JpaRepository<Task, Long>,
+                extends JpaRepository<Task, Long>,
                 JpaSpecificationExecutor<Task> {
 
-    /**
-     * 프로젝트별 Task 조회
-     *
-     * @param projectId 프로젝트 ID
-     * @return 프로젝트 Task 목록
-     */
-    List<Task> findByProject_IdOrderBySortOrderAsc(
-            Long projectId
-    );
+        /**
+         * 프로젝트별 Task 조회
+         *
+         * @param projectId 프로젝트 ID
+         * @return 프로젝트 Task 목록
+         */
+        List<Task> findByProject_IdOrderBySortOrderAsc(
+                        Long projectId);
 
-    /**
-     * WBS별 Task 조회
-     *
-     * @param wbsId WBS ID
-     * @return WBS Task 목록
-     */
-    List<Task> findByWbs_IdOrderBySortOrderAsc(
-            Long wbsId
-    );
+        /**
+         * 여러 프로젝트의 Task 일괄 조회
+         *
+         * 여러 프로젝트의 WBS 집계 및
+         * 프로젝트별 진척률 계산 시
+         * 프로젝트별 반복 조회를 방지하기 위해 사용한다.
+         *
+         * @param projectIds 프로젝트 ID 목록
+         * @return 여러 프로젝트의 Task 목록
+         */
+        List<Task> findByProject_IdInOrderBySortOrderAsc(
+                        Collection<Long> projectIds);
 
-    /**
-     * Schedule별 Task 조회
-     *
-     * @param scheduleId Schedule ID
-     * @return Schedule Task 목록
-     */
-    List<Task> findBySchedule_IdOrderBySortOrderAsc(
-            Long scheduleId
-    );
+        /**
+         * WBS별 Task 조회
+         *
+         * @param wbsId WBS ID
+         * @return WBS Task 목록
+         */
+        List<Task> findByWbs_IdOrderBySortOrderAsc(
+                        Long wbsId);
 
-    /**
-     * 담당자별 Task 조회
-     *
-     * 시작일 오름차순으로 조회한다.
-     *
-     * @param assigneeId 담당자 ID
-     * @return 담당 Task 목록
-     */
-    List<Task> findByAssignee_IdOrderByStartDateAsc(
-            Long assigneeId
-    );
+        /**
+         * Schedule별 Task 조회
+         *
+         * @param scheduleId Schedule ID
+         * @return Schedule Task 목록
+         */
+        List<Task> findBySchedule_IdOrderBySortOrderAsc(
+                        Long scheduleId);
 
-    /**
-     * 특정 WBS에 Task가 존재하는지 확인한다.
-     *
-     * WBS 삭제 가능 여부 검증에 사용한다.
-     *
-     * @param wbsId WBS ID
-     * @return Task 존재 여부
-     */
-    boolean existsByWbs_Id(
-            Long wbsId
-    );
+        /**
+         * 담당자별 Task 조회
+         *
+         * 시작일 오름차순으로 조회한다.
+         *
+         * @param assigneeId 담당자 ID
+         * @return 담당 Task 목록
+         */
+        List<Task> findByAssignee_IdOrderByStartDateAsc(
+                        Long assigneeId);
 
-    /**
-     * 특정 Schedule에 Task가 존재하는지 확인한다.
-     *
-     * Schedule 삭제 가능 여부 검증에 사용한다.
-     *
-     * @param scheduleId Schedule ID
-     * @return Task 존재 여부
-     */
-    boolean existsBySchedule_Id(
-            Long scheduleId
-    );
+        /**
+         * 특정 WBS에 Task가 존재하는지 확인한다.
+         *
+         * WBS 삭제 가능 여부 검증에 사용한다.
+         *
+         * @param wbsId WBS ID
+         * @return Task 존재 여부
+         */
+        boolean existsByWbs_Id(
+                        Long wbsId);
 
-    /**
-     * 특정 프로젝트에 Task가 존재하는지 확인한다.
-     *
-     * Project 삭제 가능 여부 검증에 사용한다.
-     *
-     * @param projectId 프로젝트 ID
-     * @return Task 존재 여부
-     */
-    boolean existsByProject_Id(
-            Long projectId
-    );
+        /**
+         * 특정 Schedule에 Task가 존재하는지 확인한다.
+         *
+         * Schedule 삭제 가능 여부 검증에 사용한다.
+         *
+         * @param scheduleId Schedule ID
+         * @return Task 존재 여부
+         */
+        boolean existsBySchedule_Id(
+                        Long scheduleId);
+
+        /**
+         * 특정 프로젝트에 Task가 존재하는지 확인한다.
+         *
+         * Project 삭제 가능 여부 검증에 사용한다.
+         *
+         * @param projectId 프로젝트 ID
+         * @return Task 존재 여부
+         */
+        boolean existsByProject_Id(
+                        Long projectId);
 }
