@@ -196,7 +196,16 @@ function ProjectList({
       <div className="project-list__table-wrapper">
 
         <table className="project-list__table">
-
+          <colgroup>
+            <col style={{ width: "140px" }} />
+            <col style={{ width: "280px" }} />
+            <col style={{ width: "180px" }} />
+            <col style={{ width: "100px" }} />
+            <col style={{ width: "100px" }} />
+            <col style={{ width: "100px" }} />
+            <col style={{ width: "130px" }} />
+            <col style={{ width: "130px" }} />
+          </colgroup>
           <thead>
 
             <tr>

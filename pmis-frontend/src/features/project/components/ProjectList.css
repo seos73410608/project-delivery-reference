@@ -353,3 +353,59 @@
   }
 
 }
+
+/* ========================================
+   Column Layout Improvement
+   ======================================== */
+
+/* 프로젝트 목록 컬럼 너비 고정 */
+.project-list__table {
+  min-width: 1160px;
+  table-layout: fixed;
+}
+
+/* 모든 셀의 콘텐츠가 컬럼 경계를 넘지 않도록 처리 */
+.project-list__table th,
+.project-list__table td {
+  overflow: hidden;
+}
+
+/* 프로젝트명 */
+.project-list__name {
+  display: block;
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 고객사 */
+.project-list__customer {
+  display: block;
+  width: 100%;
+  min-width: 0;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* PM */
+.project-list__manager {
+  display: block;
+  width: 100%;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 프로젝트명 버튼의 기본 여백 및 너비 정리 */
+.project-list__name.button {
+  box-sizing: border-box;
+  padding-left: 0;
+  padding-right: 0;
+}
