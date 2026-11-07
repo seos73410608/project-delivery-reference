@@ -133,24 +133,15 @@ public class EvidenceMapper {
     }
 
     /**
-     * Evidence 수정 Request를 Entity에 반영한다.
+     * Evidence 관리 정보를 수정한다.
      *
-     * Runtime 연결 정보와 Verification 관련 필드는 변경하지 않는다.
-     * Verification 상태 변경은 별도의 Verification API에서 처리한다.
+     * 일반 수정에서는 WBS 연결 정보만 변경한다.
+     * 제출물 내용 변경은 EvidenceVersion 생성 API에서 처리한다.
      */
     public void updateEntity(
-            Evidence entity,
-            EvidenceUpdateRequest request,
-            Wbs wbs
-    ) {
-        entity.update(
-                wbs,
-                request.getEvidenceType(),
-                request.getTitle(),
-                request.getDescription(),
-                request.getFileName(),
-                request.getFilePath()
-        );
+                    Evidence entity,
+                    Wbs wbs) {
+            entity.update(wbs);
     }
 
     /**

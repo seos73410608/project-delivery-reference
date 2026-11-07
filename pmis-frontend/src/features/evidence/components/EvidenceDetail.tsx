@@ -1,4 +1,3 @@
-
 import {
   useCallback,
   useEffect,
@@ -21,6 +20,7 @@ import {
   createEvidenceOcrJob,
   refreshEvidenceOcrJob,
   uploadOcrFile,
+  getEvidence,
   getEvidenceVersions,
   getEvidenceVersion,
   getEvidenceVersionVerificationHistory,
@@ -238,14 +238,11 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
   const [versionForm, setVersionForm] =
     useState<EvidenceVersionFormState>(createEmptyVersionForm);
 
-  const [versionSubmitting, setVersionSubmitting] =
-    useState(false);
+  const [versionSubmitting, setVersionSubmitting] = useState(false);
 
-  const [versionSubmitError, setVersionSubmitError] =
-    useState("");
+  const [versionSubmitError, setVersionSubmitError] = useState("");
 
-  const [versionSubmitSuccess, setVersionSubmitSuccess] =
-    useState("");
+  const [versionSubmitSuccess, setVersionSubmitSuccess] = useState("");
 
   // 신규 버전 바이너리 파일
   const [versionFile, setVersionFile] = useState<File | null>(null);
@@ -254,13 +251,11 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
   const [fileMetadata, setFileMetadata] =
     useState<EvidenceVersionFileMetadata | null>(null);
 
-  const [fileMetadataLoading, setFileMetadataLoading] =
-    useState(false);
+  const [fileMetadataLoading, setFileMetadataLoading] = useState(false);
 
   const [fileMetadataError, setFileMetadataError] = useState("");
 
-  const [fileDownloadLoading, setFileDownloadLoading] =
-    useState(false);
+  const [fileDownloadLoading, setFileDownloadLoading] = useState(false);
 
   const [fileDownloadError, setFileDownloadError] = useState("");
 
@@ -492,8 +487,32 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
   ]);
 
   // 선택 버전 파일 메타데이터 조회
+  //
+  // Runtime 파일 ID가 없는 메타데이터 전용 버전은
+  // Runtime 파일 메타데이터 API를 호출하지 않는다.
   useEffect(() => {
     if (!evidence || selectedVersionNumber === null) {
+      fileMetadataRequestSequenceRef.current += 1;
+      setFileMetadata(null);
+      setFileMetadataLoading(false);
+      setFileMetadataError("");
+      return;
+    }
+
+    // 선택 버전 상세 조회가 아직 완료되지 않은 경우
+    if (
+      !selectedVersion ||
+      selectedVersion.versionNumber !== selectedVersionNumber
+    ) {
+      fileMetadataRequestSequenceRef.current += 1;
+      setFileMetadata(null);
+      setFileMetadataLoading(false);
+      setFileMetadataError("");
+      return;
+    }
+
+    // Runtime 파일과 연결되지 않은 버전
+    if (!selectedVersion.sourceFileId) {
       fileMetadataRequestSequenceRef.current += 1;
       setFileMetadata(null);
       setFileMetadataLoading(false);
@@ -550,7 +569,12 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
     return () => {
       fileMetadataRequestSequenceRef.current += 1;
     };
-  }, [evidence?.id, selectedVersionNumber]);
+  }, [
+    evidence?.id,
+    selectedVersionNumber,
+    selectedVersion?.versionNumber,
+    selectedVersion?.sourceFileId,
+  ]);
 
   // 신규 버전 폼 열기
   function handleOpenVersionForm() {
@@ -669,7 +693,18 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
     setVersionsLoading("SUCCEEDED");
 
     if (createdVersionNumber !== undefined) {
-      setSelectedVersionNumber(createdVersionNumber);
+      const createdVersionExists = refreshedVersions.some(
+        (version) =>
+          version.versionNumber === createdVersionNumber,
+      );
+
+      if (createdVersionExists) {
+        setSelectedVersionNumber(createdVersionNumber);
+      } else if (refreshedVersions.length > 0) {
+        setSelectedVersionNumber(
+          refreshedVersions[0].versionNumber,
+        );
+      }
     }
   }
 
@@ -752,11 +787,26 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
         return;
       }
 
+      // 이전 버전 목록 조회 요청을 무효화한다.
       versionListRequestSequenceRef.current += 1;
 
       setVersionsLoading("LOADING");
       setVersionsError("");
 
+      // Backend에서 신규 버전을 Evidence 대표 정보에 동기화했으므로
+      // Evidence 단건 조회를 통해 최신 대표 정보를 다시 가져온다.
+      const refreshedEvidence = await getEvidence(evidenceId);
+
+      if (
+        !mountedRef.current ||
+        versionCreateRequestSequenceRef.current !== requestSequence
+      ) {
+        return;
+      }
+
+      setCurrentEvidence(refreshedEvidence);
+
+      // 최신 버전 목록을 다시 조회하고 생성된 버전을 선택한다.
       await refreshVersionList(
         evidenceId,
         createdVersion.versionNumber,
@@ -820,7 +870,11 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
 
   // 선택 버전 파일 다운로드
   async function handleDownloadVersionFile() {
-    if (!evidence || selectedVersionNumber === null) {
+    if (
+      !evidence ||
+      selectedVersionNumber === null ||
+      !selectedVersion?.sourceFileId
+    ) {
       return;
     }
 
@@ -839,7 +893,7 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
       anchor.href = objectUrl;
       anchor.download =
         fileMetadata?.original_filename ||
-        selectedVersion?.fileName ||
+        selectedVersion.fileName ||
         `evidence-${evidence.id}-version-${selectedVersionNumber}`;
 
       document.body.appendChild(anchor);
@@ -876,6 +930,7 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
 
     setVerificationSubmitError("");
     setVerificationSubmitSuccess("");
+    setFileDownloadError("");
     setSelectedVersionNumber(versionNumber);
   }
 
@@ -934,6 +989,8 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
         return;
       }
 
+      // Backend 응답은 Evidence 대표 정보다.
+      // 과거 버전 검증 시에도 Backend가 대표 상태를 보존한 응답을 반환한다.
       setCurrentEvidence(updatedEvidence);
 
       const listRequestSequence =
@@ -1578,6 +1635,7 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
                       onClick={() => {
                         setVerificationSubmitError("");
                         setVerificationSubmitSuccess("");
+                        setFileDownloadError("");
                         setSelectedVersionNumber(
                           version.versionNumber,
                         );
@@ -1743,10 +1801,6 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
                     파일 메타데이터를 조회하지 못했습니다.
                     <br />
                     {fileMetadataError}
-                    <p style={styles.runtimeDescription}>
-                      해당 버전에 실제 업로드 파일이 없는 경우
-                      메타데이터 조회가 실패할 수 있습니다.
-                    </p>
                   </div>
                 )}
 
@@ -1800,7 +1854,17 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
                   </>
                 )}
 
+                {selectedVersion &&
+                  !selectedVersion.sourceFileId && (
+                    <p style={styles.mutedText}>
+                      이 버전은 Runtime 바이너리 파일과 연결되어 있지
+                      않습니다. 등록된 파일명 및 파일 경로는 버전
+                      상세에서 확인할 수 있습니다.
+                    </p>
+                  )}
+
                 {!fileMetadataLoading &&
+                  selectedVersion?.sourceFileId &&
                   !fileMetadata &&
                   !fileMetadataError && (
                     <p style={styles.mutedText}>

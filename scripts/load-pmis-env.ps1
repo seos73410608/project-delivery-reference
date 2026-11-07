@@ -32,7 +32,8 @@ foreach ($line in Get-Content -LiteralPath $envFile -Encoding ASCII) {
 
 $requiredVariables = @(
     "SPRING_DATASOURCE_PASSWORD",
-    "JWT_SECRET"
+    "JWT_SECRET",
+    "RUNTIME_API_KEY"
 )
 
 foreach ($name in $requiredVariables) {

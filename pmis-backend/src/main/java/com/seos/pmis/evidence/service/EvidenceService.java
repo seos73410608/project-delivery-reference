@@ -51,7 +51,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -502,6 +504,9 @@ public class EvidenceService {
         EvidenceVersion savedVersion =
                 evidenceVersionRepository.save(version);
 
+        // 새 버전을 Evidence의 대표 정보에 동기화한다.
+        evidence.synchronizeLatestVersion(savedVersion);
+
         return evidenceMapper.toVersionResponse(savedVersion);
     }
 
@@ -539,11 +544,16 @@ public class EvidenceService {
                     file.getBytes()
             );
         } catch (IOException | RestClientException exception) {
-            throw new BusinessException(
-                    EvidenceErrorCode.RUNTIME_API_UNAVAILABLE
-            );
-        }
 
+                log.error(
+                                "Runtime 파일 업로드 실패. evidenceId={}, fileName={}",
+                                evidenceId,
+                                originalFilename,
+                                exception);
+
+                throw new BusinessException(
+                                EvidenceErrorCode.RUNTIME_API_UNAVAILABLE);
+        }
         validatePmisFileMetadata(runtimeFile);
 
         int nextVersionNumber = evidenceVersionRepository
@@ -570,6 +580,9 @@ public class EvidenceService {
 
         EvidenceVersion savedVersion =
                 evidenceVersionRepository.save(version);
+
+        // 새 버전을 Evidence의 대표 정보에 동기화한다.
+        evidence.synchronizeLatestVersion(savedVersion);
 
         return evidenceMapper.toVersionResponse(savedVersion);
     }
@@ -688,7 +701,7 @@ public class EvidenceService {
             );
         }
 
-        evidenceMapper.updateEntity(evidence, request, wbs);
+        evidenceMapper.updateEntity(evidence, wbs);
 
         return evidenceMapper.toResponse(evidence);
     }
