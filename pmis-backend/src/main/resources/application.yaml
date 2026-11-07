@@ -1,8 +1,12 @@
+﻿
 spring:
+  application:
+    name: pmis
+
   datasource:
-    url: jdbc:mariadb://localhost:3306/pmis
-    username: root
-    password: 1234
+    url: ${SPRING_DATASOURCE_URL:jdbc:mariadb://localhost:3306/pmis}
+    username: ${SPRING_DATASOURCE_USERNAME:root}
+    password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: org.mariadb.jdbc.Driver
 
   jpa:
@@ -13,24 +17,20 @@ spring:
       hibernate:
         format_sql: true
 
-  application:
-    name: pmis
-
 logging:
   level:
     org.hibernate.SQL: DEBUG
     org.hibernate.orm.jdbc.bind: TRACE
 
 jwt:
-  # 기존 JWT 설정 유지
-  secret: ${JWT_SECRET:MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDE=}
+  secret: ${JWT_SECRET}
   access-token-expiration: 3600000
   refresh-token-expiration: 1209600000
 
 runtime:
   api:
     base-url: ${RUNTIME_API_BASE_URL:http://127.0.0.1:8000}
-    api-key: ${RUNTIME_API_KEY:sample-runtime-key-2026-dev-only}
+    api-key: ${RUNTIME_API_KEY:}
 
 server:
-  port: 8765
+  port: ${SERVER_PORT:8765}

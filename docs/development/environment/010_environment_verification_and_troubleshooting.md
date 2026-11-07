@@ -1,8 +1,8 @@
 # 개발 환경 검증 및 문제 해결
 
 - **문서 경로:** `docs/development/environment/010_environment_verification_and_troubleshooting.md`
-- **문서 버전:** 1.1
-- **작성일:** 2026-11-06
+- **문서 버전:** 1.2
+- **작성일:** 2026-11-07
 
 ---
 
@@ -23,6 +23,7 @@
 - Git LFS
 - PMIS 백엔드
 - PMIS 프론트엔드
+- 환경변수 및 민감정보 관리
 - 프론트엔드와 백엔드 간 API 통신
 
 단순히 프로그램이 설치되어 있는지만 확인하는 것이 아니라, PMIS 프로젝트를 실제로 실행하고 빌드할 수 있는지까지 확인하는 것을 목표로 한다.
@@ -59,13 +60,16 @@
 6. Git / GitHub SSH / Git LFS
           |
           v
-7. PMIS 백엔드 실행 및 빌드
+7. 환경변수 및 민감정보 설정
           |
           v
-8. PMIS 프론트엔드 실행 및 빌드
+8. PMIS 백엔드 실행 및 빌드
           |
           v
-9. 전체 시스템 통합 확인
+9. PMIS 프론트엔드 실행 및 빌드
+          |
+          v
+10. 전체 시스템 통합 확인
 ```
 
 ## 3. 운영체제 및 프로젝트 경로 검증
@@ -137,15 +141,20 @@ Tools/
 다음 명령어로 주요 설정 파일과 실행 스크립트의 존재 여부를 확인한다.
 
 ```powershell
+Test-Path .\scripts\load-pmis-env.ps1
 Test-Path .\scripts\use-pmis-java21.ps1
 Test-Path .\scripts\use-pmis-node24.ps1
 Test-Path .\pmis-backend\gradlew
 Test-Path .\pmis-backend\build.gradle.kts
+Test-Path .\pmis-backend\.env
+Test-Path .\pmis-backend\.env.example
 Test-Path .\pmis-frontend\package.json
 Test-Path .\pmis-frontend\package-lock.json
 ```
 
-모든 항목이 `True`인지 확인한다.
+기존 개발 PC에서는 실제 `.env` 파일도 존재해야 한다.
+
+신규 PC에서는 `.env.example`을 참고하여 `.env`를 별도로 생성한다.
 
 ## 4. Java 및 Gradle 검증
 
@@ -202,7 +211,7 @@ javac 21.0.1
 프로젝트 루트에서 실행한다.
 
 ```powershell
-.\pmis-backend\gradlew --version
+.\pmis-backend\gradlew.bat --version
 ```
 
 현재 확인된 환경:
@@ -220,7 +229,7 @@ Gradle Wrapper를 사용하므로 별도의 시스템 Gradle 설치는 필요하
 프로젝트 루트에서 실행한다.
 
 ```powershell
-.\pmis-backend\gradlew -p .\pmis-backend clean build
+.\pmis-backend\gradlew.bat -p .\pmis-backend clean build
 ```
 
 정상 결과:
@@ -601,20 +610,156 @@ Git LFS 또는 GitHub Releases로 관리하는 파일은 저장소 복제만으�
 
 신규 PC에서 실제 파일이 존재하고 사용할 수 있는지 별도로 확인한다.
 
-## 9. PMIS 백엔드 실행 검증
+## 9. PMIS 환경변수 및 민감정보 검증
 
-### 9.1 백엔드 실행
+### 9.1 환경설정 파일 확인
+
+프로젝트 루트에서 실행한다.
+
+```powershell
+Test-Path .\pmis-backend\.env
+Test-Path .\pmis-backend\.env.example
+Test-Path .\scripts\load-pmis-env.ps1
+```
+
+기존 개발 PC에서는 세 항목 모두 `True`인지 확인한다.
+
+신규 PC에서는 `.env` 파일이 없는 경우 `.env.example`을 참고하여 생성한다.
+
+`.env.example`에는 실제 비밀번호나 JWT Secret을 입력하지 않는다.
+
+### 9.2 `.env` 파일의 Git 제외 여부 확인
+
+프로젝트 루트에서 실행한다.
+
+```powershell
+git check-ignore .\pmis-backend\.env
+```
+
+정상적인 경우 다음과 같이 `.env` 경로가 출력된다.
+
+```text
+pmis-backend/.env
+```
+
+`.env.example`은 Git에 포함되어야 하므로 다음 명령어로 확인한다.
+
+```powershell
+git check-ignore .\pmis-backend\.env.example
+```
+
+정상적인 경우 출력이 없어야 한다.
+
+Git 상태에서도 확인한다.
+
+```powershell
+git status --short
+```
+
+실제 `.env` 파일이 Git 변경 목록에 표시되지 않아야 한다.
+
+**주의:** `.env` 파일을 Git에서 제외하더라도 과거 Git 커밋에 이미 포함된 민감정보가 자동으로 삭제되는 것은 아니다. 기존에 노출된 인증 정보는 필요에 따라 교체하고, 저장소 이력에 대한 별도 보안 조치를 검토한다.
+
+### 9.3 새 PowerShell 세션에서 환경변수 로딩
+
+환경변수 로딩은 현재 PowerShell 프로세스에 적용된다.
+
+따라서 새 PowerShell 터미널을 열 때마다 다시 로딩해야 한다.
+
+새 터미널에서 프로젝트 루트로 이동한다.
+
+```powershell
+cd C:\SeoS\project-delivery-reference
+```
+
+환경변수 로딩 스크립트를 실행한다.
+
+```powershell
+. .\scripts\load-pmis-env.ps1
+```
+
+정상적으로 실행되면 다음 메시지가 출력된다.
+
+```text
+PMIS environment variables loaded successfully.
+```
+
+이 메시지가 출력되면 `.env` 파일에서 필수 환경변수를 읽고 로딩 검증까지 완료한 것이다.
+
+### 9.4 필수 환경변수 설정 확인
+
+환경변수의 실제 값은 출력하지 않고 설정 여부만 확인한다.
+
+```powershell
+Write-Host "DB URL 설정됨: $(-not [string]::IsNullOrWhiteSpace($env:SPRING_DATASOURCE_URL))"
+Write-Host "DB Username 설정됨: $(-not [string]::IsNullOrWhiteSpace($env:SPRING_DATASOURCE_USERNAME))"
+Write-Host "DB Password 설정됨: $(-not [string]::IsNullOrWhiteSpace($env:SPRING_DATASOURCE_PASSWORD))"
+Write-Host "JWT Secret 설정됨: $(-not [string]::IsNullOrWhiteSpace($env:JWT_SECRET))"
+```
+
+정상적으로 설정된 경우 각 항목이 `True`로 표시된다.
+
+필수 환경변수는 다음과 같다.
+
+| 환경변수 | 용도 | 필수 여부 |
+|---|---|---|
+| `SPRING_DATASOURCE_URL` | MariaDB JDBC URL | 선택, 기본값 사용 가능 |
+| `SPRING_DATASOURCE_USERNAME` | DB 사용자 | 선택, 기본값 사용 가능 |
+| `SPRING_DATASOURCE_PASSWORD` | DB 비밀번호 | 필수 |
+| `JWT_SECRET` | JWT 서명 비밀키 | 필수 |
+
+다음 환경변수도 필요에 따라 확인한다.
+
+| 환경변수 | 용도 | 기본값 또는 조건 |
+|---|---|---|
+| `RUNTIME_API_BASE_URL` | Automation Runtime 주소 | `http://127.0.0.1:8000` |
+| `RUNTIME_API_KEY` | Runtime API 인증 키 | Runtime 인증 정책에 따라 설정 |
+| `SERVER_PORT` | 백엔드 포트 | `8765` |
+
+환경변수의 실제 값을 출력하거나 로그에 노출하지 않는다.
+
+### 9.5 환경변수 변경 후 재로딩
+
+`.env` 파일을 수정한 경우 현재 PowerShell 세션에 변경된 값을 다시 적용해야 한다.
+
+프로젝트 루트에서 실행한다.
+
+```powershell
+. .\scripts\load-pmis-env.ps1
+```
+
+새 PowerShell 터미널을 열어도 환경변수는 자동으로 전달되지 않으므로 새 터미널에서 동일한 명령어를 실행한다.
+
+### 9.6 환경변수 관리 보안 확인
+
+다음 사항을 확인한다.
+
+- [ ] 실제 DB 비밀번호가 `.env`에 설정되어 있음
+- [ ] JWT Secret이 `.env`에 설정되어 있음
+- [ ] `.env`가 Git 추적 대상에서 제외됨
+- [ ] `.env.example`에 실제 비밀정보가 없음
+- [ ] 환경변수 로딩 스크립트 실행 성공
+- [ ] 필수 환경변수 설정 여부 확인
+- [ ] 비밀번호 및 JWT Secret이 출력되지 않음
+
+`.env`는 로컬 PC에 평문으로 저장되므로 PC 접근 권한과 파일 접근 권한을 안전하게 관리한다.
+
+## 10. PMIS 백엔드 실행 검증
+
+### 10.1 백엔드 실행
 
 새 PowerShell 터미널에서 실행한다.
 
 ```powershell
 cd C:\SeoS\project-delivery-reference
 
+. .\scripts\load-pmis-env.ps1
+
 . .\scripts\use-pmis-java21.ps1
 
 cd .\pmis-backend
 
-.\gradlew bootRun
+.\gradlew.bat bootRun
 ```
 
 현재 PMIS 백엔드 포트:
@@ -626,12 +771,30 @@ cd .\pmis-backend
 백엔드 실행 로그에서 다음 항목을 확인한다.
 
 - Spring Boot 초기화 완료
+- 환경변수 기반 설정 로딩
 - MariaDB 연결 성공
 - JPA 초기화 완료
 - 웹 서버 시작 완료
 - 포트 `8765`에서 서버 실행
 
-### 9.2 Swagger UI 접속 확인
+정상 기동 시 다음과 유사한 메시지가 출력된다.
+
+```text
+Tomcat started on port 8765 (http)
+Started PmisApplication
+```
+
+현재 개발 환경의 JPA `ddl-auto` 값은 `update`이다. 따라서 백엔드 실행 과정에서 Entity 매핑에 따라 데이터베이스 테이블이 생성되거나 변경될 수 있다.
+
+기존 DB 스키마를 변경하지 않고 실행 여부만 확인해야 하는 경우 다음과 같이 실행할 수 있다.
+
+```powershell
+.\gradlew.bat bootRun --args="--spring.jpa.hibernate.ddl-auto=none"
+```
+
+이 옵션은 해당 실행에만 적용되며 `application.yaml`의 기본 설정을 변경하지 않는다.
+
+### 10.2 Swagger UI 접속 확인
 
 브라우저에서 다음 주소로 접속한다.
 
@@ -641,7 +804,7 @@ http://localhost:8765/swagger-ui/index.html
 
 Swagger UI가 정상적으로 표시되는지 확인한다.
 
-### 9.3 포트 사용 여부 확인
+### 10.3 포트 사용 여부 확인
 
 ```powershell
 Get-NetTCPConnection -LocalPort 8765 -State Listen
@@ -649,7 +812,7 @@ Get-NetTCPConnection -LocalPort 8765 -State Listen
 
 백엔드 실행 중 해당 포트에서 `LISTEN` 상태가 확인되는지 점검한다.
 
-### 9.4 HTTP 응답 확인
+### 10.4 HTTP 응답 확인
 
 PowerShell에서 다음 명령어를 실행한다.
 
@@ -661,9 +824,9 @@ HTTP 응답 상태와 페이지 제공 여부를 확인한다.
 
 Swagger UI 접속 성공은 웹 서버와 문서 페이지 제공 여부를 확인하는 것이며, 모든 업무 API의 정상 동작까지 보장하지는 않는다.
 
-## 10. PMIS 프론트엔드 실행 검증
+## 11. PMIS 프론트엔드 실행 검증
 
-### 10.1 프론트엔드 실행
+### 11.1 프론트엔드 실행
 
 별도의 PowerShell 터미널에서 실행한다.
 
@@ -681,7 +844,7 @@ npm run dev --prefix .\pmis-frontend
 5173
 ```
 
-### 10.2 브라우저 접속
+### 11.2 브라우저 접속
 
 다음 주소로 접속한다.
 
@@ -691,7 +854,7 @@ http://localhost:5173
 
 화면이 정상적으로 표시되는지 확인한다.
 
-### 10.3 프론트엔드 포트 확인
+### 11.3 프론트엔드 포트 확인
 
 ```powershell
 Get-NetTCPConnection -LocalPort 5173 -State Listen
@@ -699,7 +862,7 @@ Get-NetTCPConnection -LocalPort 5173 -State Listen
 
 개발 서버가 정상적으로 실행 중인지 확인한다.
 
-### 10.4 브라우저 개발자 도구 확인
+### 11.4 브라우저 개발자 도구 확인
 
 브라우저에서 `F12`를 눌러 개발자 도구를 연다.
 
@@ -711,9 +874,9 @@ Get-NetTCPConnection -LocalPort 5173 -State Listen
 - CORS 오류 여부
 - 인증 및 권한 오류 여부
 
-## 11. 전체 시스템 통합 검증
+## 12. 전체 시스템 통합 검증
 
-### 11.1 프론트엔드와 백엔드 통신 확인
+### 12.1 프론트엔드와 백엔드 통신 확인
 
 프론트엔드 화면이 표시되는 것만으로 전체 시스템이 정상 동작한다고 판단하지 않는다.
 
@@ -727,7 +890,7 @@ Get-NetTCPConnection -LocalPort 5173 -State Listen
 
 실제 API 호출은 프로젝트에 구현된 인증 및 업무 API 중 적절한 항목을 선택해 확인한다.
 
-### 11.2 인증 및 권한 확인
+### 12.2 인증 및 권한 확인
 
 인증 기능이 적용된 API를 사용하는 경우 다음 항목을 확인한다.
 
@@ -738,10 +901,12 @@ Get-NetTCPConnection -LocalPort 5173 -State Listen
 
 실제 구현된 API와 보안 정책에 따라 검증한다.
 
-### 11.3 통합 검증 결과 기록
+### 12.3 통합 검증 결과 기록
 
 | 검증 항목 | 결과 |
 |---|---|
+| 환경변수 로딩 | 확인 필요 |
+| 민감정보 Git 제외 | 확인 필요 |
 | MariaDB 연결 | 확인 필요 |
 | 백엔드 실행 | 확인 필요 |
 | Swagger UI 접속 | 확인 필요 |
@@ -751,7 +916,7 @@ Get-NetTCPConnection -LocalPort 5173 -State Listen
 | API 응답 데이터 표시 | 확인 필요 |
 | 인증 및 권한 처리 | 확인 필요 |
 
-## 12. 전체 환경 최종 체크리스트
+## 13. 전체 환경 최종 체크리스트
 
 다음 항목을 이용해 신규 PC의 환경 구축 완료 여부를 확인한다.
 
@@ -789,6 +954,17 @@ Get-NetTCPConnection -LocalPort 5173 -State Listen
 - [ ] 데이터베이스 계정 및 권한 확인
 - [ ] 필요한 테이블 생성 및 조회 확인
 
+**환경변수 및 민감정보**
+
+- [ ] `.env` 파일 생성
+- [ ] `.env.example` 구성 확인
+- [ ] 환경변수 로딩 스크립트 실행 성공
+- [ ] DB 비밀번호 설정 여부 확인
+- [ ] JWT Secret 설정 여부 확인
+- [ ] `.env` Git 제외 확인
+- [ ] `.env.example` Git 관리 대상 확인
+- [ ] 민감정보 출력 및 노출 여부 확인
+
 **Git 및 GitHub**
 
 - [ ] Git 설치 및 버전 확인
@@ -811,9 +987,9 @@ Get-NetTCPConnection -LocalPort 5173 -State Listen
 - [ ] 프론트엔드와 백엔드 간 API 통신 확인
 - [ ] 인증 및 권한 처리 확인
 
-## 13. 주요 문제 해결 가이드
+## 14. 주요 문제 해결 가이드
 
-### 13.1 Java 버전이 맞지 않는 경우
+### 14.1 Java 버전이 맞지 않는 경우
 
 증상:
 
@@ -832,7 +1008,7 @@ javac -version
 
 PMIS 전용 JDK 21이 활성화되었는지 확인한다.
 
-### 13.2 Node.js 버전이 맞지 않는 경우
+### 14.2 Node.js 버전이 맞지 않는 경우
 
 증상:
 
@@ -851,7 +1027,58 @@ npm -v
 
 PMIS 전용 Node.js 24가 활성화되었는지 확인한다.
 
-### 13.3 데이터베이스 연결 실패
+### 14.3 환경변수 파일을 찾을 수 없는 경우
+
+증상:
+
+```text
+PMIS .env file not found.
+```
+
+해결:
+
+1. 프로젝트 루트에서 스크립트를 실행했는지 확인한다.
+2. `pmis-backend/.env` 파일이 존재하는지 확인한다.
+3. 파일명이 `.env`인지 확인한다.
+4. 신규 PC에서는 `.env.example`을 참고하여 `.env`를 생성했는지 확인한다.
+
+환경변수 로딩 명령:
+
+```powershell
+cd C:\SeoS\project-delivery-reference
+
+. .\scripts\load-pmis-env.ps1
+```
+
+### 14.4 필수 환경변수 누락 오류
+
+증상:
+
+```text
+SPRING_DATASOURCE_PASSWORD is missing in PMIS environment.
+```
+
+또는
+
+```text
+JWT_SECRET is missing in PMIS environment.
+```
+
+해결:
+
+1. `.env` 파일에 해당 항목이 존재하는지 확인한다.
+2. 환경변수 값이 비어 있지 않은지 확인한다.
+3. `.env` 파일을 수정했다면 환경변수를 다시 로딩한다.
+4. 환경변수 설정 여부를 값 노출 없이 확인한다.
+
+```powershell
+Write-Host "DB Password 설정됨: $(-not [string]::IsNullOrWhiteSpace($env:SPRING_DATASOURCE_PASSWORD))"
+Write-Host "JWT Secret 설정됨: $(-not [string]::IsNullOrWhiteSpace($env:JWT_SECRET))"
+```
+
+비밀번호와 JWT Secret의 실제 값을 화면에 출력하지 않는다.
+
+### 14.5 데이터베이스 연결 실패
 
 증상:
 
@@ -867,8 +1094,9 @@ PMIS 전용 Node.js 24가 활성화되었는지 확인한다.
 4. JDBC URL 확인
 5. 계정과 비밀번호 확인
 6. 계정의 데이터베이스 접근 권한 확인
+7. `.env` 환경변수 로딩 여부 확인
 
-### 13.4 백엔드 포트 충돌
+### 14.6 백엔드 포트 충돌
 
 증상:
 
@@ -883,7 +1111,7 @@ Get-NetTCPConnection -LocalPort 8765 -State Listen
 
 해당 포트를 사용 중인 프로세스를 확인하고 기존 실행 인스턴스 여부를 점검한다.
 
-### 13.5 프론트엔드 포트 충돌
+### 14.7 프론트엔드 포트 충돌
 
 증상:
 
@@ -897,7 +1125,7 @@ Get-NetTCPConnection -LocalPort 5173 -State Listen
 
 기존 Vite 개발 서버가 실행 중인지 확인한다.
 
-### 13.6 GitHub SSH 인증 실패
+### 14.8 GitHub SSH 인증 실패
 
 증상:
 
@@ -924,7 +1152,7 @@ ssh -T git@github-portfolio
 ssh -T git@github-personal
 ```
 
-### 13.7 Git LFS 파일 다운로드 실패
+### 14.9 Git LFS 파일 다운로드 실패
 
 증상:
 
@@ -944,7 +1172,7 @@ Git LFS가 정상 설치되었는지, GitHub 계정에 접근 권한이 있는�
 
 GitHub Releases 등 별도 배포 경로를 사용하는 경우에는 해당 배포 위치에서 파일을 직접 확보한다.
 
-### 13.8 프론트엔드 API 통신 실패
+### 14.10 프론트엔드 API 통신 실패
 
 증상:
 
@@ -962,7 +1190,7 @@ GitHub Releases 등 별도 배포 경로를 사용하는 경우에는 해당 배
 
 실제 API 기본 주소는 프로젝트 설정을 확인한 후 수정한다.
 
-### 13.9 ESLint 오류 발생
+### 14.11 ESLint 오류 발생
 
 기존 개발 PC에서는 ESLint 오류와 경고가 발생한 이력이 있다.
 
@@ -974,7 +1202,7 @@ GitHub Releases 등 별도 배포 경로를 사용하는 경우에는 해당 배
 
 빌드 성공 여부와 ESLint 검사 결과는 별개의 검증 항목이다.
 
-### 13.10 VS Code 또는 Claude Code 실행 문제
+### 14.12 VS Code 또는 Claude Code 실행 문제
 
 확인 사항:
 
@@ -986,26 +1214,28 @@ GitHub Releases 등 별도 배포 경로를 사용하는 경우에는 해당 배
 
 확장 프로그램이 설치되어 있어도 계정 인증이나 사용 권한이 없으면 실제 서비스를 이용할 수 없다.
 
-## 14. 환경 구축 완료 기준
+## 15. 환경 구축 완료 기준
 
 다음 조건을 충족하면 PMIS 개발 환경 구축이 완료된 것으로 판단한다.
 
 1. 시스템 기본 Java 17 및 Node.js 20 환경이 유지된다.
 2. PMIS 전용 JDK 21 및 Node.js 24 환경을 활성화할 수 있다.
-3. MariaDB의 `pmis` 데이터베이스에 접속할 수 있다.
-4. 백엔드 Gradle 빌드가 성공한다.
-5. 프론트엔드 Vite 빌드가 성공한다.
-6. 백엔드가 `8765` 포트에서 정상 실행된다.
-7. 프론트엔드가 `5173` 포트에서 정상 실행된다.
-8. Swagger UI에 접속할 수 있다.
-9. 브라우저에서 PMIS 화면을 확인할 수 있다.
-10. 프론트엔드와 백엔드 간 API 통신을 확인할 수 있다.
+3. `.env` 파일을 통해 필요한 환경변수를 로딩할 수 있다.
+4. DB 비밀번호와 JWT Secret이 Git 추적 대상에서 제외된다.
+5. MariaDB의 `pmis` 데이터베이스에 접속할 수 있다.
+6. 백엔드 Gradle 빌드가 성공한다.
+7. 프론트엔드 Vite 빌드가 성공한다.
+8. 백엔드가 `8765` 포트에서 정상 실행된다.
+9. 프론트엔드가 `5173` 포트에서 정상 실행된다.
+10. Swagger UI에 접속할 수 있다.
+11. 브라우저에서 PMIS 화면을 확인할 수 있다.
+12. 프론트엔드와 백엔드 간 API 통신을 확인할 수 있다.
 
 Claude Code 서비스 사용 권한과 GitHub 인증은 각각 별도로 확인해야 한다. 확장 프로그램 설치만으로 실제 사용 가능 상태를 보장하지 않는다.
 
 또한 Git LFS 또는 별도 배포 경로로 관리하는 설치 자산은 신규 PC에서 실제로 확보할 수 있는지 확인해야 한다.
 
-## 15. 관련 문서
+## 16. 관련 문서
 
 | 파일명 | 설명 |
 |---|---|
@@ -1022,4 +1252,4 @@ Claude Code 서비스 사용 권한과 GitHub 인증은 각각 별도로 확인�
 
 ---
 
-**관리 원칙:** 개발 환경 구축은 단순한 프로그램 설치로 완료되지 않는다. Java, Node.js, MariaDB, Git 및 개발 도구의 설정을 확인하고, PMIS 백엔드와 프론트엔드의 실제 실행 및 통합 통신까지 검증해야 한다.
+**관리 원칙:** 개발 환경 구축은 단순한 프로그램 설치로 완료되지 않는다. Java, Node.js, MariaDB, Git 및 개발 도구의 설정을 확인하고, 환경변수 및 민감정보 관리 상태를 검증한 후 PMIS 백엔드와 프론트엔드의 실제 실행 및 통합 통신까지 확인해야 한다.
