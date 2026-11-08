@@ -43,10 +43,7 @@ import java.time.LocalDateTime;
 @Entity
 @Builder
 @Table(name = "evidence", uniqueConstraints = {
-                @UniqueConstraint(name = "uk_evidence_project_key", columnNames = {
-                                "project_id",
-                                "evidence_key"
-                })
+                @UniqueConstraint(name = "uk_evidence_project_key", columnNames = { "project_id", "evidence_key" })
 })
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
@@ -120,48 +117,30 @@ public class Evidence extends BaseEntity {
 
         /**
          * 파일명
-         *
-         * 수동 등록 증적의 파일명을 저장한다.
-         * Runtime 연동 파일은 Runtime 메타데이터에
-         * 실제 파일명이 제공되는지 확인한 후 설정한다.
          */
         @Column(name = "file_name", length = 255)
         private String fileName;
 
         /**
          * 파일 경로
-         *
-         * 기존 수동 등록 증적의 호환성을 위해 유지한다.
-         *
-         * Runtime 연동 증적은 내부 파일 경로를 저장하거나
-         * 외부에 노출하지 않고 Runtime 콘텐츠 API를 통해 접근한다.
          */
         @Column(name = "file_path", length = 1000)
         private String filePath;
 
         /**
          * Automation Runtime 파일 ID
-         *
-         * Runtime의 tb_output_file.file_id를 저장한다.
-         * 수동 등록 증적에서는 null이다.
          */
         @Column(name = "source_file_id", length = 64)
         private String sourceFileId;
 
         /**
          * Automation Runtime 실행 UUID
-         *
-         * 해당 파일을 생성한 실행을 식별한다.
-         * 수동 등록 증적에서는 null이다.
          */
         @Column(name = "execution_uuid", length = 64)
         private String executionUuid;
 
         /**
          * Automation Runtime Job ID
-         *
-         * 해당 파일을 생성한 자동화 Job을 식별한다.
-         * 수동 등록 증적에서는 null이다.
          */
         @Column(name = "source_job_id", length = 64)
         private String sourceJobId;
@@ -186,8 +165,6 @@ public class Evidence extends BaseEntity {
 
         /**
          * 최신 버전의 대표 검증 상태
-         *
-         * 증적 등록 및 신규 버전 생성 시 기본값은 PENDING이다.
          */
         @Enumerated(EnumType.STRING)
         @Column(name = "verification_status", nullable = false, length = 30)
@@ -240,6 +217,10 @@ public class Evidence extends BaseEntity {
          * @param version 최신 EvidenceVersion
          */
         public void synchronizeLatestVersion(EvidenceVersion version) {
+                if (version == null) {
+                        throw new IllegalArgumentException(
+                                        "동기화할 EvidenceVersion은 필수입니다.");
+                }
 
                 this.evidenceType = version.getEvidenceType();
                 this.title = version.getTitle();
@@ -255,6 +236,49 @@ public class Evidence extends BaseEntity {
                 this.verifiedBy = null;
                 this.verifiedAt = null;
                 this.verificationRemark = null;
+        }
+
+        /**
+         * 이전 활성 EvidenceVersion 정보 복원
+         *
+         * 최신 버전이 논리 삭제된 경우 이전 활성 버전의
+         * 제출물 정보와 검증 정보를 Evidence 대표 객체에 복원한다.
+         *
+         * 검증 상태는 PENDING으로 초기화하지 않고
+         * 기존 버전의 검증 정보를 그대로 복원한다.
+         *
+         * Evidence의 최초 제출자와 최초 제출 일시는 유지한다.
+         * 버전별 제출자와 제출 일시는 EvidenceVersion에 보존한다.
+         *
+         * 삭제된 버전은 복원 대상으로 사용할 수 없다.
+         *
+         * @param version 복원할 이전 활성 EvidenceVersion
+         */
+        public void restoreFromVersion(EvidenceVersion version) {
+                if (version == null) {
+                        throw new IllegalArgumentException(
+                                        "복원할 EvidenceVersion은 필수입니다.");
+                }
+
+                if (version.isDeleted()) {
+                        throw new IllegalArgumentException(
+                                        "삭제된 EvidenceVersion은 복원할 수 없습니다.");
+                }
+
+                this.evidenceType = version.getEvidenceType();
+                this.title = version.getTitle();
+                this.description = version.getDescription();
+                this.fileName = version.getFileName();
+                this.filePath = version.getFilePath();
+
+                this.sourceFileId = version.getSourceFileId();
+                this.executionUuid = version.getExecutionUuid();
+                this.sourceJobId = version.getSourceJobId();
+
+                this.verificationStatus = version.getVerificationStatus();
+                this.verifiedBy = version.getVerifiedBy();
+                this.verifiedAt = version.getVerifiedAt();
+                this.verificationRemark = version.getVerificationRemark();
         }
 
         /**
