@@ -8,6 +8,8 @@ import {
   type FormEvent,
 } from "react";
 
+import { getUser } from "@/features/auth/utils/authStorage";
+
 import type {
   Evidence,
   EvidenceType,
@@ -25,6 +27,7 @@ import {
   getEvidenceVersion,
   getEvidenceVersionVerificationHistory,
   verifyEvidenceVersion,
+  deleteEvidenceVersion,
   uploadEvidenceVersionFile,
   getEvidenceVersionFileMetadata,
   downloadEvidenceVersionFile,
@@ -199,6 +202,9 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
   const verificationRequestSequenceRef = useRef(0);
   const fileMetadataRequestSequenceRef = useRef(0);
 
+  // Evidence 버전 삭제 요청 순번
+  const deletionRequestSequenceRef = useRef(0);
+
   const mountedRef = useRef(true);
 
   const [currentEvidence, setCurrentEvidence] =
@@ -275,6 +281,19 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
   const [verificationSubmitSuccess, setVerificationSubmitSuccess] =
     useState("");
 
+  // Evidence 버전 삭제
+  const [isDeleteFormOpen, setIsDeleteFormOpen] =
+    useState(false);
+
+  const [deleteReason, setDeleteReason] = useState("");
+
+  const [deleteSubmitting, setDeleteSubmitting] =
+    useState(false);
+
+  const [deleteError, setDeleteError] = useState("");
+
+  const [deleteSuccess, setDeleteSuccess] = useState("");
+
   useEffect(() => {
     mountedRef.current = true;
 
@@ -287,6 +306,7 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
       versionCreateRequestSequenceRef.current += 1;
       verificationRequestSequenceRef.current += 1;
       fileMetadataRequestSequenceRef.current += 1;
+      deletionRequestSequenceRef.current += 1;
     };
   }, []);
 
@@ -323,6 +343,7 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
     versionCreateRequestSequenceRef.current += 1;
     verificationRequestSequenceRef.current += 1;
     fileMetadataRequestSequenceRef.current += 1;
+    deletionRequestSequenceRef.current += 1;
 
     setOcrStatus("IDLE");
     setOcrJob(null);
@@ -360,6 +381,12 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
     setVerificationRemarkInput("");
     setVerificationSubmitError("");
     setVerificationSubmitSuccess("");
+
+    setIsDeleteFormOpen(false);
+    setDeleteReason("");
+    setDeleteSubmitting(false);
+    setDeleteError("");
+    setDeleteSuccess("");
 
     if (ocrFileInputRef.current) {
       ocrFileInputRef.current.value = "";
@@ -578,7 +605,7 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
 
   // 신규 버전 폼 열기
   function handleOpenVersionForm() {
-    if (!evidence || versionSubmitting) {
+    if (!evidence || versionSubmitting || deleteSubmitting) {
       return;
     }
 
@@ -714,7 +741,7 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
   ) {
     event.preventDefault();
 
-    if (!evidence || versionSubmitting) {
+    if (!evidence || versionSubmitting || deleteSubmitting) {
       return;
     }
 
@@ -851,6 +878,36 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
     }
   }
 
+  // 로그인 사용자 및 선택 버전 삭제 권한
+  const currentUser = getUser();
+
+  const canDeleteSelectedVersion = (() => {
+    if (!currentUser || !selectedVersion) {
+      return false;
+    }
+
+    const role = currentUser.role;
+
+    // 승인된 버전은 ADMIN만 삭제 가능
+    if (selectedVersion.verificationStatus === "APPROVED") {
+      return role === "ROLE_ADMIN";
+    }
+
+    // 미검증 또는 반려 버전은 제출자, PM, ADMIN 삭제 가능
+    if (
+      selectedVersion.verificationStatus === "PENDING" ||
+      selectedVersion.verificationStatus === "REJECTED"
+    ) {
+      return (
+        selectedVersion.submittedById === currentUser.userId ||
+        role === "ROLE_PM" ||
+        role === "ROLE_ADMIN"
+      );
+    }
+
+    return false;
+  })();
+
   const statusStyle = currentEvidence
     ? getVerificationStatusStyle(
         currentEvidence.verificationStatus,
@@ -924,13 +981,20 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
   ) {
     const versionNumber = Number(event.target.value);
 
-    if (!Number.isInteger(versionNumber)) {
+    if (
+      !Number.isInteger(versionNumber) ||
+      deleteSubmitting
+    ) {
       return;
     }
 
     setVerificationSubmitError("");
     setVerificationSubmitSuccess("");
     setFileDownloadError("");
+    setDeleteError("");
+    setDeleteSuccess("");
+    setIsDeleteFormOpen(false);
+    setDeleteReason("");
     setSelectedVersionNumber(versionNumber);
   }
 
@@ -944,7 +1008,8 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
       !evidence ||
       !selectedVersion ||
       selectedVersionNumber === null ||
-      verificationSubmitting
+      verificationSubmitting ||
+      deleteSubmitting
     ) {
       return;
     }
@@ -1094,6 +1159,199 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
         verificationRequestSequenceRef.current === requestSequence
       ) {
         setVerificationSubmitting(false);
+      }
+    }
+  }
+
+  // 선택 버전 논리 삭제
+  async function handleDeleteSelectedVersion(
+    event: FormEvent<HTMLFormElement>,
+  ) {
+    event.preventDefault();
+
+    if (
+      !evidence ||
+      !selectedVersion ||
+      selectedVersionNumber === null ||
+      !canDeleteSelectedVersion ||
+      deleteSubmitting ||
+      versionSubmitting ||
+      verificationSubmitting
+    ) {
+      return;
+    }
+
+    const reason = deleteReason.trim();
+
+    if (!reason) {
+      setDeleteError("삭제 사유를 입력해 주세요.");
+      return;
+    }
+
+    if (reason.length > 1000) {
+      setDeleteError("삭제 사유는 1000자 이하여야 합니다.");
+      return;
+    }
+
+    if (versions.length <= 1) {
+      setDeleteError("마지막 활성 버전은 삭제할 수 없습니다.");
+      return;
+    }
+
+    const evidenceId = evidence.id;
+    const versionNumber = selectedVersionNumber;
+
+    const requestSequence =
+      ++deletionRequestSequenceRef.current;
+
+    setDeleteSubmitting(true);
+    setDeleteError("");
+    setDeleteSuccess("");
+
+    try {
+      // Backend 논리 삭제 요청
+      await deleteEvidenceVersion(
+        evidenceId,
+        versionNumber,
+        { reason },
+      );
+
+      if (
+        !mountedRef.current ||
+        deletionRequestSequenceRef.current !== requestSequence
+      ) {
+        return;
+      }
+
+      // 진행 중인 기존 버전 관련 조회 요청을 무효화한다.
+      versionListRequestSequenceRef.current += 1;
+      versionDetailRequestSequenceRef.current += 1;
+      fileMetadataRequestSequenceRef.current += 1;
+
+      // 버전 생성 및 검증 요청 순번도 갱신한다.
+      versionCreateRequestSequenceRef.current += 1;
+      verificationRequestSequenceRef.current += 1;
+
+      setVersionsLoading("LOADING");
+      setVersionDetailLoading(true);
+      setHistoryLoading(true);
+
+      setFileMetadata(null);
+      setFileMetadataLoading(false);
+      setFileMetadataError("");
+
+      setSelectedVersion(null);
+      setVerificationHistory([]);
+
+      // 삭제 후 대표 Evidence와 활성 버전 목록 재조회
+      const [refreshedEvidence, refreshedVersions] =
+        await Promise.all([
+          getEvidence(evidenceId),
+          getEvidenceVersions(evidenceId),
+        ]);
+
+      if (
+        !mountedRef.current ||
+        deletionRequestSequenceRef.current !== requestSequence
+      ) {
+        return;
+      }
+
+      setCurrentEvidence(refreshedEvidence);
+
+      setVersions(refreshedVersions);
+      setVersionsLoading("SUCCEEDED");
+      setVersionsError("");
+
+      // 삭제된 버전 대신 최신 활성 버전을 선택한다.
+      const latestVersion = refreshedVersions[0];
+
+      if (latestVersion) {
+        const latestVersionNumber = latestVersion.versionNumber;
+
+        // 선택 번호가 기존과 같더라도 상세 및 이력을 새로 조회한다.
+        const [
+          latestVersionResult,
+          latestHistoryResult,
+        ] = await Promise.allSettled([
+          getEvidenceVersion(
+            evidenceId,
+            latestVersionNumber,
+          ),
+          getEvidenceVersionVerificationHistory(
+            evidenceId,
+            latestVersionNumber,
+          ),
+        ]);
+
+        if (
+          !mountedRef.current ||
+          deletionRequestSequenceRef.current !== requestSequence
+        ) {
+          return;
+        }
+
+        if (latestVersionResult.status === "fulfilled") {
+          setSelectedVersion(latestVersionResult.value);
+          setVersionDetailError("");
+        } else {
+          setSelectedVersion(null);
+          setVersionDetailError(
+            getErrorMessage(latestVersionResult.reason),
+          );
+        }
+
+        setVersionDetailLoading(false);
+
+        if (latestHistoryResult.status === "fulfilled") {
+          setVerificationHistory(latestHistoryResult.value);
+          setHistoryError("");
+        } else {
+          setVerificationHistory([]);
+          setHistoryError(
+            getErrorMessage(latestHistoryResult.reason),
+          );
+        }
+
+        setHistoryLoading(false);
+        setSelectedVersionNumber(latestVersionNumber);
+      } else {
+        setSelectedVersionNumber(null);
+        setSelectedVersion(null);
+        setVerificationHistory([]);
+
+        setVersionDetailLoading(false);
+        setVersionDetailError("");
+
+        setHistoryLoading(false);
+        setHistoryError("");
+      }
+
+      setFileDownloadError("");
+
+      setDeleteSuccess(
+        `Version ${versionNumber} 삭제가 완료되었습니다.`,
+      );
+
+      setDeleteReason("");
+      setIsDeleteFormOpen(false);
+    } catch (error: unknown) {
+      if (
+        !mountedRef.current ||
+        deletionRequestSequenceRef.current !== requestSequence
+      ) {
+        return;
+      }
+
+      setDeleteError(getErrorMessage(error));
+      setVersionDetailLoading(false);
+      setHistoryLoading(false);
+    } finally {
+      if (
+        mountedRef.current &&
+        deletionRequestSequenceRef.current === requestSequence
+      ) {
+        setDeleteSubmitting(false);
       }
     }
   }
@@ -1314,7 +1572,7 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
               <button
                 type="button"
                 onClick={handleOpenVersionForm}
-                disabled={versionSubmitting}
+                disabled={versionSubmitting || deleteSubmitting}
                 style={styles.createVersionButton}
               >
                 새 버전 제출
@@ -1560,7 +1818,7 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
 
                   <button
                     type="submit"
-                    disabled={versionSubmitting}
+                    disabled={versionSubmitting || deleteSubmitting}
                     style={{
                       ...styles.submitButton,
                       ...(versionSubmitting
@@ -1613,6 +1871,7 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
                     id="evidence-version"
                     value={selectedVersionNumber ?? ""}
                     onChange={handleVersionChange}
+                    disabled={deleteSubmitting}
                     style={styles.versionSelect}
                   >
                     {versions.map((version, index) => (
@@ -1632,10 +1891,15 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
                     <button
                       key={version.id}
                       type="button"
+                      disabled={deleteSubmitting}
                       onClick={() => {
                         setVerificationSubmitError("");
                         setVerificationSubmitSuccess("");
                         setFileDownloadError("");
+                        setDeleteError("");
+                        setDeleteSuccess("");
+                        setIsDeleteFormOpen(false);
+                        setDeleteReason("");
                         setSelectedVersionNumber(
                           version.versionNumber,
                         );
@@ -1784,6 +2048,154 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
                 )}
               </section>
 
+              {/* 선택 버전 삭제 */}
+              <section style={styles.section}>
+                <h3 style={styles.sectionHeading}>
+                  Version {selectedVersionNumber} Deletion
+                </h3>
+
+                {deleteSuccess && (
+                  <div role="status" style={styles.successBox}>
+                    {deleteSuccess}
+                  </div>
+                )}
+
+                {!selectedVersion && versionDetailLoading && (
+                  <p style={styles.mutedText}>
+                    버전 정보를 확인한 후 삭제 가능 여부를 판단합니다.
+                  </p>
+                )}
+
+                {selectedVersion && !canDeleteSelectedVersion && (
+                  <p style={styles.mutedText}>
+                    현재 사용자에게 선택한 버전의 삭제 권한이 없습니다.
+                  </p>
+                )}
+
+                {selectedVersion && versions.length <= 1 && (
+                  <p style={styles.mutedText}>
+                    마지막 활성 버전은 삭제할 수 없습니다.
+                  </p>
+                )}
+
+                {selectedVersion &&
+                  canDeleteSelectedVersion &&
+                  versions.length > 1 &&
+                  !isDeleteFormOpen && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setDeleteError("");
+                        setDeleteReason("");
+                        setDeleteSuccess("");
+                        setIsDeleteFormOpen(true);
+                      }}
+                      disabled={
+                        deleteSubmitting ||
+                        versionSubmitting ||
+                        verificationSubmitting
+                      }
+                      style={styles.deleteButton}
+                    >
+                      선택 버전 삭제
+                    </button>
+                  )}
+
+                {isDeleteFormOpen && selectedVersion && (
+                  <form
+                    onSubmit={handleDeleteSelectedVersion}
+                    style={styles.deleteForm}
+                  >
+                    <div style={styles.warningBox}>
+                      <strong>
+                        Version {selectedVersionNumber} 삭제 확인
+                      </strong>
+
+                      <p>
+                        선택한 버전은 일반 버전 목록에서 제외됩니다.
+                        삭제된 버전의 검증 이력과 Runtime 파일 참조는
+                        보존됩니다.
+                      </p>
+
+                      <p>
+                        마지막 활성 버전은 삭제할 수 없습니다.
+                      </p>
+                    </div>
+
+                    <div style={styles.formField}>
+                      <label htmlFor="version-delete-reason">
+                        삭제 사유
+                        <span style={styles.requiredMark}> *</span>
+                      </label>
+
+                      <textarea
+                        id="version-delete-reason"
+                        value={deleteReason}
+                        onChange={(event) => {
+                          setDeleteReason(event.target.value);
+                          setDeleteError("");
+                        }}
+                        rows={4}
+                        maxLength={1000}
+                        required
+                        disabled={deleteSubmitting}
+                        placeholder="삭제 사유를 입력해 주세요."
+                        style={styles.formTextarea}
+                      />
+
+                      <span style={styles.fieldHelp}>
+                        {deleteReason.length}/1000자
+                      </span>
+                    </div>
+
+                    {deleteError && (
+                      <div role="alert" style={styles.errorBox}>
+                        삭제 실패: {deleteError}
+                      </div>
+                    )}
+
+                    <div style={styles.formActions}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (deleteSubmitting) {
+                            return;
+                          }
+
+                          setIsDeleteFormOpen(false);
+                          setDeleteReason("");
+                          setDeleteError("");
+                        }}
+                        disabled={deleteSubmitting}
+                        style={styles.cancelButton}
+                      >
+                        취소
+                      </button>
+
+                      <button
+                        type="submit"
+                        disabled={
+                          deleteSubmitting ||
+                          versionSubmitting ||
+                          verificationSubmitting ||
+                          !deleteReason.trim()
+                        }
+                        style={{
+                          ...styles.deleteButton,
+                          ...(deleteSubmitting
+                            ? styles.disabledButton
+                            : {}),
+                        }}
+                      >
+                        {deleteSubmitting
+                          ? "삭제 처리 중..."
+                          : "삭제 확정"}
+                      </button>
+                    </div>
+                  </form>
+                )}
+              </section>
+
               {/* 선택 버전 파일 메타데이터 및 다운로드 */}
               <section style={styles.section}>
                 <h3 style={styles.sectionHeading}>
@@ -1839,7 +2251,7 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
                     <button
                       type="button"
                       onClick={handleDownloadVersionFile}
-                      disabled={fileDownloadLoading}
+                      disabled={fileDownloadLoading || deleteSubmitting}
                       style={{
                         ...styles.downloadButton,
                         ...(fileDownloadLoading
@@ -1926,7 +2338,10 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
                           setVerificationSubmitError("");
                           setVerificationSubmitSuccess("");
                         }}
-                        disabled={verificationSubmitting}
+                        disabled={
+                          verificationSubmitting ||
+                          deleteSubmitting
+                        }
                         style={styles.formInput}
                       >
                         <option value="APPROVED">승인</option>
@@ -1955,7 +2370,10 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
                         }}
                         rows={3}
                         maxLength={2000}
-                        disabled={verificationSubmitting}
+                        disabled={
+                          verificationSubmitting ||
+                          deleteSubmitting
+                        }
                         placeholder={
                           verificationStatusInput === "REJECTED"
                             ? "반려 사유를 입력해 주세요."
@@ -1976,6 +2394,7 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
                         type="submit"
                         disabled={
                           verificationSubmitting ||
+                          deleteSubmitting ||
                           versionDetailLoading ||
                           !selectedVersion
                         }
@@ -2430,6 +2849,28 @@ const styles: Record<string, CSSProperties> = {
     color: "#ffffff",
     cursor: "pointer",
     fontWeight: 600,
+  },
+
+  // Evidence 버전 삭제 버튼
+  deleteButton: {
+    padding: "9px 16px",
+    border: "1px solid #c62828",
+    borderRadius: 6,
+    backgroundColor: "#c62828",
+    color: "#ffffff",
+    cursor: "pointer",
+    fontWeight: 600,
+  },
+
+  // Evidence 버전 삭제 폼
+  deleteForm: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 14,
+    padding: 16,
+    border: "1px solid #ffcdd2",
+    borderRadius: 8,
+    backgroundColor: "#fffafa",
   },
 
   disabledButton: {

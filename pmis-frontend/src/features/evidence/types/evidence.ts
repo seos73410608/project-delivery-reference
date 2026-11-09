@@ -132,6 +132,13 @@ export interface EvidenceVersion {
 }
 
 /**
+ * 증적 버전 삭제 요청 DTO
+ */
+export interface EvidenceVersionDeleteRequest {
+  reason: string;
+}
+
+/**
  * 증적 버전 검증 이력
  *
  * GET /api/evidence/{id}/versions/{versionNumber}/verification-history

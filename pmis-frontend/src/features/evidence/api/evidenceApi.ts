@@ -1,10 +1,12 @@
 
 import apiClient from '@/api/client';
+
 import type {
   ApiResponse,
   Evidence,
   EvidenceType,
   EvidenceVersion,
+  EvidenceVersionDeleteRequest,
   EvidenceVerificationHistory,
 } from '../types/evidence';
 
@@ -427,6 +429,33 @@ export async function verifyEvidenceVersion(
   );
 
   return response.data.data;
+}
+
+/**
+ * 증적 특정 버전 논리 삭제
+ *
+ * DELETE /api/evidence/{evidenceId}/versions/{versionNumber}
+ *
+ * 요청 DTO:
+ * - reason: 삭제 사유 (필수, 최대 1000자)
+ *
+ * Backend:
+ * - 성공 시 204 No Content
+ * - 삭제 사유, 삭제자, 삭제일시 기록
+ * - 검증 이력 및 Runtime 파일 참조 보존
+ * - 마지막 활성 버전은 삭제할 수 없다.
+ */
+export async function deleteEvidenceVersion(
+  evidenceId: number,
+  versionNumber: number,
+  request: EvidenceVersionDeleteRequest,
+): Promise<void> {
+  await apiClient.delete(
+    `${EVIDENCE_API}/${evidenceId}/versions/${versionNumber}`,
+    {
+      data: request,
+    },
+  );
 }
 
 /**
