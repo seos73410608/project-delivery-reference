@@ -1,8 +1,12 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { login } from "@/features/auth/api/authApi";
-import { setAccessToken } from "@/features/auth/utils/authStorage";
+import {
+    setAccessToken,
+    setUser,
+} from "@/features/auth/utils/authStorage";
 
 
 function LoginForm() {
@@ -42,7 +46,17 @@ function LoginForm() {
             });
 
 
+            // Access Token 저장
             setAccessToken(response.accessToken);
+
+            // 로그인 사용자 정보 저장
+            setUser({
+                userId: response.userId,
+                username: response.username,
+                name: response.name,
+                role: response.role,
+            });
+
 
             navigate("/", {
                 replace: true,
