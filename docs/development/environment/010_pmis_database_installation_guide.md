@@ -1,0 +1,458 @@
+# PMIS PostgreSQL 개발환경 구축 및 권한 검증
+
+- **문서 유형:** Development Environment Setup Record
+- **대상 시스템:** PMIS
+- **관련 Feature:** Evidence Context Intelligence
+- **작성일:** 2026-11-10
+- **상태:** PostgreSQL 설치 및 기본 권한 검증 완료
+- **관련 ADR:** ADR-001. PMIS 독립 데이터 플랫폼 및 PostgreSQL 전환
+
+---
+
+## 1. 목적
+
+본 문서는 PMIS 데이터 플랫폼을 MariaDB에서 PostgreSQL로 전환하기 위한 개발환경 구축 결과와 데이터베이스 계정 및 권한 검증 내역을 기록한다.
+
+이번 작업은 PMIS의 PostgreSQL 전환을 위한 초기 기반 구축 단계다.
+
+주요 목적은 다음과 같다.
+
+1. PostgreSQL 기반 PMIS 데이터베이스 구축
+2. 데이터 소유자, 마이그레이션, 애플리케이션, 조회 전용 계정 분리
+3. 최소 권한 원칙에 따른 데이터베이스 접근 제어
+4. 실제 계정 접속 및 역할 전환 검증
+5. Spring Boot 연동을 위한 사전 환경 준비
+
+## 2. 개발환경 구성
+
+### 2.1 개발 PC 환경
+
+| 항목 | 구성 |
+|---|---|
+| 운영체제 | Windows 11 Pro |
+| OS 표시 버전 | 25H2 |
+| CPU | Intel Pentium Silver N5030 |
+| 메모리 | 약 3.82GB |
+| PostgreSQL | 18.6 |
+| 설치 방식 | Windows Native Installation |
+| 설치 경로 | C:\Program Files\PostgreSQL\18 |
+| 데이터베이스 포트 | 5432 |
+| 접속 주소 | localhost |
+| 클라이언트 | PostgreSQL CLI (psql) |
+
+### 2.2 설치 구성 요소
+
+설치 시 다음 구성 요소를 선택했다.
+
+| 구성 요소 | 설치 여부 | 비고 |
+|---|---|---|
+| PostgreSQL Server | 설치 | 데이터베이스 서버 |
+| Command Line Tools | 설치 | psql 등 관리 도구 |
+| pgAdmin 4 | 제외 | 개발 PC 리소스 고려 |
+| Stack Builder | 제외 | 현재 단계에서 불필요 |
+
+### 2.3 설치 검증
+
+다음 항목을 확인했다.
+
+- PostgreSQL 서비스: `postgresql-x64-18`
+- 서비스 상태: Running
+- PostgreSQL 버전: 18.6
+- 접속 포트: 5432
+- 로컬 접속: 성공
+- 데이터베이스 서버 응답: 정상
+
+버전 확인:
+
+```sql
+SELECT version();
+```
+
+접속 정보 확인:
+
+```sql
+SELECT
+    current_database(),
+    current_user,
+    inet_server_port();
+```
+
+## 3. PMIS 데이터베이스 구성
+
+### 3.1 데이터베이스 생성
+
+데이터베이스 이름은 `pmis`로 지정했다.
+
+```sql
+CREATE DATABASE pmis
+    OWNER pmis_owner
+    ENCODING 'UTF8'
+    TEMPLATE template0;
+```
+
+확인 결과:
+
+| 항목 | 설정값 |
+|---|---|
+| Database | pmis |
+| Owner | pmis_owner |
+| Encoding | UTF8 |
+| Port | 5432 |
+| Connection | localhost |
+
+### 3.2 데이터베이스 접근 정책
+
+PUBLIC의 데이터베이스 접속 권한을 제거하고 지정된 계정에만 접속 권한을 부여했다.
+
+```sql
+REVOKE CONNECT ON DATABASE pmis FROM PUBLIC;
+
+GRANT CONNECT ON DATABASE pmis
+    TO pmis_migrator, pmis_app, pmis_readonly;
+```
+
+데이터베이스 접근 권한은 명시적으로 부여된 계정을 기준으로 관리한다.
+
+## 4. 데이터베이스 계정 및 역할 설계
+
+### 4.1 계정 구성
+
+PMIS는 데이터베이스 소유권과 실제 애플리케이션 접근 권한을 분리한다.
+
+| 계정 | 로그인 | 책임 |
+|---|---|---|
+| postgres | 가능 | PostgreSQL 관리자 |
+| pmis_owner | 불가 | PMIS 데이터베이스 객체 소유 |
+| pmis_migrator | 가능 | 스키마 변경 및 마이그레이션 |
+| pmis_app | 가능 | Spring Boot 애플리케이션 데이터 처리 |
+| pmis_readonly | 가능 | 조회 전용 접근 |
+
+### 4.2 역할 생성
+
+```sql
+CREATE ROLE pmis_owner NOLOGIN;
+
+CREATE ROLE pmis_migrator LOGIN;
+
+GRANT pmis_owner TO pmis_migrator;
+
+CREATE ROLE pmis_app LOGIN;
+
+CREATE ROLE pmis_readonly LOGIN;
+```
+
+각 로그인 계정에는 별도의 비밀번호를 설정했다.
+
+비밀번호는 본 문서 및 Git 저장소에 기록하지 않는다.
+
+### 4.3 역할 관계
+
+```text
+                  pmis_owner
+                      |
+             Role Membership
+                      |
+                pmis_migrator
+                      |
+               SET ROLE 가능
+
+        -----------------------------
+        |                           |
+     pmis_app                 pmis_readonly
+        |                           |
+     CRUD                       SELECT
+```
+
+`pmis_migrator`는 `pmis_owner`의 역할 멤버십을 갖는다.
+
+확인 결과:
+
+| 항목 | 값 |
+|---|---|
+| member_role | pmis_migrator |
+| granted_role | pmis_owner |
+| admin_option | false |
+| inherit_option | true |
+| set_option | true |
+
+마이그레이션 계정은 필요할 때 다음 명령으로 소유자 역할을 사용할 수 있다.
+
+```sql
+SET ROLE pmis_owner;
+```
+
+마이그레이션 계정이 소유자 역할로 생성한 데이터베이스 객체는 `pmis_owner` 소유가 된다.
+
+## 5. 스키마 권한 정책
+
+### 5.1 public 스키마 접근 권한
+
+```sql
+GRANT USAGE ON SCHEMA public
+    TO pmis_app, pmis_readonly;
+```
+
+애플리케이션 계정과 조회 전용 계정에는 스키마 접근 권한만 부여한다.
+
+스키마 객체 생성 권한은 부여하지 않는다.
+
+### 5.2 기본 테이블 권한
+
+`pmis_owner`가 생성하는 테이블에 대해 다음 기본 권한을 적용했다.
+
+애플리케이션 계정:
+
+```sql
+ALTER DEFAULT PRIVILEGES
+    FOR ROLE pmis_owner
+    IN SCHEMA public
+    GRANT SELECT, INSERT, UPDATE, DELETE
+    ON TABLES TO pmis_app;
+```
+
+애플리케이션 계정의 시퀀스 권한:
+
+```sql
+ALTER DEFAULT PRIVILEGES
+    FOR ROLE pmis_owner
+    IN SCHEMA public
+    GRANT USAGE, SELECT
+    ON SEQUENCES TO pmis_app;
+```
+
+조회 전용 계정:
+
+```sql
+ALTER DEFAULT PRIVILEGES
+    FOR ROLE pmis_owner
+    IN SCHEMA public
+    GRANT SELECT
+    ON TABLES TO pmis_readonly;
+```
+
+위 기본 권한은 `pmis_owner` 역할로 생성되는 객체에 적용된다.
+
+따라서 마이그레이션 도구는 객체 생성 시 `SET ROLE pmis_owner`를 적용해야 한다.
+
+기본 권한은 기존 객체에 소급 적용되지 않으므로 기존 객체를 추가할 경우 별도의 GRANT 작업이 필요하다.
+
+## 6. 계정별 권한 검증
+
+### 6.1 pmis_migrator 접속 검증
+
+PowerShell:
+
+```powershell
+& "C:\Program Files\PostgreSQL\18\bin\psql.exe" `
+  -U pmis_migrator `
+  -h localhost `
+  -p 5432 `
+  -d pmis
+```
+
+확인 결과:
+
+| 항목 | 결과 |
+|---|---|
+| session_user | pmis_migrator |
+| current_user | pmis_migrator |
+| current_database | pmis |
+
+### 6.2 소유자 역할 전환 검증
+
+```sql
+SET ROLE pmis_owner;
+
+SELECT
+    session_user,
+    current_user,
+    current_database();
+
+RESET ROLE;
+```
+
+확인 결과:
+
+| 항목 | 결과 |
+|---|---|
+| session_user | pmis_migrator |
+| current_user | pmis_owner |
+| current_database | pmis |
+
+로그인 계정과 실제 권한 행사 계정이 정상적으로 분리되는 것을 확인했다.
+
+### 6.3 객체 소유권 검증
+
+마이그레이션 계정으로 접속한 후 소유자 역할로 테스트 테이블을 생성했다.
+
+```sql
+SET ROLE pmis_owner;
+
+CREATE TABLE public._pmis_role_test (
+    id BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    note TEXT NOT NULL
+);
+
+RESET ROLE;
+```
+
+객체 소유자 및 권한 확인 결과:
+
+| 검증 항목 | 결과 |
+|---|---|
+| 테이블 소유자 | pmis_owner |
+| pmis_app CRUD | true |
+| pmis_readonly SELECT | true |
+| pmis_readonly INSERT | false |
+
+이를 통해 소유자 역할로 생성한 객체에 기본 권한이 정상 적용되는 것을 확인했다.
+
+테스트 테이블은 검증 후 삭제했다.
+
+### 6.4 pmis_app 권한 검증
+
+접속 계정:
+
+```text
+pmis_app
+```
+
+접속 확인:
+
+| 항목 | 결과 |
+|---|---|
+| session_user | pmis_app |
+| current_user | pmis_app |
+| current_database | pmis |
+
+스키마 객체 생성 시도:
+
+```sql
+CREATE TABLE public._pmis_app_permission_test (
+    id BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    note TEXT NOT NULL
+);
+```
+
+결과:
+
+```text
+ERROR: permission denied for schema public
+```
+
+이는 의도한 결과다.
+
+`pmis_app`은 업무 데이터 처리 권한만 가지며 스키마 객체 생성 권한은 갖지 않는다.
+
+### 6.5 pmis_readonly 권한 검증
+
+접속 계정:
+
+```text
+pmis_readonly
+```
+
+접속 확인:
+
+| 항목 | 결과 |
+|---|---|
+| session_user | pmis_readonly |
+| current_user | pmis_readonly |
+| current_database | pmis |
+
+스키마 권한 확인:
+
+```sql
+SELECT
+    has_schema_privilege(
+        current_user,
+        'public',
+        'USAGE'
+    ) AS schema_usage,
+    has_schema_privilege(
+        current_user,
+        'public',
+        'CREATE'
+    ) AS schema_create;
+```
+
+확인 결과:
+
+| 항목 | 결과 |
+|---|---|
+| schema_usage | true |
+| schema_create | false |
+
+조회 전용 계정에 필요한 스키마 접근 권한만 부여된 것을 확인했다.
+
+단, 실제 업무 테이블이 아직 생성되지 않았으므로 SELECT 및 DML 차단에 대한 실제 데이터 테이블 검증은 후속 작업으로 남긴다.
+
+## 7. 현재 구성에 대한 평가
+
+### 7.1 완료된 항목
+
+- PostgreSQL 18.6 설치
+- PostgreSQL 서비스 실행 확인
+- PMIS 데이터베이스 생성
+- 데이터베이스 소유자 분리
+- 마이그레이션 계정 생성
+- 애플리케이션 계정 생성
+- 조회 전용 계정 생성
+- 데이터베이스 접속 권한 분리
+- 스키마 접근 권한 설정
+- 기본 객체 권한 설정
+- 마이그레이션 계정의 소유자 역할 전환 검증
+- 테이블 소유권 검증
+- 애플리케이션 계정의 DDL 차단 검증
+- 조회 전용 계정의 스키마 권한 검증
+- 테스트 객체 정리
+
+### 7.2 미완료 항목
+
+다음 작업은 아직 수행하지 않았다.
+
+- Spring Boot PostgreSQL JDBC 연결
+- 기존 MariaDB 의존성 전환
+- JPA 및 Hibernate PostgreSQL 호환성 확인
+- Flyway 또는 Liquibase 적용 결정
+- 실제 PMIS 스키마 생성
+- Entity 및 Repository 검증
+- Seed 데이터 구성
+- 애플리케이션 CRUD 통합 테스트
+- 백업 및 복구 절차 수립
+- pgvector 설치 및 검증
+- Neo4j 도입 여부 검토
+
+## 8. 후속 작업 계획
+
+| 순서 | 작업 | 목적 |
+|---|---|---|
+| 1 | Spring Boot PostgreSQL 연결 | 신규 DB 연결 확인 |
+| 2 | JDBC 드라이버 전환 | PostgreSQL 연결 지원 |
+| 3 | JPA 호환성 검증 | 기존 Entity 유지 가능성 확인 |
+| 4 | 마이그레이션 전략 결정 | 스키마 버전 관리 |
+| 5 | PMIS 초기 스키마 구성 | 신규 데이터 구조 생성 |
+| 6 | 통합 테스트 | 기존 기능 정상 작동 확인 |
+| 7 | 백업 및 복구 구성 | 개발 데이터 보호 |
+| 8 | pgvector 검토 | Context 검색 기반 준비 |
+
+## 9. 운영 및 보안 유의사항
+
+1. `postgres` 관리자 계정을 애플리케이션에서 사용하지 않는다.
+2. `pmis_owner`는 직접 로그인할 수 없도록 유지한다.
+3. `pmis_migrator`는 스키마 변경 작업에만 사용한다.
+4. `pmis_app`은 애플리케이션 데이터 처리에만 사용한다.
+5. `pmis_readonly`는 조회 용도로만 사용한다.
+6. DB 비밀번호와 인증정보는 Git 저장소에 저장하지 않는다.
+7. 개발 PC의 PostgreSQL은 개발환경 용도로 사용한다.
+8. 운영환경 구성 시 DB 네트워크 격리, 접근 통제, TLS, 백업 정책을 별도로 수립한다.
+
+## 10. 결론
+
+PMIS의 PostgreSQL 전환을 위한 로컬 개발 데이터베이스 환경 구축을 완료했다.
+
+데이터베이스 소유자, 마이그레이션, 애플리케이션, 조회 전용 계정을 분리했으며, 실제 접속과 역할 전환 및 권한 검증을 통해 기본 접근 통제 구조가 정상적으로 동작함을 확인했다.
+
+이번 작업은 기존 PMIS 업무 도메인과 기능을 재구현하는 것이 아니라, 독립적인 데이터 플랫폼 기반으로 전환하기 위한 준비 단계다.
+
+향후 Spring Boot 연결과 스키마 전환을 진행하면서 기존 PMIS 기능의 연속성을 유지하고, Evidence 및 Context·Knowledge 기능을 PostgreSQL 기반으로 확장할 수 있도록 한다.

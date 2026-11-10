@@ -1,0 +1,385 @@
+Windows PowerShell
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+PS C:\WINDOWS\system32> # PostgreSQL Windows 서비스 확인
+PS C:\WINDOWS\system32> Get-Service *postgres*
+
+Status   Name               DisplayName
+------   ----               -----------
+Running  postgresql-x64-18  postgresql-x64-18
+
+
+PS C:\WINDOWS\system32>
+PS C:\WINDOWS\system32> # PostgreSQL 설치 디렉터리 확인
+PS C:\WINDOWS\system32> Get-ChildItem "C:\Program Files\PostgreSQL\18"
+
+
+    디렉터리: C:\Program Files\PostgreSQL\18
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d-----      2026-11-10   오전 9:42                bin
+d-----      2026-11-10   오전 9:43                data
+d-----      2026-11-10   오전 9:41                doc
+d-----      2026-11-10   오전 9:41                include
+d-----      2026-11-10   오전 9:41                installer
+d-----      2026-11-10   오전 9:42                lib
+d-----      2026-11-10   오전 9:41                scripts
+d-----      2026-11-10   오전 9:42                share
+-a----      2026-09-30  오후 10:29          44971 commandlinetools_3rd_party_licenses.txt
+-a----      2026-11-10   오전 9:43            579 installation_summary.log
+-a----      2026-11-10   오전 9:43            339 pg_env.bat
+-a----      2026-09-30  오후 10:29           1388 server_license.txt
+-a----      2026-11-10   오전 9:43          97913 uninstall-postgresql.dat
+-a----      2026-11-10   오전 9:43       12350052 uninstall-postgresql.exe
+
+
+PS C:\WINDOWS\system32>
+PS C:\WINDOWS\system32> # psql 실행 파일 확인
+PS C:\WINDOWS\system32> & "C:\Program Files\PostgreSQL\18\bin\psql.exe" --version
+psql (PostgreSQL) 18.6
+PS C:\WINDOWS\system32> & "C:\Program Files\PostgreSQL\18\bin\psql.exe" -U postgres -h localhost -p 5432 -d postgres
+postgres 사용자의 암호: [Tjtjrgus1!]
+
+psql (18.6)
+도움말을 보려면 "help"를 입력하십시오.
+
+postgres=# SELECT version();
+                                 version
+-------------------------------------------------------------------------
+ PostgreSQL 18.6 on x86_64-windows, compiled by msvc-19.44.35229, 64-bit
+(1개 행)
+
+
+postgres=#
+postgres=# SELECT current_database(),
+postgres-#        current_user,
+postgres-#        inet_server_port();
+ current_database | current_user | inet_server_port
+------------------+--------------+------------------
+ postgres         | postgres     |             5432
+(1개 행)
+
+
+postgres=# -- 1. PMIS 데이터 소유 계정
+postgres=# CREATE ROLE pmis_owner NOLOGIN;
+CREATE ROLE
+postgres=#
+postgres=# -- 2. Schema 변경 및 마이그레이션 계정
+postgres=# CREATE ROLE pmis_migrator LOGIN;
+CREATE ROLE
+postgres=#
+postgres=# -- 소유 계정의 권한을 마이그레이션 계정에 부여
+postgres=# GRANT pmis_owner TO pmis_migrator;
+GRANT ROLE
+postgres=#
+postgres=# -- 3. 애플리케이션 계정
+postgres=# CREATE ROLE pmis_app LOGIN;
+CREATE ROLE
+postgres=#
+postgres=# -- 4. 조회 전용 계정
+postgres=# CREATE ROLE pmis_readonly LOGIN;
+CREATE ROLE
+postgres=#
+postgres=# -- 5. PMIS 데이터베이스 생성
+postgres=# CREATE DATABASE pmis
+postgres-#     OWNER pmis_owner
+postgres-#     ENCODING 'UTF8'
+postgres-#     TEMPLATE template0;
+CREATE DATABASE
+postgres=# \password pmis_migrator
+"pmis_migrator" 사용자의 새 암호: [1]
+
+다시 입력해 주세요:
+
+postgres=# \password pmis_app
+"pmis_app" 사용자의 새 암호: [2]
+
+다시 입력해 주세요:
+
+postgres=# \password pmis_readonly
+"pmis_readonly" 사용자의 새 암호: [3]
+
+다시 입력해 주세요:
+
+postgres=# REVOKE CONNECT ON DATABASE pmis FROM PUBLIC;
+REVOKE
+postgres=#
+postgres=# GRANT CONNECT ON DATABASE pmis
+postgres-#     TO pmis_migrator, pmis_app, pmis_readonly;
+GRANT
+postgres=# \c pmis
+접속정보: 데이터베이스="pmis", 사용자="postgres".
+pmis=# GRANT USAGE ON SCHEMA public
+pmis-#     TO pmis_app, pmis_readonly;
+GRANT
+pmis=#
+pmis=# ALTER DEFAULT PRIVILEGES
+pmis-#     FOR ROLE pmis_owner
+pmis-#     IN SCHEMA public
+pmis-#     GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO pmis_app;
+ALTER DEFAULT PRIVILEGES
+pmis=#
+pmis=# ALTER DEFAULT PRIVILEGES
+pmis-#     FOR ROLE pmis_owner
+pmis-#     IN SCHEMA public
+pmis-#     GRANT USAGE, SELECT ON SEQUENCES TO pmis_app;
+ALTER DEFAULT PRIVILEGES
+pmis=#
+pmis=# ALTER DEFAULT PRIVILEGES
+pmis-#     FOR ROLE pmis_owner
+pmis-#     IN SCHEMA public
+pmis-#     GRANT SELECT ON TABLES TO pmis_readonly;
+ALTER DEFAULT PRIVILEGES
+pmis=# -- 1. 데이터베이스 확인
+pmis=# SELECT current_database(), current_user;
+ current_database | current_user
+------------------+--------------
+ pmis             | postgres
+(1개 행)
+
+
+pmis=#
+pmis=# -- 2. 역할 및 권한 확인
+pmis=# \du
+                            롤 목록
+    롤 이름    |                      속성
+---------------+------------------------------------------------
+ pmis_app      |
+ pmis_migrator |
+ pmis_owner    | 로그인할 수 없음
+ pmis_readonly |
+ postgres      | 슈퍼유저, 롤 만들기, DB 만들기, 복제, RLS 통과
+
+
+pmis=#
+pmis=# -- 3. 스키마 소유자 및 권한 확인
+pmis=# \dn+
+                                         스키마 목록
+  이름  |      소유주       |              액세스 권한               |          설명
+--------+-------------------+----------------------------------------+------------------------
+ public | pg_database_owner | pg_database_owner=UC/pg_database_owner+| standard public schema
+        |                   | =U/pg_database_owner                  +|
+        |                   | pmis_app=U/pg_database_owner          +|
+        |                   | pmis_readonly=U/pg_database_owner      |
+(1개 행)
+
+
+pmis=#
+pmis=# -- 4. 데이터베이스 권한 확인
+pmis=# \l pmis
+                                                        데이터베이스 목록
+ 이름 |   소유주   | 인코딩 | 로케일 제공자 |     Collate      |      Ctype       | 로케일 | ICU 룰 |        액세스 권한
+------+------------+--------+---------------+------------------+------------------+--------+--------+----------------------------
+ pmis | pmis_owner | UTF8   | libc          | Korean_Korea.949 | Korean_Korea.949 |        |        | =T/pmis_owner             +
+      |            |        |               |                  |                  |        |        | pmis_owner=CTc/pmis_owner +
+      |            |        |               |                  |                  |        |        | pmis_migrator=c/pmis_owner+
+      |            |        |               |                  |                  |        |        | pmis_app=c/pmis_owner     +
+      |            |        |               |                  |                  |        |        | pmis_readonly=c/pmis_owner
+(1개 행)
+
+
+pmis=#
+pmis=#
+pmis=#
+pmis=# SELECT
+pmis-#     member.rolname AS member_role,
+pmis-#     granted.rolname AS granted_role,
+pmis-#     m.admin_option,
+pmis-#     m.inherit_option,
+pmis-#     m.set_option
+pmis-# FROM pg_auth_members m
+pmis-# JOIN pg_roles member
+pmis-#     ON member.oid = m.member
+pmis-# JOIN pg_roles granted
+pmis-#     ON granted.oid = m.roleid
+pmis-# WHERE member.rolname = 'pmis_migrator';
+  member_role  | granted_role | admin_option | inherit_option | set_option
+---------------+--------------+--------------+----------------+------------
+ pmis_migrator | pmis_owner   | f            | t              | t
+(1개 행)
+
+
+pmis=#
+pmis=#
+pmis=#
+pmis=# -- 1. 소유자 역할로 전환
+pmis=# SET ROLE pmis_owner;
+SET
+pmis=>
+pmis=> -- 2. 현재 역할 확인
+pmis=> SELECT
+pmis->     session_user,
+pmis->     current_user,
+pmis->     current_database();
+ session_user | current_user | current_database
+--------------+--------------+------------------
+ postgres     | pmis_owner   | pmis
+(1개 행)
+
+
+pmis=>
+pmis=> -- 3. 소유자 역할 해제
+pmis=> RESET ROLE;
+RESET
+pmis=#
+pmis=#
+pmis=# \q
+PS C:\WINDOWS\system32> & "C:\Program Files\PostgreSQL\18\bin\psql.exe" `
+>>   -U pmis_migrator `
+>>   -h localhost `
+>>   -p 5432 `
+>>   -d pmis
+pmis_migrator 사용자의 암호:
+
+psql (18.6)
+도움말을 보려면 "help"를 입력하십시오.
+
+pmis=> SELECT
+pmis->     session_user,
+pmis->     current_user,
+pmis->     current_database();
+ session_user  | current_user  | current_database
+---------------+---------------+------------------
+ pmis_migrator | pmis_migrator | pmis
+(1개 행)
+
+
+pmis=> SET ROLE pmis_owner;
+SET
+pmis=>
+pmis=> SELECT
+pmis->     session_user,
+pmis->     current_user,
+pmis->     current_database();
+ session_user  | current_user | current_database
+---------------+--------------+------------------
+ pmis_migrator | pmis_owner   | pmis
+(1개 행)
+
+
+pmis=>
+pmis=> RESET ROLE;
+RESET
+pmis=> SET ROLE pmis_owner;
+SET
+pmis=>
+pmis=> CREATE TABLE public._pmis_role_test (
+pmis(>     id BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+pmis(>     note TEXT NOT NULL
+pmis(> );
+CREATE TABLE
+pmis=>
+pmis=> RESET ROLE;
+RESET
+pmis=> SELECT
+pmis->     c.relname AS table_name,
+pmis->     pg_get_userbyid(c.relowner) AS table_owner,
+pmis->     has_table_privilege(
+pmis(>         'pmis_app',
+pmis(>         'public._pmis_role_test',
+pmis(>         'SELECT,INSERT,UPDATE,DELETE'
+pmis(>     ) AS app_dml,
+pmis->     has_table_privilege(
+pmis(>         'pmis_readonly',
+pmis(>         'public._pmis_role_test',
+pmis(>         'SELECT'
+pmis(>     ) AS readonly_select,
+pmis->     has_table_privilege(
+pmis(>         'pmis_readonly',
+pmis(>         'public._pmis_role_test',
+pmis(>         'INSERT'
+pmis(>     ) AS readonly_insert
+pmis-> FROM pg_class c
+pmis-> JOIN pg_namespace n ON n.oid = c.relnamespace
+pmis-> WHERE n.nspname = 'public'
+pmis->   AND c.relname = '_pmis_role_test';
+   table_name    | table_owner | app_dml | readonly_select | readonly_insert
+-----------------+-------------+---------+-----------------+-----------------
+ _pmis_role_test | pmis_owner  | t       | t               | f
+(1개 행)
+
+
+pmis=> SET ROLE pmis_owner;
+SET
+pmis=>
+pmis=> DROP TABLE public._pmis_role_test;
+DROP TABLE
+pmis=>
+pmis=> RESET ROLE;
+RESET
+pmis=> SELECT to_regclass('public._pmis_role_test');
+ to_regclass
+-------------
+
+(1개 행)
+
+
+pmis=> \q
+PS C:\WINDOWS\system32> & "C:\Program Files\PostgreSQL\18\bin\psql.exe" `
+>>   -U pmis_app `
+>>   -h localhost `
+>>   -p 5432 `
+>>   -d pmis
+pmis_app 사용자의 암호:
+
+psql (18.6)
+도움말을 보려면 "help"를 입력하십시오.
+
+pmis=> SELECT
+pmis->     session_user,
+pmis->     current_user,
+pmis->     current_database();
+ session_user | current_user | current_database
+--------------+--------------+------------------
+ pmis_app     | pmis_app     | pmis
+(1개 행)
+
+
+pmis=> CREATE TABLE public._pmis_app_permission_test (
+pmis(>     id BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+pmis(>     note TEXT NOT NULL
+pmis(> );
+오류:  public 스키마(schema) 접근 권한 없음
+줄 1: CREATE TABLE public._pmis_app_permission_test (
+                   ^
+pmis=> \q
+PS C:\WINDOWS\system32> & "C:\Program Files\PostgreSQL\18\bin\psql.exe" `
+>>   -U pmis_readonly `
+>>   -h localhost `
+>>   -p 5432 `
+>>   -d pmis
+pmis_readonly 사용자의 암호:
+
+psql (18.6)
+도움말을 보려면 "help"를 입력하십시오.
+
+pmis=> SELECT
+pmis->     session_user,
+pmis->     current_user,
+pmis->     current_database();
+ session_user  | current_user  | current_database
+---------------+---------------+------------------
+ pmis_readonly | pmis_readonly | pmis
+(1개 행)
+
+
+pmis=> SELECT
+pmis->     has_schema_privilege(
+pmis(>         current_user,
+pmis(>         'public',
+pmis(>         'USAGE'
+pmis(>     ) AS schema_usage,
+pmis->     has_schema_privilege(
+pmis(>         current_user,
+pmis(>         'public',
+pmis(>         'CREATE'
+pmis(>     ) AS schema_create;
+ schema_usage | schema_create
+--------------+---------------
+ t            | f
+(1개 행)
+
+
+pmis=>
