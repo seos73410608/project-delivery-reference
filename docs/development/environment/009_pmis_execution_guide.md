@@ -208,6 +208,30 @@ PMIS environment variables loaded successfully.
 - `.env` 파일은 현재 개발 PC에서만 관리하며 Git에 커밋하지 않는다.
 - 환경변수 로딩은 현재 PowerShell 세션에 적용되며 Windows 시스템 전체의 환경변수를 변경하지 않는다.
 
+**새 JWT_SECRET 생성방법:**
+
+새로운 개발환경을 구성하거나 JWT_SECRET을 교체해야 하는 경우 PowerShell에서 다음 명령을 실행한다.
+
+```powershell
+$rng = [Security.Cryptography.RandomNumberGenerator]::Create()
+try {
+    $bytes = New-Object byte[] 64
+    $rng.GetBytes($bytes)
+    $jwtSecret = [Convert]::ToBase64String($bytes)
+}
+finally {
+    $rng.Dispose()
+}
+
+$jwtSecret.Length
+Set-Clipboard -Value $jwtSecret
+```
+- 암호학적으로 안전한 난수 64바이트를 생성한다.
+- Base64 인코딩 결과는 88자이다.
+- 생성된 값은 클립보드에 복사되므로 .env의 JWT_SECRET에 저장한다.
+- JWT_SECRET은 외부에 공개하거나 Git 저장소에 커밋하지 않는다.
+- 기존 JWT_SECRET 교체 시 기존 토큰은 검증되지 않을 수 있으므로 개발환경의 인증 상태를 확인한다.
+
 ### 4.2 JDK 21 활성화
 
 PMIS 전용 JDK 21 환경을 활성화한다.
