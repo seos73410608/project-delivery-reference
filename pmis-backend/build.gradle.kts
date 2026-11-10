@@ -36,7 +36,11 @@ dependencies {
     // ------------------------------------------------------------------------
     // Database
     // ------------------------------------------------------------------------
+    // MariaDB - 기존 환경 유지
     runtimeOnly("org.mariadb.jdbc:mariadb-java-client")
+
+    // PostgreSQL - PMIS 독립 데이터 플랫폼
+    runtimeOnly("org.postgresql:postgresql")
 
     // ------------------------------------------------------------------------
     // Lombok

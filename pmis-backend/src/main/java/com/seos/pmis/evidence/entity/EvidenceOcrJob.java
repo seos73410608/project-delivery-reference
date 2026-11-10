@@ -12,7 +12,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
@@ -121,8 +120,7 @@ public class EvidenceOcrJob extends BaseEntity {
     /**
      * OCR 인식 결과 텍스트.
      */
-    @Lob
-    @Column(name = "recognized_text")
+    @Column(name = "recognized_text", columnDefinition = "TEXT")
     private String recognizedText;
 
     /**
@@ -138,16 +136,14 @@ public class EvidenceOcrJob extends BaseEntity {
      * Runtime에서 반환한 경고 목록.
      * JSON 문자열로 저장하며, API 응답 DTO 변환 시 해석한다.
      */
-    @Lob
-    @Column(name = "warnings")
+    @Column(name = "warnings", columnDefinition = "TEXT")
     private String warnings;
 
     /**
      * OCR 실패 원인 또는 Runtime 오류 정보.
      * JSON 문자열 또는 오류 메시지를 저장할 수 있다.
      */
-    @Lob
-    @Column(name = "error_detail")
+    @Column(name = "error_detail", columnDefinition = "TEXT")
     private String errorDetail;
 
     @Column(name = "requested_at", nullable = false)

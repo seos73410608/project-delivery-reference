@@ -382,4 +382,64 @@ pmis(>     ) AS schema_create;
 (1개 행)
 
 
-pmis=>
+pmis=> \q
+PS C:\WINDOWS\system32> & "C:\Program Files\PostgreSQL\18\bin\psql.exe" -U postgres -h localhost -p 5432 -d postgres
+postgres 사용자의 암호:
+
+psql (18.6)
+도움말을 보려면 "help"를 입력하십시오.
+
+postgres=# \c pmis
+접속정보: 데이터베이스="pmis", 사용자="postgres".
+pmis=# SELECT schemaname, tablename, tableowner FROM pg_tables WHERE schemaname = 'public' AND tablename = 'users';
+ schemaname | tablename |  tableowner
+------------+-----------+---------------
+ public     | users     | pmis_migrator
+(1개 행)
+
+
+pmis=# SELECT grantee, privilege_type FROM information_schema.role_table_grants WHERE table_schema = 'public' AND table_name = 'users' ORDER BY grantee, privilege_type;
+    grantee    | privilege_type
+---------------+----------------
+ pmis_migrator | DELETE
+ pmis_migrator | INSERT
+ pmis_migrator | REFERENCES
+ pmis_migrator | SELECT
+ pmis_migrator | TRIGGER
+ pmis_migrator | TRUNCATE
+ pmis_migrator | UPDATE
+(7개 행)
+
+
+pmis=# GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO pmis_app;
+GRANT
+pmis=# GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO pmis_app;
+GRANT
+pmis=# GRANT USAGE ON SCHEMA public TO pmis_app;
+GRANT
+pmis=# REVOKE CREATE ON SCHEMA public FROM pmis_app;
+REVOKE
+pmis=# SELECT grantee, privilege_type FROM information_schema.role_table_grants WHERE table_schema = 'public' AND table_name = 'users' ORDER BY grantee, privilege_type;
+    grantee    | privilege_type
+---------------+----------------
+ pmis_app      | DELETE
+ pmis_app      | INSERT
+ pmis_app      | SELECT
+ pmis_app      | UPDATE
+ pmis_migrator | DELETE
+ pmis_migrator | INSERT
+ pmis_migrator | REFERENCES
+ pmis_migrator | SELECT
+ pmis_migrator | TRIGGER
+ pmis_migrator | TRUNCATE
+ pmis_migrator | UPDATE
+(11개 행)
+
+pmis=# SELECT has_schema_privilege('pmis_app', 'public', 'USAGE') AS can_use, has_schema_privilege('pmis_app', 'public', 'CREATE') AS can_create;
+ can_use | can_create
+---------+------------
+ t       | f
+(1개 행)
+
+
+pmis=#

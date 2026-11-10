@@ -1,32 +1,55 @@
-# MariaDB 데이터베이스 구축 가이드
+# PMIS 데이터베이스 구축 가이드
 
 - **문서 경로:** `docs/development/environment/005_database_setup.md`
-- **문서 버전:** 1.2
-- **작성일:** 2026-11-06
-- **기존 개발 PC 기준 데이터베이스:** MariaDB 10.6.5
+- **문서 버전:** 1.3
+- **작성일:** 2026-11-10
+- **지원 DBMS:** MariaDB / PostgreSQL
 - **데이터베이스명:** `pmis`
-- **기본 접속 포트:** 3306
+- **MariaDB 기본 포트:** 3306
+- **PostgreSQL 기본 포트:** 5432
 
 ---
 
 ## 1. 목적
 
-본 문서는 PMIS 백엔드에서 사용하는 MariaDB 데이터베이스 환경을 구축하고 연결하는 방법을 설명한다.
+본 문서는 PMIS 백엔드에서 사용하는 데이터베이스 환경을 구축하고 연결하는 방법을 설명한다.
+
+PMIS는 MariaDB와 PostgreSQL을 지원하며, Spring Profile을 이용해 데이터베이스 종류와 실행 환경을 독립적으로 선택한다.
 
 주요 내용은 다음과 같다.
 
-- MariaDB 설치 및 버전 확인
-- Windows 데이터베이스 서비스 확인
+- MariaDB 및 PostgreSQL 설치와 접속 확인
 - PMIS 데이터베이스 생성
-- 데이터베이스 계정 및 권한 설정
+- 개발 및 운영 DB 계정 정책
+- 데이터베이스 권한 분리
 - Spring Boot 데이터베이스 연결 설정
-- JPA를 이용한 테이블 자동 생성
+- JPA 테이블 생성 및 검증 정책
 - 데이터베이스 백업 및 복원
 - 데이터베이스 연결 문제 해결
 
-## 2. 데이터베이스 환경
+## 2. 데이터베이스 구성
 
-### 2.1 기존 개발 PC 설치 현황
+### 2.1 지원 데이터베이스
+
+| 항목 | MariaDB | PostgreSQL |
+|---|---|---|
+| 데이터베이스명 | `pmis` | `pmis` |
+| 기본 포트 | 3306 | 5432 |
+| JDBC Driver | `org.mariadb.jdbc.Driver` | `org.postgresql.Driver` |
+| JDBC URL | `jdbc:mariadb://localhost:3306/pmis` | `jdbc:postgresql://localhost:5432/pmis` |
+| 개발 프로필 | `dev,mariadb` | `dev,postgresql` |
+| 운영 프로필 | `prod,mariadb` | `prod,postgresql` |
+
+데이터베이스 종류와 실행 환경은 서로 독립적으로 선택한다.
+
+예를 들어 다음과 같이 사용할 수 있다.
+
+- `dev,postgresql`: PostgreSQL 개발 환경
+- `prod,postgresql`: PostgreSQL 운영 검증 환경
+- `dev,mariadb`: MariaDB 개발 환경
+- `prod,mariadb`: MariaDB 운영 검증 환경
+
+### 2.2 기존 개발 PC의 MariaDB 설치 현황
 
 | 항목 | 확인 결과 |
 |---|---|
@@ -37,80 +60,38 @@
 | 데이터베이스명 | `pmis` |
 | 접속 주소 | `localhost` |
 | 접속 포트 | 3306 |
-| 접속 계정 | root |
+| 기존 접속 계정 | root |
 
 기존 개발 PC에서는 MariaDB와 MySQL Windows 서비스가 모두 실행 중인 것을 확인했다.
 
-※ 두 서비스가 동시에 실행 중인 상태이므로 신규 PC에서 임의로 서비스를 중지하거나 포트를 변경하지 않는다. 실제 서비스 구성과 포트 사용 여부를 확인한 후 진행한다.
+※ MariaDB 10.6.5는 기존 PC에서 확인한 환경이다. 신규 PC에서는 설치 시점에 지원 중인 MariaDB LTS 버전을 검토한다.
 
-### 2.2 MariaDB 버전 확인
+### 2.3 PostgreSQL 설치 현황
 
-PowerShell에서 다음 명령어를 실행한다.
+| 항목 | 확인 결과 |
+|---|---|
+| 데이터베이스 | PostgreSQL |
+| 버전 | 18.6 |
+| 설치 형태 | Windows Native |
+| 설치 경로 | `C:\Program Files\PostgreSQL\18` |
+| CLI 실행 파일 | `bin\psql.exe` |
+| 데이터베이스명 | `pmis` |
+| 접속 주소 | `localhost` |
+| 접속 포트 | 5432 |
+
+PostgreSQL 설치 및 서비스 상태는 실제 설치 경로와 서비스명을 기준으로 확인한다.
+
+## 3. 데이터베이스 설치 및 접속 확인
+
+### 3.1 MariaDB 설치 확인
+
+기존 개발 PC의 MariaDB CLI 경로를 기준으로 다음 명령어를 실행한다.
 
 ```powershell
 & "C:\Program Files\MariaDB 10.6\bin\mariadb.exe" --version
 ```
 
-기존 개발 PC에서 확인한 결과:
-
-```text
-Ver 15.1 Distrib 10.6.5-MariaDB, for Win64 (AMD64)
-```
-
-### 2.3 신규 PC 버전 선정 기준
-
-기존 개발 PC와 동일한 환경을 재현하는 것이 기본 원칙이다.
-
-다만 MariaDB Community Server 10.6 계열은 2026년 7월 6일 유지보수가 종료되었다. 따라서 신규 PC에서는 지원 중인 LTS 버전을 우선 검토한다.
-
-공식 유지보수 정책:
-
-- [MariaDB 10.6 변경 사항 및 유지보수 기간](https://mariadb.com/docs/release-notes/community-server/10.6/what-is-mariadb-106)
-- [MariaDB 공식 다운로드](https://mariadb.org/download/)
-
-신규 버전을 사용할 경우 다음 항목을 검증한다.
-
-- MariaDB JDBC Driver 연결
-- Spring Boot 데이터베이스 연결
-- JPA 테이블 자동 생성
-- 주요 SQL 실행
-- 데이터 조회 및 저장
-- 백업 및 복원
-
-버전 변경은 호환성 검증 후 적용한다.
-
-## 3. MariaDB 설치
-
-### 3.1 설치 파일 확보
-
-신규 PC에 MariaDB가 설치되어 있지 않다면 공식 배포처에서 Windows용 설치 파일을 확보한다.
-
-공식 사이트:
-
-[MariaDB 공식 다운로드](https://mariadb.org/download/)
-
-설치 시 다음 사항을 확인한다.
-
-1. Windows x64 설치 파일 선택
-2. MariaDB 서버 설치
-3. 관리자 계정 비밀번호 설정
-4. 기본 포트 3306 확인
-5. Windows 서비스 등록 여부 확인
-6. 설치 완료 후 서비스 실행 상태 확인
-
-### 3.2 설치 경로 확인
-
-기존 개발 PC의 설치 경로는 다음과 같다.
-
-```text
-C:\Program Files\MariaDB 10.6
-```
-
-신규 PC에서는 실제 설치 경로를 확인하고 이후 CLI 명령어에 반영한다.
-
-## 4. Windows 서비스 확인
-
-PowerShell에서 다음 명령어를 실행한다.
+서비스 확인:
 
 ```powershell
 Get-Service | Where-Object {
@@ -118,74 +99,57 @@ Get-Service | Where-Object {
 }
 ```
 
-기존 개발 PC에서는 다음 서비스가 실행 중이다.
-
-| 서비스 | 상태 |
-|---|---|
-| MariaDB | Running |
-| MySQL | Running |
-
-신규 PC에서는 설치한 MariaDB 서비스가 `Running` 상태인지 확인한다.
-
-서비스가 실행 중이지 않다면 서비스명과 오류 로그를 확인한 후 원인을 해결한다.
-
-### 4.1 포트 사용 여부 확인
-
-PowerShell에서 다음 명령어를 실행한다.
+포트 확인:
 
 ```powershell
 Get-NetTCPConnection -LocalPort 3306 -State Listen
 ```
 
-3306 포트를 이미 다른 데이터베이스 서비스가 사용하고 있다면 해당 서비스와 포트 구성을 확인한다.
+신규 PC에서는 실제 서비스명과 설치 경로를 확인한 후 명령어를 적용한다.
 
-기존 서비스의 설정을 확인하지 않고 임의로 중지하거나 포트를 변경하지 않는다.
+### 3.2 PostgreSQL 설치 확인
 
-## 5. 데이터베이스 접속
-
-### 5.1 MariaDB CLI 실행
-
-기존 개발 PC의 실행 파일 경로:
-
-```text
-C:\Program Files\MariaDB 10.6\bin\mariadb.exe
-```
-
-PowerShell에서 다음 명령어를 실행한다.
+설치 버전 확인:
 
 ```powershell
-& "C:\Program Files\MariaDB 10.6\bin\mariadb.exe" -u root -p
+& "C:\Program Files\PostgreSQL\18\bin\psql.exe" --version
 ```
 
-비밀번호 입력 프롬프트가 나타나면 설치 시 설정한 관리자 비밀번호를 입력한다.
+서비스 확인:
 
-비밀번호는 화면에 표시되지 않는 것이 정상이다.
-
-### 5.2 서버 버전 및 데이터베이스 확인
-
-MariaDB 접속 후 다음 SQL을 실행한다.
-
-```sql
-SELECT VERSION();
-
-SHOW DATABASES;
+```powershell
+Get-Service | Where-Object {
+    $_.Name -match "postgres"
+}
 ```
 
-기존 개발 PC에서는 MariaDB 10.6.5 서버와 `pmis` 데이터베이스가 존재하는 것을 확인했다.
+포트 확인:
 
-## 6. PMIS 데이터베이스 생성
+```powershell
+Get-NetTCPConnection -LocalPort 5432 -State Listen
+```
 
-### 6.1 데이터베이스 존재 여부 확인
+PostgreSQL 접속 예시:
+
+```powershell
+& "C:\Program Files\PostgreSQL\18\bin\psql.exe" -U postgres -h localhost -p 5432 -d postgres
+```
+
+비밀번호 입력은 CLI 프롬프트에서 진행한다. 비밀번호를 명령어에 직접 입력하지 않는다.
+
+## 4. PMIS 데이터베이스 생성
+
+### 4.1 MariaDB 데이터베이스 생성
+
+먼저 관리자 계정으로 MariaDB에 접속한다.
+
+데이터베이스 존재 여부 확인:
 
 ```sql
 SHOW DATABASES LIKE 'pmis';
 ```
 
-이미 `pmis` 데이터베이스가 존재하면 기존 데이터베이스를 재생성하지 않는다.
-
-### 6.2 신규 데이터베이스 생성
-
-신규 PC에서 데이터베이스가 없는 경우 다음 SQL을 실행한다.
+데이터베이스가 없는 경우에만 생성한다.
 
 ```sql
 CREATE DATABASE pmis
@@ -193,216 +157,467 @@ CREATE DATABASE pmis
     COLLATE utf8mb4_unicode_ci;
 ```
 
-위 설정은 신규 구축 시 사용하는 문자 인코딩 설정이다.
-
-### 6.3 데이터베이스 문자셋 확인
+문자셋 확인:
 
 ```sql
-SELECT
-    SCHEMA_NAME,
-    DEFAULT_CHARACTER_SET_NAME,
-    DEFAULT_COLLATION_NAME
+SELECT SCHEMA_NAME, DEFAULT_CHARACTER_SET_NAME, DEFAULT_COLLATION_NAME
 FROM information_schema.SCHEMATA
 WHERE SCHEMA_NAME = 'pmis';
 ```
 
-기존 데이터베이스를 사용하는 경우에는 문자셋과 Collation을 먼저 확인한다.
+### 4.2 PostgreSQL 데이터베이스 생성
 
-## 7. PMIS 데이터베이스 계정 및 권한
+먼저 관리자 계정으로 PostgreSQL에 접속한다.
 
-### 7.1 기존 개발 PC 설정
-
-현재 백엔드의 데이터베이스 연결 설정은 다음과 같다.
-
-| 항목 | 현재 설정 |
-|---|---|
-| 데이터베이스 | `pmis` |
-| 사용자 | `root` |
-| 드라이버 | MariaDB JDBC Driver |
-| JDBC URL | `jdbc:mariadb://localhost:3306/pmis` |
-
-현재 설정은 기존 개발 PC의 실제 구성을 기록한 것이다.
-
-### 7.2 신규 PC 권장 설정
-
-신규 PC에서는 root 계정을 애플리케이션 연결에 직접 사용하지 않는 것을 권장한다.
-
-PMIS 전용 데이터베이스 계정을 생성하고 필요한 권한을 부여한다.
-
-먼저 계정 존재 여부를 확인한다.
+데이터베이스 존재 여부 확인:
 
 ```sql
-SELECT User, Host
-FROM mysql.user
-WHERE User = 'pmis_app';
+SELECT datname FROM pg_database WHERE datname = 'pmis';
 ```
 
-계정이 없는 경우 다음 SQL을 실행한다.
+데이터베이스가 없는 경우에만 생성한다.
 
 ```sql
-CREATE USER 'pmis_app'@'localhost'
-IDENTIFIED BY '별도의 안전한 비밀번호';
+CREATE DATABASE pmis;
 ```
 
-이후 PMIS 데이터베이스에 대한 권한을 부여한다.
+데이터베이스 소유권은 별도의 소유자 역할을 사용하는 것을 권장한다.
+
+신규 데이터베이스를 생성할 때는 다음과 같이 지정할 수 있다.
 
 ```sql
-GRANT ALL PRIVILEGES ON pmis.*
-TO 'pmis_app'@'localhost';
+CREATE DATABASE pmis OWNER pmis_owner;
 ```
 
-위 SQL의 `별도의 안전한 비밀번호`는 실제 사용할 비밀번호로 대체한다.
+이미 데이터베이스가 존재한다면 재생성하지 않는다.
 
-`ALL PRIVILEGES`는 개발환경에서 JPA의 테이블 생성 및 변경 작업까지 허용하기 위한 설정이다.
+## 5. 데이터베이스 계정 및 권한 정책
 
-운영환경에서는 마이그레이션 계정과 애플리케이션 실행 계정을 분리하고 필요한 권한만 부여한다.
+### 5.1 계정 분리 원칙
 
-### 7.3 권한 확인
+PMIS는 개발 중 스키마 변경 권한과 애플리케이션 실행 권한을 분리한다.
+
+| 역할 | 용도 | 주요 권한 |
+|---|---|---|
+| Owner | DB 객체 소유 및 권한 관리 | 객체 소유 및 권한 관리 |
+| Migrator | 개발 및 스키마 변경 | DDL 및 개발 작업 |
+| App | 애플리케이션 실행 | CRUD |
+| Readonly | 조회 및 분석 | SELECT |
+
+개발 계정과 운영 애플리케이션 계정을 구분한다.
+
+- 개발 환경: `ddl-auto: update`
+- 운영 환경: `ddl-auto: validate`
+- 운영 애플리케이션 계정에는 CREATE 권한을 부여하지 않는다.
+- 스키마 변경은 개발 또는 별도 마이그레이션 작업으로 수행한다.
+
+### 5.2 MariaDB 계정 정책
+
+기존 개발 PC에서는 root 계정을 사용하고 있다.
+
+| 환경 | 계정 | 용도 |
+|---|---|---|
+| 기존 개발 PC | `root` | 기존 개발 환경 |
+| 신규 개발 PC | `pmis_migrator` 권장 | 개발 중 스키마 변경 |
+| 운영 실행 | `pmis_app` | 애플리케이션 CRUD |
+
+신규 개발 PC에서 전용 개발 계정을 생성하는 예시:
 
 ```sql
+CREATE USER 'pmis_migrator'@'localhost' IDENTIFIED BY '별도 비밀번호';
+GRANT ALL PRIVILEGES ON pmis.* TO 'pmis_migrator'@'localhost';
+```
+
+운영 애플리케이션 계정 생성 예시:
+
+```sql
+CREATE USER 'pmis_app'@'localhost' IDENTIFIED BY '별도 비밀번호';
+GRANT SELECT, INSERT, UPDATE, DELETE ON pmis.* TO 'pmis_app'@'localhost';
+```
+
+권한 확인:
+
+```sql
+SHOW GRANTS FOR 'pmis_migrator'@'localhost';
 SHOW GRANTS FOR 'pmis_app'@'localhost';
 ```
 
-이미 계정이 존재한다면 무조건 다시 생성하지 말고 기존 권한과 비밀번호 설정을 확인한다.
+주의 사항:
 
-※ 사용자 생성 및 권한 부여 작업은 해당 작업을 수행할 수 있는 관리자 계정으로 접속해야 한다.
+- 기존 PC의 root 설정을 신규 PC의 권장 설정으로 일반화하지 않는다.
+- 신규 PC에서는 전용 계정을 사용한다.
+- `pmis_app`에는 운영 중 테이블 생성 및 변경 권한을 부여하지 않는다.
+- 계정이 이미 존재하면 무조건 재생성하지 말고 기존 권한을 확인한다.
+- 위 계정 생성 예시는 신규 구축용이다. 기존 운영 DB에 무조건 실행하지 않는다.
 
-## 8. Spring Boot 데이터베이스 연결 설정
+### 5.3 PostgreSQL 계정 정책
 
-### 8.1 설정 파일 위치
+PostgreSQL에서는 역할(Role)을 이용해 객체 소유권과 로그인 계정을 분리한다.
+
+| 역할 | 로그인 | 용도 |
+|---|---|---|
+| `pmis_owner` | NOLOGIN | 데이터베이스 객체 소유 및 권한 관리 |
+| `pmis_migrator` | LOGIN | 개발 및 마이그레이션 |
+| `pmis_app` | LOGIN | 애플리케이션 CRUD |
+| `pmis_readonly` | LOGIN | 조회 전용 |
+
+개발 계정은 Owner 역할의 구성원으로 관리한다.
+
+```sql
+GRANT pmis_owner TO pmis_migrator;
+```
+
+현재 개발 환경에서는 `pmis_migrator`가 개발 중 테이블을 생성하고 변경하는 계정으로 사용된다.
+
+기존 객체의 소유자가 `pmis_migrator`로 생성된 경우도 있으므로, 실제 객체 소유권은 다음 명령으로 확인한다.
+
+```sql
+SELECT schemaname, tablename, tableowner
+FROM pg_tables
+WHERE schemaname = 'public'
+ORDER BY tablename;
+```
+
+장기적으로는 마이그레이션 작업에서 `SET ROLE pmis_owner`를 사용하여 객체 소유권을 Owner 역할로 일관되게 관리하는 방식을 권장한다.
+
+### 5.4 PostgreSQL 애플리케이션 권한
+
+`pmis_app`은 애플리케이션 실행에 필요한 권한만 갖도록 한다.
+
+기존 테이블 CRUD 권한:
+
+```sql
+GRANT SELECT, INSERT, UPDATE, DELETE
+ON ALL TABLES IN SCHEMA public
+TO pmis_app;
+```
+
+기존 시퀀스 권한:
+
+```sql
+GRANT USAGE, SELECT
+ON ALL SEQUENCES IN SCHEMA public
+TO pmis_app;
+```
+
+스키마 접근 권한:
+
+```sql
+GRANT USAGE
+ON SCHEMA public
+TO pmis_app;
+```
+
+운영 애플리케이션 계정의 CREATE 권한 제거:
+
+```sql
+REVOKE CREATE
+ON SCHEMA public
+FROM pmis_app;
+```
+
+권한 확인:
+
+```sql
+SELECT has_schema_privilege('pmis_app', 'public', 'USAGE') AS can_use,
+       has_schema_privilege('pmis_app', 'public', 'CREATE') AS can_create;
+```
+
+정상적인 운영 권한 분리 결과:
+
+| 권한 | 기대 결과 |
+|---|---|
+| USAGE | true |
+| CREATE | false |
+
+테이블 CRUD 권한 확인:
+
+```sql
+SELECT grantee, privilege_type
+FROM information_schema.role_table_grants
+WHERE table_schema = 'public'
+  AND grantee = 'pmis_app'
+ORDER BY grantee, privilege_type;
+```
+
+### 5.5 PostgreSQL 신규 객체 기본 권한
+
+향후 개발 계정이 생성하는 테이블에도 애플리케이션 권한이 적용되도록 기본 권한을 설정한다.
+
+현재 객체 생성 주체가 `pmis_migrator`인 경우:
+
+```sql
+ALTER DEFAULT PRIVILEGES
+FOR ROLE pmis_migrator
+IN SCHEMA public
+GRANT SELECT, INSERT, UPDATE, DELETE
+ON TABLES TO pmis_app;
+```
+
+시퀀스 기본 권한:
+
+```sql
+ALTER DEFAULT PRIVILEGES
+FOR ROLE pmis_migrator
+IN SCHEMA public
+GRANT USAGE, SELECT
+ON SEQUENCES TO pmis_app;
+```
+
+Owner 역할로 객체를 생성하는 경우에는 `pmis_owner`에 대한 기본 권한도 별도로 설정해야 한다.
+
+```sql
+ALTER DEFAULT PRIVILEGES
+FOR ROLE pmis_owner
+IN SCHEMA public
+GRANT SELECT, INSERT, UPDATE, DELETE
+ON TABLES TO pmis_app;
+```
+
+```sql
+ALTER DEFAULT PRIVILEGES
+FOR ROLE pmis_owner
+IN SCHEMA public
+GRANT USAGE, SELECT
+ON SEQUENCES TO pmis_app;
+```
+
+기본 권한은 객체를 생성하는 역할에 따라 적용된다. 따라서 실제 DDL 실행 계정과 `SET ROLE` 사용 여부를 확인해야 한다.
+
+## 6. Spring Boot 데이터베이스 연결 설정
+
+### 6.1 설정 파일 구성
+
+PMIS 백엔드의 DB 연결 설정 파일은 다음과 같이 분리한다.
 
 ```text
 pmis-backend/
 └── src/
     └── main/
         └── resources/
-            └── application.yaml
+            ├── application.yaml
+            ├── application-dev.yaml
+            ├── application-prod.yaml
+            ├── application-mariadb.yaml
+            └── application-postgresql.yaml
 ```
 
-### 8.2 기존 개발 PC 설정
+환경 프로필과 데이터베이스 프로필은 독립적으로 선택한다.
 
-현재 `application.yaml`에는 다음 연결 정보가 설정되어 있다.
+### 6.2 기본 프로필
 
-- JDBC URL: `jdbc:mariadb://localhost:3306/pmis`
-- 사용자 계정: `root`
-- 드라이버: `org.mariadb.jdbc.Driver`
+`application.yaml`:
 
-현재 설정에는 데이터베이스 비밀번호가 포함되어 있으므로 문서나 Git 저장소에 실제 비밀번호를 기록하지 않는다.
+```yaml
+spring:
+  application:
+    name: pmis
 
-### 8.3 신규 PC 권장 환경변수 설정
+  profiles:
+    default: dev,postgresql
+```
 
-신규 PC에서는 비밀번호를 설정 파일에 직접 기록하지 않고 Spring Boot 환경변수로 전달하는 방식을 권장한다.
+별도 환경변수가 없을 때 기본 실행 환경은 `dev,postgresql`이다.
 
-`application.yaml`의 권장 구성 예시:
+실행 환경은 다음 환경변수로 변경할 수 있다.
+
+```powershell
+$env:SPRING_PROFILES_ACTIVE = "dev,postgresql"
+```
+
+운영 검증 환경:
+
+```powershell
+$env:SPRING_PROFILES_ACTIVE = "prod,postgresql"
+```
+
+### 6.3 개발 및 운영 JPA 설정
+
+`application-dev.yaml`:
+
+```yaml
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+logging:
+  level:
+    org.hibernate.SQL: DEBUG
+    org.hibernate.orm.jdbc.bind: TRACE
+```
+
+`application-prod.yaml`:
+
+```yaml
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+
+logging:
+  level:
+    org.hibernate.SQL: WARN
+    org.hibernate.orm.jdbc.bind: WARN
+```
+
+| 항목 | 개발 | 운영 |
+|---|---|---|
+| `ddl-auto` | update | validate |
+| SQL 출력 | true | false |
+| SQL 로그 | DEBUG | WARN |
+| DB 계정 | Migrator | App |
+
+`update`는 개발 중 Entity 변경에 따라 스키마를 갱신할 수 있다.
+
+`validate`는 기존 스키마와 Entity 매핑의 일치 여부를 검증하며, 테이블을 자동 생성하거나 변경하지 않는다.
+
+운영 환경에서 `pmis_app`을 사용하면 애플리케이션이 스키마를 직접 변경하지 않도록 권한과 설정을 함께 통제한다.
+
+### 6.4 MariaDB 연결 설정
+
+`application-mariadb.yaml`:
 
 ```yaml
 spring:
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:mariadb://localhost:3306/pmis}
-    username: ${SPRING_DATASOURCE_USERNAME:pmis_app}
-    password: ${SPRING_DATASOURCE_PASSWORD}
+    url: ${PMIS_MARIADB_URL:jdbc:mariadb://localhost:3306/pmis}
+    username: ${PMIS_DB_USERNAME}
+    password: ${PMIS_DB_PASSWORD}
     driver-class-name: org.mariadb.jdbc.Driver
 ```
 
-PowerShell에서 현재 세션에 환경변수를 설정하는 예시:
+### 6.5 PostgreSQL 연결 설정
 
-```powershell
-$env:SPRING_DATASOURCE_URL = "jdbc:mariadb://localhost:3306/pmis"
-$env:SPRING_DATASOURCE_USERNAME = "pmis_app"
-$env:SPRING_DATASOURCE_PASSWORD = "실제 비밀번호"
+`application-postgresql.yaml`:
+
+```yaml
+spring:
+  datasource:
+    url: ${PMIS_POSTGRESQL_URL:jdbc:postgresql://localhost:5432/pmis}
+    username: ${PMIS_DB_USERNAME}
+    password: ${PMIS_DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
 ```
 
-이 설정은 현재 PowerShell 세션에만 적용된다.
+### 6.6 환경변수 관리
 
-환경변수 설정 후 같은 PowerShell 세션에서 백엔드를 실행해야 한다.
+프로젝트 루트의 `.env` 파일에서 데이터베이스별, 환경별 접속 정보를 관리한다.
 
-※ 위 YAML은 보안 개선을 위한 권장 예시이며, 현재 프로젝트의 실제 설정을 변경한 결과를 의미하지 않는다. 적용 시 기존 설정과의 중복 여부를 확인하고 별도 변경 작업으로 관리한다.
+```dotenv
+# MariaDB
+PMIS_MARIADB_URL=jdbc:mariadb://localhost:3306/pmis
+PMIS_MARIADB_DEV_USERNAME=root
+PMIS_MARIADB_DEV_PASSWORD=
+PMIS_MARIADB_PROD_USERNAME=pmis_app
+PMIS_MARIADB_PROD_PASSWORD=
 
-※ `SPRING_DATASOURCE_PASSWORD`는 기본값이 없으므로 환경변수를 설정하지 않으면 데이터베이스 연결이 실패할 수 있다.
+# PostgreSQL
+PMIS_POSTGRESQL_URL=jdbc:postgresql://localhost:5432/pmis
+PMIS_POSTGRESQL_DEV_USERNAME=pmis_migrator
+PMIS_POSTGRESQL_DEV_PASSWORD=
+PMIS_POSTGRESQL_PROD_USERNAME=pmis_app
+PMIS_POSTGRESQL_PROD_PASSWORD=
 
-## 9. PMIS 테이블 자동 생성 및 확인
-
-### 9.1 테이블 자동 생성 방식
-
-현재 PMIS 백엔드는 Spring Boot와 JPA를 사용하며, 데이터베이스에 연결한 후 백엔드를 실행하면 프로젝트의 JPA 설정에 따라 테이블이 자동 생성되는 구조다.
-
-따라서 신규 PC에서 PMIS 데이터베이스를 생성하고 백엔드를 실행하면 테이블 생성 절차가 진행된다.
-
-신규 PC 구축 시 별도의 SQL을 이용해 16개 테이블을 직접 생성할 필요는 없다.
-
-다만 테이블 자동 생성 여부는 실제 프로젝트의 JPA DDL 설정, Entity 매핑 및 데이터베이스 계정 권한에 영향을 받는다.
-
-### 9.2 PMIS 데이터베이스 접속
-
-기존 개발 PC의 MariaDB CLI 경로를 기준으로 다음 명령어를 실행한다.
-
-신규 PC에서 `pmis_app` 계정을 생성한 경우:
-
-```powershell
-& "C:\Program Files\MariaDB 10.6\bin\mariadb.exe" `
-    -u pmis_app -p pmis
+# Application
+JWT_SECRET=
+RUNTIME_API_BASE_URL=http://127.0.0.1:8000
+RUNTIME_API_KEY=
+SERVER_PORT=8765
 ```
 
-현재 개발 PC의 기존 root 계정을 사용하는 경우:
+위 값은 변수 구성 예시다. 실제 비밀번호와 JWT Secret은 로컬 환경에서 별도로 설정한다.
+
+`load-pmis-env.ps1` 스크립트가 활성 프로필을 확인하고 해당 DB 및 환경에 맞는 계정 정보를 `PMIS_DB_USERNAME`, `PMIS_DB_PASSWORD`로 전달한다.
+
+비밀번호 값은 콘솔이나 문서에 출력하지 않는다.
+
+환경변수 로딩 절차는 009 PMIS 실행 가이드를 참고한다.
+
+## 7. JPA 테이블 생성 및 검증
+
+### 7.1 데이터베이스와 테이블 생성의 차이
+
+데이터베이스 생성과 테이블 생성은 별도 작업이다.
+
+1. MariaDB 또는 PostgreSQL 서버 설치
+2. `pmis` 데이터베이스 생성
+3. 데이터베이스 계정 및 권한 설정
+4. Spring Boot 데이터베이스 연결
+5. JPA Entity 및 DDL 설정에 따른 테이블 생성 또는 검증
+
+신규 PC에서 16개 테이블을 SQL로 직접 생성하도록 안내하지 않는다.
+
+테이블 생성 및 변경 여부는 다음 항목에 영향을 받는다.
+
+- `ddl-auto` 설정
+- Entity 매핑
+- 데이터베이스 연결 계정
+- 데이터베이스 객체 및 스키마 권한
+- 기존 테이블과 Entity의 상태
+
+### 7.2 개발 환경
+
+개발 환경에서는 `dev` 프로필과 Migrator 계정을 사용한다.
 
 ```powershell
-& "C:\Program Files\MariaDB 10.6\bin\mariadb.exe" `
-    -u root -p pmis
+$env:SPRING_PROFILES_ACTIVE = "dev,postgresql"
+..\scripts\load-pmis-env.ps1
 ```
 
-MariaDB CLI가 다른 경로에 설치되어 있다면 실제 설치 경로로 변경한다.
+정상적인 PostgreSQL 개발 환경 출력 예시:
 
-### 9.3 테이블 확인
+```text
+Active profiles: dev, postgresql
+Environment: dev
+Database: postgresql
+Database username: pmis_migrator
+Hibernate DDL mode: update
+```
 
-MariaDB 접속 후 다음 SQL을 실행한다.
+### 7.3 운영 검증 환경
+
+운영 검증 환경에서는 `prod` 프로필과 App 계정을 사용한다.
+
+```powershell
+$env:SPRING_PROFILES_ACTIVE = "prod,postgresql"
+..\scripts\load-pmis-env.ps1
+```
+
+정상적인 PostgreSQL 운영 환경 출력 예시:
+
+```text
+Active profiles: prod, postgresql
+Environment: prod
+Database: postgresql
+Database username: pmis_app
+Hibernate DDL mode: validate
+```
+
+### 7.4 테이블 확인
+
+MariaDB:
 
 ```sql
 SHOW TABLES;
 ```
 
-기존 개발 PC에서 확인한 PMIS 테이블은 총 16개다.
+PostgreSQL:
 
-| 번호 | 테이블 |
-|---:|---|
-| 1 | changes |
-| 2 | evidence |
-| 3 | evidence_ocr_job |
-| 4 | evidence_requirements |
-| 5 | evidence_verification_history |
-| 6 | evidence_version |
-| 7 | inspection_items |
-| 8 | inspections |
-| 9 | issues |
-| 10 | projects |
-| 11 | refresh_tokens |
-| 12 | risks |
-| 13 | schedules |
-| 14 | tasks |
-| 15 | users |
-| 16 | wbs |
+```sql
+SELECT tablename
+FROM pg_tables
+WHERE schemaname = 'public'
+ORDER BY tablename;
+```
 
-※ 위 목록은 2026-11-06 현재 개발 PC에서 확인한 결과다. 신규 PC에서는 프로젝트의 Entity 및 JPA 설정에 따라 테이블 구성이 달라질 수 있다.
+기존 테이블 수와 신규 환경의 테이블 수가 다를 경우 Entity 및 JPA 설정을 기준으로 확인한다.
 
-### 9.4 신규 PC 초기 구축 순서
+## 8. 데이터베이스 백업 및 복원
 
-신규 PC에서는 다음 순서로 진행한다.
-
-1. MariaDB 설치 및 서비스 실행 확인
-2. `pmis` 데이터베이스 생성
-3. PMIS 전용 계정 생성 및 권한 부여
-4. Spring Boot 데이터베이스 연결 설정
-5. PMIS 백엔드 실행
-6. 백엔드 실행 로그에서 데이터베이스 연결 및 JPA 초기화 확인
-7. MariaDB에서 `SHOW TABLES;` 실행
-8. 테이블 자동 생성 여부 확인
-
-## 10. 데이터베이스 백업 및 복원
-
-### 10.1 백업
-
-MariaDB의 `mariadb-dump` 명령어를 사용한다.
-
-기존 개발 PC에서 root 계정을 사용하는 경우:
+### 8.1 MariaDB 백업
 
 ```powershell
 & "C:\Program Files\MariaDB 10.6\bin\mariadb-dump.exe" `
@@ -411,57 +626,55 @@ MariaDB의 `mariadb-dump` 명령어를 사용한다.
     pmis
 ```
 
-신규 PC에서 `pmis_app` 계정을 생성하고 해당 계정으로 백업을 수행하는 경우:
+신규 PC에서는 실제 설치 경로와 백업 권한을 확인한 후 실행한다.
 
-```powershell
-& "C:\Program Files\MariaDB 10.6\bin\mariadb-dump.exe" `
-    -u pmis_app -p `
-    --result-file="pmis_backup.sql" `
-    pmis
-```
-
-MariaDB CLI 도구의 설치 경로가 다르면 실제 설치 경로로 변경한다.
-
-비밀번호 입력 후 백업이 진행된다.
-
-`pmis_backup.sql` 파일이 생성되었는지 확인한다.
-
-### 10.2 복원
-
-먼저 복원 대상 데이터베이스가 존재하는지 확인한다.
-
-```sql
-SHOW DATABASES LIKE 'pmis';
-```
-
-복원 대상 데이터베이스가 없다면 6장의 데이터베이스 생성 절차를 진행한다.
-
-현재 개발 PC의 root 계정을 사용하는 경우:
+### 8.2 MariaDB 복원
 
 ```powershell
 & "C:\Program Files\MariaDB 10.6\bin\mariadb.exe" `
     -u root -p pmis
 ```
 
-신규 PC의 `pmis_app` 계정을 사용하는 경우:
-
-```powershell
-& "C:\Program Files\MariaDB 10.6\bin\mariadb.exe" `
-    -u pmis_app -p pmis
-```
-
-MariaDB 접속 후 `SOURCE` 명령어로 백업 파일을 복원한다.
+MariaDB 접속 후:
 
 ```sql
 SOURCE C:/backup/pmis_backup.sql;
 ```
 
-위 경로는 예시이므로 실제 백업 파일 경로로 변경한다.
+### 8.3 PostgreSQL 백업
 
-### 10.3 백업 및 복원 시 확인 사항
+PostgreSQL의 `pg_dump`를 사용한다.
+
+```powershell
+& "C:\Program Files\PostgreSQL\18\bin\pg_dump.exe" `
+    -U postgres `
+    -h localhost `
+    -p 5432 `
+    -d pmis `
+    -F c `
+    -f "pmis_backup.dump"
+```
+
+### 8.4 PostgreSQL 복원
+
+복원 대상 데이터베이스를 준비한 후 다음 명령을 실행한다.
+
+```powershell
+& "C:\Program Files\PostgreSQL\18\bin\pg_restore.exe" `
+    -U postgres `
+    -h localhost `
+    -p 5432 `
+    -d pmis `
+    "pmis_backup.dump"
+```
+
+복원 작업은 대상 데이터베이스와 기존 데이터에 영향을 줄 수 있으므로 사전에 백업 및 복원 범위를 확인한다.
+
+### 8.5 백업 및 복원 확인 사항
 
 - 백업 파일 생성 여부
 - 백업 파일 크기
+- 데이터베이스 종류 및 버전
 - 복원 대상 데이터베이스
 - 계정 및 권한
 - 테이블과 데이터 건수
@@ -469,9 +682,9 @@ SOURCE C:/backup/pmis_backup.sql;
 
 실제 데이터가 포함된 백업 파일은 Git 저장소에 무분별하게 커밋하지 않는다.
 
-## 11. 문제 해결
+## 9. 문제 해결
 
-### 11.1 데이터베이스 접속 실패
+### 9.1 데이터베이스 접속 실패
 
 오류 예시:
 
@@ -481,75 +694,101 @@ Connection refused
 
 확인 사항:
 
-1. MariaDB 서비스 실행 여부
+1. DB 서비스 실행 여부
 2. 접속 주소 및 포트
 3. 방화벽 및 포트 접근 여부
 4. JDBC URL 설정
+5. 활성 Spring Profile
 
-### 11.2 Access denied 오류
+### 9.2 Access denied 또는 권한 오류
 
-오류 예시:
+MariaDB:
 
 ```text
 Access denied for user
 ```
 
-확인 사항:
+PostgreSQL:
 
-1. 사용자 계정 존재 여부
-2. 비밀번호 일치 여부
-3. 접속 호스트와 계정의 일치 여부
-4. 데이터베이스 접근 권한
-
-### 11.3 데이터베이스가 없는 경우
-
-다음 명령어로 확인한다.
-
-```sql
-SHOW DATABASES LIKE 'pmis';
+```text
+permission denied for table
 ```
 
-없다면 6장의 데이터베이스 생성 절차를 진행한다.
+확인 사항:
 
-### 11.4 테이블이 생성되지 않는 경우
+1. DB 사용자명과 비밀번호
+2. 실제 활성 프로필
+3. 해당 계정의 데이터베이스 접근 권한
+4. 스키마 USAGE 권한
+5. 테이블 CRUD 권한
+6. 시퀀스 사용 권한
+7. 객체 생성 주체와 기본 권한 설정
+
+PostgreSQL에서 `pmis_app`의 CREATE 권한이 없는 것은 운영 환경의 정상적인 보안 정책이다.
+
+개발 중 스키마 변경 오류가 발생하면 운영 계정 대신 Migrator 계정이 선택되었는지 확인한다.
+
+### 9.3 JPA 테이블이 생성되지 않는 경우
 
 다음 항목을 확인한다.
 
-1. Spring Boot 실행 로그
-2. 데이터베이스 연결 성공 여부
-3. JPA DDL 설정
-4. 데이터베이스 연결 계정 권한
-5. Entity 매핑 및 초기화 설정
+1. Spring Profile
+2. `ddl-auto` 설정
+3. DB 연결 성공 여부
+4. Entity 매핑
+5. DB 계정 권한
+6. 스키마 접근 권한
+7. 백엔드 실행 로그
 
-테이블 자동 생성이 진행되지 않는 경우에는 실제 프로젝트의 JPA 설정과 실행 로그를 확인한다.
+`validate` 환경에서는 테이블이 자동 생성되지 않는다.
 
-### 11.5 3306 포트 충돌
+### 9.4 포트 충돌
 
-오류가 발생하면 다음 명령어로 포트 사용 상태를 확인한다.
+MariaDB:
 
 ```powershell
 Get-NetTCPConnection -LocalPort 3306 -State Listen
 ```
 
-이미 다른 서비스가 포트를 사용 중이라면 해당 서비스의 구성과 데이터베이스 연결 상태를 확인한다.
+PostgreSQL:
 
-기존 데이터베이스 서비스의 설정을 확인하지 않고 임의로 중지하거나 포트를 변경하지 않는다.
+```powershell
+Get-NetTCPConnection -LocalPort 5432 -State Listen
+```
 
-## 12. 확인 완료 기준
+기존 DB 서비스의 설정을 확인하지 않고 임의로 중지하거나 포트를 변경하지 않는다.
 
-- [ ] MariaDB 설치 확인
+## 10. 확인 완료 기준
+
+### MariaDB
+
+- [ ] MariaDB 설치 및 버전 확인
 - [ ] MariaDB 서비스 실행 확인
-- [ ] MariaDB 버전 확인
-- [ ] 데이터베이스 접속 확인
+- [ ] 3306 포트 확인
 - [ ] `pmis` 데이터베이스 존재 확인
-- [ ] 데이터베이스 문자셋 및 Collation 확인
-- [ ] PMIS 전용 계정 생성 및 권한 확인
-- [ ] Spring Boot 데이터베이스 연결 설정 확인
-- [ ] 백엔드에서 데이터베이스 연결 성공
-- [ ] JPA 테이블 자동 생성 확인
-- [ ] PMIS 테이블 조회 확인
-- [ ] 데이터베이스 백업 및 복원 방법 확인
+- [ ] 문자셋 및 Collation 확인
+- [ ] 개발 계정 권한 확인
+- [ ] 운영 App 계정 권한 확인
+- [ ] Spring Boot 연결 확인
+- [ ] JPA 테이블 생성 및 검증 확인
+
+### PostgreSQL
+
+- [ ] PostgreSQL 설치 및 버전 확인
+- [ ] PostgreSQL 서비스 실행 확인
+- [ ] 5432 포트 확인
+- [ ] `pmis` 데이터베이스 존재 확인
+- [ ] Owner 역할 확인
+- [ ] Migrator 계정 확인
+- [ ] App 계정 확인
+- [ ] Readonly 계정 확인
+- [ ] App 테이블 CRUD 권한 확인
+- [ ] App 시퀀스 권한 확인
+- [ ] App 스키마 USAGE 권한 확인
+- [ ] App 스키마 CREATE 권한 없음 확인
+- [ ] 개발 프로필 `update` 기동 확인
+- [ ] 운영 프로필 `validate` 기동 확인
 
 ---
 
-**보안 원칙:** 데이터베이스 비밀번호는 소스코드, 문서, Git 커밋에 평문으로 포함하지 않는다. 신규 PC에서는 PMIS 전용 계정을 사용하고 환경변수 또는 별도의 안전한 비밀정보 관리 방식을 적용한다.
+**보안 원칙:** 데이터베이스 비밀번호와 JWT Secret은 소스코드, 문서, Git 커밋에 평문으로 포함하지 않는다. 개발 중 스키마 변경 권한과 운영 애플리케이션의 CRUD 권한을 분리하며, 운영 애플리케이션 계정에는 불필요한 DDL 권한을 부여하지 않는다.

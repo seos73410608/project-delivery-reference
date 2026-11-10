@@ -1,0 +1,7 @@
+
+spring:
+  datasource:
+    url: ${PMIS_MARIADB_URL:jdbc:mariadb://localhost:3306/pmis}
+    username: ${PMIS_DB_USERNAME}
+    password: ${PMIS_DB_PASSWORD}
+    driver-class-name: org.mariadb.jdbc.Driver

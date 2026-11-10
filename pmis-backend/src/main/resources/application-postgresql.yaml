@@ -1,0 +1,7 @@
+
+spring:
+  datasource:
+    url: ${PMIS_POSTGRESQL_URL:jdbc:postgresql://localhost:5432/pmis}
+    username: ${PMIS_DB_USERNAME}
+    password: ${PMIS_DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver

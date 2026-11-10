@@ -3,24 +3,14 @@ spring:
   application:
     name: pmis
 
-  datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:mariadb://localhost:3306/pmis}
-    username: ${SPRING_DATASOURCE_USERNAME:root}
-    password: ${SPRING_DATASOURCE_PASSWORD}
-    driver-class-name: org.mariadb.jdbc.Driver
+  profiles:
+    default: dev,postgresql
 
   jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
         format_sql: true
-
-logging:
-  level:
-    org.hibernate.SQL: DEBUG
-    org.hibernate.orm.jdbc.bind: TRACE
 
 jwt:
   secret: ${JWT_SECRET}
