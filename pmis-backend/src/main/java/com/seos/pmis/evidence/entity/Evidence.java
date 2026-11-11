@@ -112,7 +112,7 @@ public class Evidence extends BaseEntity {
         /**
          * Evidence 설명
          */
-        @Lob
+        @Column(columnDefinition = "TEXT")
         private String description;
 
         /**
@@ -187,8 +187,7 @@ public class Evidence extends BaseEntity {
         /**
          * 최신 버전의 대표 검증 의견 및 반려 사유
          */
-        @Lob
-        @Column(name = "verification_remark")
+        @Column(name = "verification_remark", columnDefinition = "TEXT")
         private String verificationRemark;
 
         /**

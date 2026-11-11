@@ -1,3 +1,4 @@
+
 package com.seos.pmis.change.repository;
 
 import com.seos.pmis.change.entity.Change;
@@ -16,14 +17,14 @@ public interface ChangeRepository
      * Change Key 생성 시 사용
      * 예: CHG-001 → CHG-002
      */
-    Optional<Change> findTopByProjectIdOrderByIdDesc(Long projectId);
+    Optional<Change> findTopByProject_IdOrderByIdDesc(Long projectId);
 
     /**
      * 프로젝트별 Change Key 조회
      *
      * 프로젝트 내 Change Key 중복 검증 시 사용
      */
-    Optional<Change> findByProjectIdAndChangeKey(
+    Optional<Change> findByProject_IdAndChangeKey(
             Long projectId,
             String changeKey
     );

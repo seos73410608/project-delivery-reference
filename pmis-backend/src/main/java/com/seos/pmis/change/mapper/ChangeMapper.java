@@ -1,9 +1,11 @@
+
 package com.seos.pmis.change.mapper;
 
 import com.seos.pmis.change.dto.request.ChangeCreateRequest;
 import com.seos.pmis.change.dto.request.ChangeUpdateRequest;
 import com.seos.pmis.change.dto.response.ChangeResponse;
 import com.seos.pmis.change.entity.Change;
+import com.seos.pmis.project.entity.Project;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -12,16 +14,16 @@ public class ChangeMapper {
     /**
      * CreateRequest → Change Entity
      *
-     * projectId와 status, changeKey 등
+     * Project, status, changeKey 등
      * Backend에서 관리하는 값은 Service에서 처리한다.
      */
     public Change toEntity(
-            Long projectId,
+            Project project,
             ChangeCreateRequest request
     ) {
 
         return new Change(
-                projectId,
+                project,
                 request.getTitle(),
                 request.getDescription(),
                 null,

@@ -1,6 +1,7 @@
 package com.seos.pmis.change.entity;
 
 import com.seos.common.entity.BaseEntity;
+import com.seos.pmis.project.entity.Project;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -26,8 +27,9 @@ public class Change extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "project_id", nullable = false)
-    private Long projectId;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "project_id", nullable = false)
+    private Project project;
 
     @Column(name = "change_key", length = 50)
     private String changeKey;
@@ -97,7 +99,7 @@ public class Change extends BaseEntity {
     private Integer sortOrder;
 
     public Change(
-            Long projectId,
+            Project project,
             String title,
             String description,
             ChangeStatus status,
@@ -119,7 +121,7 @@ public class Change extends BaseEntity {
             String approvalComment,
             Integer sortOrder
     ) {
-        this.projectId = projectId;
+        this.project = project;
         this.title = title;
         this.description = description;
         this.status = status;
@@ -200,9 +202,7 @@ public class Change extends BaseEntity {
         this.changeKey = changeKey;
     }
 
-    public void updateVerificationResult(
-            String verificationResult
-    ) {
+    public void updateVerificationResult(String verificationResult) {
         this.verificationResult = verificationResult;
     }
 }

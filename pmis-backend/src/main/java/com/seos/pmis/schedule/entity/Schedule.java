@@ -117,7 +117,7 @@ public class Schedule extends BaseEntity {
     /**
      * Schedule 설명
      */
-    @Lob
+    @Column(columnDefinition = "TEXT")
     private String description;
 
     /**

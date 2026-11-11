@@ -131,7 +131,7 @@ public class Wbs extends BaseEntity {
     /**
      * WBS 설명
      */
-    @Lob
+    @Column(columnDefinition = "TEXT")
     private String description;
 
     /**

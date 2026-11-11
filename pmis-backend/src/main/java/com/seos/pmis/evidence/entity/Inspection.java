@@ -76,7 +76,7 @@ public class Inspection extends BaseEntity {
     /**
      * 검사/점검 설명
      */
-    @Lob
+    @Column(columnDefinition = "TEXT")
     private String description;
 
     /**
@@ -137,8 +137,7 @@ public class Inspection extends BaseEntity {
     /**
      * 검사/점검 결과 또는 종합 의견
      */
-    @Lob
-    @Column(name = "result_remark")
+    @Column(name = "result_remark", columnDefinition = "TEXT")
     private String resultRemark;
 
     /**

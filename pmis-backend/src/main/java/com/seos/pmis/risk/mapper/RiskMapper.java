@@ -1,5 +1,7 @@
+
 package com.seos.pmis.risk.mapper;
 
+import com.seos.pmis.project.entity.Project;
 import com.seos.pmis.risk.dto.request.RiskCreateRequest;
 import com.seos.pmis.risk.dto.request.RiskUpdateRequest;
 import com.seos.pmis.risk.dto.response.RiskResponse;
@@ -10,11 +12,11 @@ import org.springframework.stereotype.Component;
 public class RiskMapper {
 
     public Risk toEntity(
-            Long projectId,
+            Project project,
             RiskCreateRequest request
     ) {
         return new Risk(
-                projectId,
+                project,
                 request.getTitle(),
                 request.getDescription(),
                 null,

@@ -1,3 +1,4 @@
+
 package com.seos.pmis.change.service;
 
 import com.seos.pmis.change.dto.request.ChangeApprovalRequest;
@@ -12,6 +13,8 @@ import com.seos.pmis.change.exception.code.ChangeErrorCode;
 import com.seos.pmis.change.mapper.ChangeMapper;
 import com.seos.pmis.change.repository.ChangeRepository;
 import com.seos.pmis.change.specification.ChangeSpecification;
+import com.seos.pmis.project.entity.Project;
+import com.seos.pmis.project.repository.ProjectRepository;
 import com.seos.common.exception.BusinessException;
 import com.seos.common.search.SearchPageableFactory;
 import lombok.RequiredArgsConstructor;
@@ -55,6 +58,7 @@ public class ChangeService {
 
     private final ChangeRepository changeRepository;
     private final ChangeMapper changeMapper;
+    private final ProjectRepository projectRepository;
 
     /**
      * Change 단건 조회
@@ -114,6 +118,15 @@ public class ChangeService {
             ChangeCreateRequest request
     ) {
 
+        // 프로젝트 조회 및 존재 여부 검증
+        Project project = projectRepository
+                .findById(projectId)
+                .orElseThrow(
+                        () -> new BusinessException(
+                                ChangeErrorCode.CHANGE_PROJECT_NOT_FOUND
+                        )
+                );
+
         validateDateRange(
                 request.getIdentifiedDate(),
                 request.getRequestedDate(),
@@ -123,7 +136,7 @@ public class ChangeService {
         String changeKey = generateChangeKey(projectId);
 
         Change change = changeMapper.toEntity(
-                projectId,
+                project,
                 request
         );
 
@@ -323,16 +336,12 @@ public class ChangeService {
 
     /**
      * 프로젝트별 Change Key 생성
-     *
-     * 예:
-     * 기존 CHG-001 → CHG-002
-     * 기존 CHG-002 → CHG-003
      */
     private String generateChangeKey(Long projectId) {
 
         int nextNumber =
                 changeRepository
-                        .findTopByProjectIdOrderByIdDesc(projectId)
+                        .findTopByProject_IdOrderByIdDesc(projectId)
                         .map(this::extractChangeKeyNumber)
                         .orElse(1);
 
@@ -607,9 +616,6 @@ public class ChangeService {
 
     /**
      * Pageable 생성
-     *
-     * 공통 검색 페이징 규칙을 사용하며,
-     * 허용되지 않은 정렬 필드는 예외 처리한다.
      */
     private Pageable createPageable(
             ChangeSearchRequest request

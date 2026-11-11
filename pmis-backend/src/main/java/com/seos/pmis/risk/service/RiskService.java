@@ -2,6 +2,8 @@ package com.seos.pmis.risk.service;
 
 import com.seos.common.exception.BusinessException;
 import com.seos.common.search.SearchPageableFactory;
+import com.seos.pmis.project.entity.Project;
+import com.seos.pmis.project.repository.ProjectRepository;
 import com.seos.pmis.risk.dto.request.RiskCreateRequest;
 import com.seos.pmis.risk.dto.request.RiskSearchRequest;
 import com.seos.pmis.risk.dto.request.RiskStatusUpdateRequest;
@@ -50,6 +52,7 @@ public class RiskService {
 
     private final RiskRepository riskRepository;
     private final RiskMapper riskMapper;
+    private final ProjectRepository projectRepository;
 
     /**
      * Risk 단건 조회
@@ -109,11 +112,12 @@ public class RiskService {
      *
      * 처리 순서:
      *
-     * 1. Project별 Risk Key 생성
-     * 2. Risk Entity 생성
-     * 3. 기본 상태 OPEN 설정
-     * 4. Risk Key 할당
-     * 5. 저장
+     * 1. Project 존재 여부 검증 및 조회
+     * 2. Project별 Risk Key 생성
+     * 3. Risk Entity 생성
+     * 4. 기본 상태 OPEN 설정
+     * 5. Risk Key 할당
+     * 6. 저장
      */
     @Transactional
     public RiskResponse createRisk(
@@ -121,10 +125,19 @@ public class RiskService {
             RiskCreateRequest request
     ) {
 
+        // Project 존재 여부 검증 및 조회
+        Project project = projectRepository
+                .findById(projectId)
+                .orElseThrow(
+                        () -> new BusinessException(
+                                RiskErrorCode.RISK_PROJECT_NOT_FOUND
+                        )
+                );
+
         String riskKey = generateRiskKey(projectId);
 
         Risk risk = riskMapper.toEntity(
-                projectId,
+                project,
                 request
         );
 
@@ -238,7 +251,7 @@ public class RiskService {
     ) {
 
         int nextNumber = riskRepository
-                .findTopByProjectIdOrderByIdDesc(projectId)
+                .findTopByProject_IdOrderByIdDesc(projectId)
                 .map(this::extractRiskKeyNumber)
                 .orElse(1);
 

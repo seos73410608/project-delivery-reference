@@ -1,13 +1,17 @@
 package com.seos.pmis.risk.entity;
 
 import com.seos.common.entity.BaseEntity;
+import com.seos.pmis.project.entity.Project;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
@@ -35,10 +39,17 @@ public class Risk extends BaseEntity {
     private Long id;
 
     /**
-     * Risk가 속한 Project ID
+     * Risk가 속한 Project
+     *
+     * Project 삭제 시 연결된 Risk가 함께 삭제되지 않도록
+     * 별도의 Cascade 설정을 하지 않는다.
      */
-    @Column(name = "project_id", nullable = false)
-    private Long projectId;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(
+            name = "project_id",
+            nullable = false
+    )
+    private Project project;
 
     /**
      * Project별 Risk Key
@@ -130,7 +141,7 @@ public class Risk extends BaseEntity {
     private Integer sortOrder;
 
     public Risk(
-            Long projectId,
+            Project project,
             String title,
             String description,
             RiskStatus status,
@@ -145,7 +156,7 @@ public class Risk extends BaseEntity {
             String responsePlan,
             Integer sortOrder
     ) {
-        this.projectId = projectId;
+        this.project = project;
         this.title = title;
         this.description = description;
         this.status = status;

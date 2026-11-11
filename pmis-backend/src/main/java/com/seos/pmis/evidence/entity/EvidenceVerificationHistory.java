@@ -36,8 +36,7 @@ public class EvidenceVerificationHistory extends BaseEntity {
     @Column(name = "verified_at", nullable = false)
     private LocalDateTime verifiedAt;
 
-    @Lob
-    @Column(name = "remark")
+    @Column(name = "remark", columnDefinition = "TEXT")
     private String remark;
 
     public static EvidenceVerificationHistory create(

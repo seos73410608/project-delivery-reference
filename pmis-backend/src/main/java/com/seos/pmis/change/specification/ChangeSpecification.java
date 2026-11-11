@@ -1,3 +1,4 @@
+
 package com.seos.pmis.change.specification;
 
 import com.seos.pmis.change.dto.request.ChangeSearchRequest;
@@ -67,7 +68,7 @@ public final class ChangeSpecification {
 
                     predicates.add(
                             criteriaBuilder.equal(
-                                    root.get("projectId"),
+                                    root.get("project").get("id"),
                                     projectId
                             )
                     );
@@ -76,7 +77,7 @@ public final class ChangeSpecification {
 
                     predicates.add(
                             criteriaBuilder.equal(
-                                    root.get("projectId"),
+                                    root.get("project").get("id"),
                                     request.getProjectId()
                             )
                     );

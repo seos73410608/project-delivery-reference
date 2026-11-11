@@ -104,7 +104,7 @@ public class EvidenceRequirement extends BaseEntity {
     /**
      * Requirement 설명
      */
-    @Lob
+    @Column(columnDefinition = "TEXT")
     private String description;
 
     /**

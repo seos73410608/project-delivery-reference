@@ -101,8 +101,7 @@ public class InspectionItem extends BaseEntity {
     /**
      * 점검 의견
      */
-    @Lob
-    @Column(name = "remark")
+    @Column(name = "remark", columnDefinition = "TEXT")
     private String remark;
 
     /**

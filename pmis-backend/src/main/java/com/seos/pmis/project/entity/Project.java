@@ -53,7 +53,7 @@ public class Project extends BaseEntity {
     /**
      * 프로젝트 설명
      */
-    @Lob
+    @Column(columnDefinition = "TEXT")
     private String description;
 
     /**

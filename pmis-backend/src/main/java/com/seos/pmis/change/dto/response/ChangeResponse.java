@@ -1,3 +1,4 @@
+
 package com.seos.pmis.change.dto.response;
 
 import com.seos.pmis.change.entity.Change;
@@ -144,7 +145,7 @@ public class ChangeResponse {
 
         return ChangeResponse.builder()
                 .id(change.getId())
-                .projectId(change.getProjectId())
+                .projectId(change.getProject().getId())
                 .changeKey(change.getChangeKey())
                 .title(change.getTitle())
                 .description(change.getDescription())

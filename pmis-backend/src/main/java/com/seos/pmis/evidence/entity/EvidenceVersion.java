@@ -39,7 +39,7 @@ public class EvidenceVersion extends BaseEntity {
         @Column(nullable = false, length = 200)
         private String title;
 
-        @Lob
+        @Column(columnDefinition = "TEXT")
         private String description;
 
         @Column(name = "file_name", length = 255)
@@ -75,8 +75,7 @@ public class EvidenceVersion extends BaseEntity {
         @Column(name = "verified_at")
         private LocalDateTime verifiedAt;
 
-        @Lob
-        @Column(name = "verification_remark")
+        @Column(name = "verification_remark", columnDefinition = "TEXT")
         private String verificationRemark;
 
         // 논리 삭제 정보

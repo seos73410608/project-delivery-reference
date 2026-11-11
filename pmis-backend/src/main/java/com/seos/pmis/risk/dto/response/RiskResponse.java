@@ -1,3 +1,4 @@
+
 package com.seos.pmis.risk.dto.response;
 
 import com.seos.pmis.risk.entity.Risk;
@@ -56,7 +57,7 @@ public class RiskResponse {
     public static RiskResponse from(Risk risk) {
         return RiskResponse.builder()
                 .id(risk.getId())
-                .projectId(risk.getProjectId())
+                .projectId(risk.getProject().getId())
                 .riskKey(risk.getRiskKey())
                 .title(risk.getTitle())
                 .description(risk.getDescription())

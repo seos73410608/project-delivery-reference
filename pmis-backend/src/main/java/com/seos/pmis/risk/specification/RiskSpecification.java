@@ -1,3 +1,4 @@
+
 package com.seos.pmis.risk.specification;
 
 import com.seos.pmis.risk.dto.request.RiskSearchRequest;
@@ -55,7 +56,7 @@ public final class RiskSpecification {
 
                     predicates.add(
                             criteriaBuilder.equal(
-                                    root.get("projectId"),
+                                    root.get("project").get("id"),
                                     projectId
                             )
                     );
@@ -68,7 +69,7 @@ public final class RiskSpecification {
                      */
                     predicates.add(
                             criteriaBuilder.equal(
-                                    root.get("projectId"),
+                                    root.get("project").get("id"),
                                     request.getProjectId()
                             )
                     );

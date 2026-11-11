@@ -109,7 +109,7 @@ public class Issue extends BaseEntity {
     /**
      * Issue 상세 내용
      */
-    @Lob
+    @Column(columnDefinition = "TEXT")
     private String description;
 
 
