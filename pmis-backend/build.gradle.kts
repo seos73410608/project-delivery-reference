@@ -117,11 +117,26 @@ dependencies {
 // ------------------------------------------------------------------------
 // Flyway Configuration
 // ------------------------------------------------------------------------
+val flywayTestProfile = System.getenv("SPRING_PROFILES_ACTIVE")
+    ?.split(",")
+    ?.any { it.trim().equals("test", ignoreCase = true) } == true
+
 flyway {
     // PMIS 환경 변수 사용
     url = System.getenv("PMIS_POSTGRESQL_URL") ?: ""
-    user = System.getenv("PMIS_DB_USERNAME") ?: ""
-    password = System.getenv("PMIS_DB_PASSWORD") ?: ""
+
+    // 테스트 환경은 전용 Migration 계정 사용
+    user = if (flywayTestProfile) {
+        System.getenv("PMIS_TEST_MIGRATOR_USERNAME") ?: ""
+    } else {
+        System.getenv("PMIS_DB_USERNAME") ?: ""
+    }
+
+    password = if (flywayTestProfile) {
+        System.getenv("PMIS_TEST_MIGRATOR_PASSWORD") ?: ""
+    } else {
+        System.getenv("PMIS_DB_PASSWORD") ?: ""
+    }
 
     // PostgreSQL Schema
     schemas = arrayOf("public")
