@@ -1,4 +1,3 @@
-
 $ErrorActionPreference = "Stop"
 
 # ============================================================
@@ -10,12 +9,17 @@ $ErrorActionPreference = "Stop"
 # Supported profiles:
 #   - dev,postgresql
 #   - prod,postgresql
+#   - test,postgresql
 #   - dev,mariadb
 #   - prod,mariadb
 #
-# Database credentials:
+# Common database credentials:
 #   - PMIS_DB_USERNAME
 #   - PMIS_DB_PASSWORD
+#
+# Test database credentials:
+#   - PMIS_TEST_MIGRATOR_USERNAME
+#   - PMIS_TEST_MIGRATOR_PASSWORD
 #
 # ============================================================
 
@@ -71,7 +75,9 @@ $variablesToClear = @(
     "SPRING_DATASOURCE_USERNAME",
     "SPRING_DATASOURCE_PASSWORD",
     "PMIS_DB_USERNAME",
-    "PMIS_DB_PASSWORD"
+    "PMIS_DB_PASSWORD",
+    "PMIS_TEST_MIGRATOR_USERNAME",
+    "PMIS_TEST_MIGRATOR_PASSWORD"
 )
 
 foreach ($name in $variablesToClear) {
@@ -119,7 +125,7 @@ $profiles = @(
 
 $environmentProfiles = @(
     $profiles | Where-Object {
-        $_ -in @("dev", "prod")
+        $_ -in @("dev", "prod", "test")
     }
 )
 
@@ -130,7 +136,7 @@ $databaseProfiles = @(
 )
 
 if ($environmentProfiles.Count -ne 1) {
-    throw "Exactly one environment profile is required: dev or prod."
+    throw "Exactly one environment profile is required: dev, prod or test."
 }
 
 if ($databaseProfiles.Count -ne 1) {
@@ -139,6 +145,11 @@ if ($databaseProfiles.Count -ne 1) {
 
 $environmentProfile = $environmentProfiles[0]
 $databaseProfile = $databaseProfiles[0]
+
+# TEST supports PostgreSQL only
+if ($environmentProfile -eq "test" -and $databaseProfile -ne "postgresql") {
+    throw "Test profile currently supports PostgreSQL only."
+}
 
 # ------------------------------------------------------------
 # 6. Validate common required variables
@@ -165,29 +176,129 @@ foreach ($name in $requiredCommonVariables) {
 # 7. Resolve database credentials
 # ------------------------------------------------------------
 
-$credentialPrefix = "PMIS_{0}_{1}" -f `
-    $databaseProfile.ToUpperInvariant(), `
-    $environmentProfile.ToUpperInvariant()
+if ($environmentProfile -eq "test") {
 
-$usernameVariable = "${credentialPrefix}_USERNAME"
-$passwordVariable = "${credentialPrefix}_PASSWORD"
+    $usernameVariable = "PMIS_POSTGRESQL_TEST_USERNAME"
+    $passwordVariable = "PMIS_POSTGRESQL_TEST_PASSWORD"
 
-$dbUsername = [Environment]::GetEnvironmentVariable(
-    $usernameVariable,
-    "Process"
-)
+    $dbUrl = [Environment]::GetEnvironmentVariable(
+        "PMIS_POSTGRESQL_TEST_URL",
+        "Process"
+    )
 
-$dbPassword = [Environment]::GetEnvironmentVariable(
-    $passwordVariable,
-    "Process"
-)
+    $dbUsername = [Environment]::GetEnvironmentVariable(
+        $usernameVariable,
+        "Process"
+    )
 
-if ([string]::IsNullOrWhiteSpace($dbUsername)) {
-    throw "$usernameVariable is missing in PMIS environment."
+    $dbPassword = [Environment]::GetEnvironmentVariable(
+        $passwordVariable,
+        "Process"
+    )
+
+    $migratorUsername = [Environment]::GetEnvironmentVariable(
+        "PMIS_POSTGRESQL_TEST_MIGRATOR_USERNAME",
+        "Process"
+    )
+
+    $migratorPassword = [Environment]::GetEnvironmentVariable(
+        "PMIS_POSTGRESQL_TEST_MIGRATOR_PASSWORD",
+        "Process"
+    )
+
+    if ([string]::IsNullOrWhiteSpace($dbUrl)) {
+        throw "PMIS_POSTGRESQL_TEST_URL is missing in PMIS environment."
+    }
+
+    if ($dbUrl -notmatch '/pmis_test(?:\?|$)') {
+        throw "Test database URL must point to pmis_test."
+    }
+
+    if ([string]::IsNullOrWhiteSpace($dbUsername)) {
+        throw "$usernameVariable is missing in PMIS environment."
+    }
+
+    if ([string]::IsNullOrWhiteSpace($dbPassword)) {
+        throw "$passwordVariable is missing in PMIS environment."
+    }
+
+    if ([string]::IsNullOrWhiteSpace($migratorUsername)) {
+        throw "PMIS_POSTGRESQL_TEST_MIGRATOR_USERNAME is missing."
+    }
+
+    if ([string]::IsNullOrWhiteSpace($migratorPassword)) {
+        throw "PMIS_POSTGRESQL_TEST_MIGRATOR_PASSWORD is missing."
+    }
+
+    if ($dbUsername -ne "pmis_app") {
+        throw "Test application account must be pmis_app."
+    }
+
+    if ($migratorUsername -ne "pmis_migrator") {
+        throw "Test migration account must be pmis_migrator."
+    }
+
+    [Environment]::SetEnvironmentVariable(
+        "PMIS_POSTGRESQL_URL",
+        $dbUrl,
+        "Process"
+    )
+
+    [Environment]::SetEnvironmentVariable(
+        "PMIS_TEST_MIGRATOR_USERNAME",
+        $migratorUsername,
+        "Process"
+    )
+
+    [Environment]::SetEnvironmentVariable(
+        "PMIS_TEST_MIGRATOR_PASSWORD",
+        $migratorPassword,
+        "Process"
+    )
 }
+else {
 
-if ([string]::IsNullOrWhiteSpace($dbPassword)) {
-    throw "$passwordVariable is missing in PMIS environment."
+    $credentialPrefix = "PMIS_{0}_{1}" -f `
+        $databaseProfile.ToUpperInvariant(), `
+        $environmentProfile.ToUpperInvariant()
+
+    $usernameVariable = "${credentialPrefix}_USERNAME"
+    $passwordVariable = "${credentialPrefix}_PASSWORD"
+
+    $dbUsername = [Environment]::GetEnvironmentVariable(
+        $usernameVariable,
+        "Process"
+    )
+
+    $dbPassword = [Environment]::GetEnvironmentVariable(
+        $passwordVariable,
+        "Process"
+    )
+
+    if ([string]::IsNullOrWhiteSpace($dbUsername)) {
+        throw "$usernameVariable is missing in PMIS environment."
+    }
+
+    if ([string]::IsNullOrWhiteSpace($dbPassword)) {
+        throw "$passwordVariable is missing in PMIS environment."
+    }
+
+    if ($databaseProfile -eq "postgresql") {
+        $dbUrl = [Environment]::GetEnvironmentVariable(
+            "PMIS_POSTGRESQL_URL",
+            "Process"
+        )
+    }
+    else {
+        $dbUrl = [Environment]::GetEnvironmentVariable(
+            "PMIS_MARIADB_URL",
+            "Process"
+        )
+    }
+
+    if ([string]::IsNullOrWhiteSpace($dbUrl)) {
+        throw "Database URL is missing for selected profile."
+    }
 }
 
 # ------------------------------------------------------------
@@ -210,12 +321,7 @@ if ([string]::IsNullOrWhiteSpace($dbPassword)) {
 # 9. Display result
 # ------------------------------------------------------------
 
-$ddlMode = if ($environmentProfile -eq "dev") {
-    "update"
-}
-else {
-    "validate"
-}
+$ddlMode = "validate"
 
 Write-Host ""
 Write-Host "PMIS environment variables loaded successfully." `
@@ -232,6 +338,14 @@ Write-Host "Database: $databaseProfile" `
 
 Write-Host "Database username: $dbUsername" `
     -ForegroundColor Cyan
+
+if ($environmentProfile -eq "test") {
+    Write-Host "Database URL: $dbUrl" `
+        -ForegroundColor Cyan
+
+    Write-Host "Flyway migration account: $migratorUsername" `
+        -ForegroundColor Cyan
+}
 
 Write-Host "Hibernate DDL mode: $ddlMode" `
     -ForegroundColor Cyan

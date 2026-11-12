@@ -1,7 +1,19 @@
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath("org.flywaydb:flyway-database-postgresql:11.7.2")
+    }
+}
 plugins {
     java
     id("org.springframework.boot") version "3.5.5"
     id("io.spring.dependency-management") version "1.1.7"
+
+    // Flyway Gradle Plugin - Database Migration 관리
+    id("org.flywaydb.flyway") version "11.7.2"
 }
 
 group = "com.seos"
@@ -41,6 +53,12 @@ dependencies {
 
     // PostgreSQL - PMIS 독립 데이터 플랫폼
     runtimeOnly("org.postgresql:postgresql")
+
+    // ------------------------------------------------------------------------
+    // Flyway - Database Migration
+    // ------------------------------------------------------------------------
+    implementation("org.flywaydb:flyway-core")
+    runtimeOnly("org.flywaydb:flyway-database-postgresql")
 
     // ------------------------------------------------------------------------
     // Lombok
@@ -94,6 +112,30 @@ dependencies {
     testImplementation("org.springframework.security:spring-security-test")
 
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+}
+
+// ------------------------------------------------------------------------
+// Flyway Configuration
+// ------------------------------------------------------------------------
+flyway {
+    // PMIS 환경 변수 사용
+    url = System.getenv("PMIS_POSTGRESQL_URL") ?: ""
+    user = System.getenv("PMIS_DB_USERNAME") ?: ""
+    password = System.getenv("PMIS_DB_PASSWORD") ?: ""
+
+    // PostgreSQL Schema
+    schemas = arrayOf("public")
+    defaultSchema = "public"
+
+    // Migration SQL 위치
+    locations = arrayOf("filesystem:src/main/resources/db/migration")
+
+    // 기존 DB를 Version 1로 등록
+    baselineVersion = "1"
+    baselineDescription = "Existing PMIS schema"
+
+    // 실수로 전체 스키마를 삭제하는 작업 방지
+    cleanDisabled = true
 }
 
 tasks.withType<Test> {
