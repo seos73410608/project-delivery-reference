@@ -9,25 +9,24 @@ import com.seos.cmdb.ci.entity.CiEnvironment;
 import com.seos.cmdb.ci.entity.CiStatus;
 import com.seos.cmdb.ci.entity.CiType;
 import com.seos.cmdb.ci.exception.ConfigurationItemErrorCode;
-import com.seos.cmdb.ci.exception.CiTypeErrorCode;
 import com.seos.cmdb.ci.mapper.ConfigurationItemMapper;
-import com.seos.cmdb.ci.repository.CiTypeRepository;
 import com.seos.cmdb.ci.repository.ConfigurationItemRepository;
 import com.seos.common.exception.BusinessException;
 import com.seos.pmis.user.entity.User;
-import com.seos.pmis.user.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Sort;
 
 import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -37,13 +36,13 @@ class ConfigurationItemServiceTest {
     private ConfigurationItemRepository configurationItemRepository;
 
     @Mock
-    private CiTypeRepository ciTypeRepository;
-
-    @Mock
-    private UserRepository userRepository;
-
-    @Mock
     private ConfigurationItemMapper configurationItemMapper;
+
+    @Mock
+    private ConfigurationItemCreationService configurationItemCreationService;
+
+    @Mock
+    private ConfigurationItemValidationService configurationItemValidationService;
 
     @InjectMocks
     private ConfigurationItemService configurationItemService;
@@ -82,10 +81,17 @@ class ConfigurationItemServiceTest {
     }
 
     @Test
-    void create_정상적으로_CI를_생성한다() {
+    void create_정상적으로_CI_생성을_위임한다() {
         // given
         CreateConfigurationItemRequest request =
                 mock(CreateConfigurationItemRequest.class);
+
+        when(request.getCiName()).thenReturn("운영 서버");
+        when(request.getCiTypeId()).thenReturn(1L);
+        when(request.getEnvironment()).thenReturn(CiEnvironment.PROD);
+        when(request.getManagerId()).thenReturn(10L);
+        when(request.getLocation()).thenReturn("서울 전산센터");
+        when(request.getDescription()).thenReturn("운영 서버");
 
         ConfigurationItemResponse response =
                 ConfigurationItemResponse.builder()
@@ -96,19 +102,15 @@ class ConfigurationItemServiceTest {
                         .status(CiStatus.PLANNED)
                         .build();
 
-        when(request.getCiTypeId()).thenReturn(1L);
-        when(request.getManagerId()).thenReturn(10L);
-        when(ciTypeRepository.findById(1L))
-                .thenReturn(Optional.of(ciType));
-        when(userRepository.findById(10L))
-                .thenReturn(Optional.of(manager));
-        when(configurationItemRepository.nextCiCodeSequenceValue())
-                .thenReturn(1L);
-        when(configurationItemMapper.toEntity(
-                request, ciType, manager, "CI-000001"
+        when(configurationItemCreationService.create(
+                "운영 서버",
+                1L,
+                CiEnvironment.PROD,
+                10L,
+                "서울 전산센터",
+                "운영 서버"
         )).thenReturn(configurationItem);
-        when(configurationItemRepository.save(configurationItem))
-                .thenReturn(configurationItem);
+
         when(configurationItemMapper.toResponse(configurationItem))
                 .thenReturn(response);
 
@@ -120,177 +122,22 @@ class ConfigurationItemServiceTest {
         assertThat(result.getCiCode()).isEqualTo("CI-000001");
         assertThat(result.getStatus()).isEqualTo(CiStatus.PLANNED);
 
-        verify(configurationItemRepository).save(configurationItem);
-    }
-
-    @Test
-    void create_담당자를_지정하지_않아도_CI를_생성한다() {
-        // given
-        CreateConfigurationItemRequest request =
-                mock(CreateConfigurationItemRequest.class);
-
-        when(request.getCiTypeId()).thenReturn(1L);
-        when(request.getManagerId()).thenReturn(null);
-        when(ciTypeRepository.findById(1L))
-                .thenReturn(Optional.of(ciType));
-        when(configurationItemRepository.nextCiCodeSequenceValue())
-                .thenReturn(1L);
-        when(configurationItemMapper.toEntity(
-                request, ciType, null, "CI-000001"
-        )).thenReturn(configurationItem);
-        when(configurationItemRepository.save(configurationItem))
-                .thenReturn(configurationItem);
-        when(configurationItemMapper.toResponse(configurationItem))
-                .thenReturn(ConfigurationItemResponse.builder()
-                        .ciCode("CI-000001")
-                        .build());
-
-        // when
-        ConfigurationItemResponse result =
-                configurationItemService.create(request);
-
-        // then
-        assertThat(result.getCiCode()).isEqualTo("CI-000001");
-
-        verify(userRepository, never()).findById(any());
-    }
-
-    @Test
-    void create_존재하지_않는_CI_Type이면_예외가_발생한다() {
-        // given
-        CreateConfigurationItemRequest request =
-                mock(CreateConfigurationItemRequest.class);
-
-        when(request.getCiTypeId()).thenReturn(999L);
-        when(ciTypeRepository.findById(999L))
-                .thenReturn(Optional.empty());
-
-        // when & then
-        assertThatThrownBy(() -> configurationItemService.create(request))
-                .isInstanceOf(BusinessException.class)
-                .extracting("errorCode")
-                .isEqualTo(CiTypeErrorCode.CI_TYPE_NOT_FOUND);
-
-        verify(configurationItemRepository, never()).save(any());
-    }
-
-    @Test
-    void create_비활성화된_CI_Type이면_예외가_발생한다() {
-        // given
-        CreateConfigurationItemRequest request =
-                mock(CreateConfigurationItemRequest.class);
-
-        CiType disabledType = CiType.builder()
-                .id(2L)
-                .code("SERVER")
-                .name("서버")
-                .assignable(true)
-                .enabled(false)
-                .build();
-
-        when(request.getCiTypeId()).thenReturn(2L);
-        when(ciTypeRepository.findById(2L))
-                .thenReturn(Optional.of(disabledType));
-
-        // when & then
-        assertThatThrownBy(() -> configurationItemService.create(request))
-                .isInstanceOf(BusinessException.class)
-                .extracting("errorCode")
-                .isEqualTo(CiTypeErrorCode.CI_TYPE_DISABLED);
-
-        verify(configurationItemRepository, never()).save(any());
-    }
-
-    @Test
-    void create_할당할_수_없는_CI_Type이면_예외가_발생한다() {
-        // given
-        CreateConfigurationItemRequest request =
-                mock(CreateConfigurationItemRequest.class);
-
-        CiType nonAssignableType = CiType.builder()
-                .id(3L)
-                .code("HARDWARE")
-                .name("하드웨어")
-                .assignable(false)
-                .enabled(true)
-                .build();
-
-        when(request.getCiTypeId()).thenReturn(3L);
-        when(ciTypeRepository.findById(3L))
-                .thenReturn(Optional.of(nonAssignableType));
-
-        // when & then
-        assertThatThrownBy(() -> configurationItemService.create(request))
-                .isInstanceOf(BusinessException.class)
-                .extracting("errorCode")
-                .isEqualTo(
-                        ConfigurationItemErrorCode.CI_TYPE_NOT_ASSIGNABLE
-                );
-
-        verify(configurationItemRepository, never()).save(any());
-    }
-
-    @Test
-    void create_존재하지_않는_담당자이면_예외가_발생한다() {
-        // given
-        CreateConfigurationItemRequest request =
-                mock(CreateConfigurationItemRequest.class);
-
-        when(request.getCiTypeId()).thenReturn(1L);
-        when(request.getManagerId()).thenReturn(999L);
-        when(ciTypeRepository.findById(1L))
-                .thenReturn(Optional.of(ciType));
-        when(userRepository.findById(999L))
-                .thenReturn(Optional.empty());
-
-        // when & then
-        assertThatThrownBy(() -> configurationItemService.create(request))
-                .isInstanceOf(BusinessException.class)
-                .extracting("errorCode")
-                .isEqualTo(
-                        ConfigurationItemErrorCode.CI_MANAGER_NOT_FOUND
-                );
-
-        verify(configurationItemRepository, never()).save(any());
-    }
-
-    @Test
-    void create_비활성화된_담당자이면_예외가_발생한다() {
-        // given
-        CreateConfigurationItemRequest request =
-                mock(CreateConfigurationItemRequest.class);
-
-        User disabledManager = User.builder()
-                .id(11L)
-                .enabled(false)
-                .build();
-
-        when(request.getCiTypeId()).thenReturn(1L);
-        when(request.getManagerId()).thenReturn(11L);
-        when(ciTypeRepository.findById(1L))
-                .thenReturn(Optional.of(ciType));
-        when(userRepository.findById(11L))
-                .thenReturn(Optional.of(disabledManager));
-
-        // when & then
-        assertThatThrownBy(() -> configurationItemService.create(request))
-                .isInstanceOf(BusinessException.class)
-                .extracting("errorCode")
-                .isEqualTo(
-                        ConfigurationItemErrorCode.CI_MANAGER_DISABLED
-                );
-
-        verify(configurationItemRepository, never()).save(any());
+        verify(configurationItemCreationService).create(
+                "운영 서버",
+                1L,
+                CiEnvironment.PROD,
+                10L,
+                "서울 전산센터",
+                "운영 서버"
+        );
+        verify(configurationItemMapper).toResponse(configurationItem);
     }
 
     @Test
     void getAll_전체_CI를_조회한다() {
         // given
-        when(configurationItemRepository.findAll(
-                org.mockito.ArgumentMatchers.any(
-                        org.springframework.data.domain.Sort.class
-                )
-        )).thenReturn(List.of(configurationItem));
+        when(configurationItemRepository.findAll(any(Sort.class)))
+                .thenReturn(List.of(configurationItem));
 
         when(configurationItemMapper.toResponse(configurationItem))
                 .thenReturn(ConfigurationItemResponse.builder()

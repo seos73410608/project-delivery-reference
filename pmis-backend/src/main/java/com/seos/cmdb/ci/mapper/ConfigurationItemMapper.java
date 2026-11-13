@@ -3,6 +3,7 @@ package com.seos.cmdb.ci.mapper;
 import com.seos.cmdb.ci.dto.request.CreateConfigurationItemRequest;
 import com.seos.cmdb.ci.dto.response.ConfigurationItemResponse;
 import com.seos.cmdb.ci.entity.ConfigurationItem;
+import com.seos.cmdb.ci.entity.CiEnvironment;
 import com.seos.cmdb.ci.entity.CiType;
 import com.seos.pmis.user.entity.User;
 import org.springframework.stereotype.Component;
@@ -11,7 +12,7 @@ import org.springframework.stereotype.Component;
 public class ConfigurationItemMapper {
 
     /**
-     * Configuration Item 생성
+     * 기존 Configuration Item 생성
      */
     public ConfigurationItem toEntity(
             CreateConfigurationItemRequest request,
@@ -19,15 +20,37 @@ public class ConfigurationItemMapper {
             User manager,
             String ciCode
     ) {
+        return toEntity(
+                request.getCiName(),
+                ciType,
+                request.getEnvironment(),
+                manager,
+                request.getLocation(),
+                request.getDescription(),
+                ciCode
+        );
+    }
 
+    /**
+     * 공통 Configuration Item 생성
+     */
+    public ConfigurationItem toEntity(
+            String ciName,
+            CiType ciType,
+            CiEnvironment environment,
+            User manager,
+            String location,
+            String description,
+            String ciCode
+    ) {
         return ConfigurationItem.builder()
                 .ciCode(ciCode)
-                .ciName(request.getCiName())
+                .ciName(ciName)
                 .ciType(ciType)
-                .environment(request.getEnvironment())
+                .environment(environment)
                 .manager(manager)
-                .location(request.getLocation())
-                .description(request.getDescription())
+                .location(location)
+                .description(description)
                 .build();
     }
 
@@ -37,7 +60,6 @@ public class ConfigurationItemMapper {
     public ConfigurationItemResponse toResponse(
             ConfigurationItem configurationItem
     ) {
-
         CiType ciType = configurationItem.getCiType();
         User manager = configurationItem.getManager();
 
