@@ -10,8 +10,12 @@ public enum ServerErrorCode implements ErrorCode {
     SERVER_CI_TYPE_REQUIRED(
             HttpStatus.BAD_REQUEST,
             "CMDB_SERVER_001",
-            "서버 등록에는 SERVER 유형의 CI Type이 필요합니다."
-    );
+            "서버 등록에는 SERVER 유형의 CI Type이 필요합니다."),
+
+    SERVER_DETAIL_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+            "CMDB_SERVER_002",
+            "서버 상세정보를 찾을 수 없습니다.");
 
     private final HttpStatus httpStatus;
     private final String code;
@@ -20,8 +24,7 @@ public enum ServerErrorCode implements ErrorCode {
     ServerErrorCode(
             HttpStatus httpStatus,
             String code,
-            String message
-    ) {
+            String message) {
         this.httpStatus = httpStatus;
         this.code = code;
         this.message = message;
