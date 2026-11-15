@@ -1,0 +1,111 @@
+package com.seos.pmis.requirement.service;
+
+import com.seos.common.exception.BusinessException;
+import com.seos.pmis.requirement.dto.request.OperationalScopeCreateRequest;
+import com.seos.pmis.requirement.dto.response.OperationalScopeResponse;
+import com.seos.pmis.requirement.entity.OperationalScope;
+import com.seos.pmis.requirement.entity.OperationalScopeType;
+import com.seos.pmis.requirement.exception.OperationalScopeErrorCode;
+import com.seos.pmis.requirement.mapper.OperationalScopeMapper;
+import com.seos.pmis.requirement.repository.OperationalScopeRepository;
+import com.seos.pmis.user.entity.User;
+import com.seos.pmis.user.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
+import java.util.Locale;
+
+@Service
+@RequiredArgsConstructor
+public class OperationalScopeCreationService {
+
+    private final OperationalScopeRepository operationalScopeRepository;
+    private final UserRepository userRepository;
+    private final OperationalScopeMapper operationalScopeMapper;
+
+    @Transactional
+    public OperationalScopeResponse create(OperationalScopeCreateRequest request) {
+
+        validateEffectivePeriod(
+                request.getEffectiveFrom(),
+                request.getEffectiveTo()
+        );
+
+        OperationalScope parentScope =
+                resolveParentScope(request.getParentScopeId());
+
+        User owner =
+                resolveOwner(request.getOwnerId());
+
+        String scopeCode = generateScopeCode();
+
+        OperationalScope operationalScope =
+                OperationalScope.builder()
+                        .scopeCode(scopeCode)
+                        .scopeName(request.getScopeName())
+                        .scopeType(request.getScopeType())
+                        .parentScope(parentScope)
+                        .owner(owner)
+                        .description(request.getDescription())
+                        .effectiveFrom(request.getEffectiveFrom())
+                        .effectiveTo(request.getEffectiveTo())
+                        .build();
+
+        OperationalScope savedScope =
+                operationalScopeRepository.save(operationalScope);
+
+        return operationalScopeMapper.toResponse(savedScope);
+    }
+
+    private void validateEffectivePeriod(
+            LocalDate effectiveFrom,
+            LocalDate effectiveTo
+    ) {
+        if (effectiveTo != null
+                && (effectiveFrom == null
+                || effectiveFrom.isAfter(effectiveTo))) {
+            throw new BusinessException(
+                    OperationalScopeErrorCode.OPERATIONAL_SCOPE_EFFECTIVE_PERIOD_INVALID
+            );
+        }
+    }
+
+    private OperationalScope resolveParentScope(Long parentScopeId) {
+        if (parentScopeId == null) {
+            return null;
+        }
+
+        return operationalScopeRepository.findById(parentScopeId)
+                .orElseThrow(() -> new BusinessException(
+                        OperationalScopeErrorCode.OPERATIONAL_SCOPE_PARENT_NOT_FOUND
+                ));
+    }
+
+    private User resolveOwner(Long ownerId) {
+        if (ownerId == null) {
+            return null;
+        }
+
+        User owner = userRepository.findById(ownerId)
+                .orElseThrow(() -> new BusinessException(
+                        OperationalScopeErrorCode.OPERATIONAL_SCOPE_OWNER_NOT_FOUND
+                ));
+
+        if (!Boolean.TRUE.equals(owner.getEnabled())) {
+            throw new BusinessException(
+                    OperationalScopeErrorCode.OPERATIONAL_SCOPE_OWNER_DISABLED
+            );
+        }
+
+        return owner;
+    }
+
+    private String generateScopeCode() {
+        long sequenceValue =
+                operationalScopeRepository.nextScopeCodeSequenceValue();
+
+        return String.format(Locale.ROOT, "OPS-%06d", sequenceValue);
+    }
+}
