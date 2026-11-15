@@ -92,4 +92,27 @@ public class ServerDetail extends BaseEntity {
      */
     @Column(name = "virtualization_platform", length = 100)
     private String virtualizationPlatform;
+
+    /**
+     * 서버 상세정보 전체 수정
+     */
+    public void updateDetails(
+            String hostname,
+            ServerCategory serverCategory,
+            String managementIp,
+            String osName,
+            String osVersion,
+            Integer cpuCores,
+            Long memorySizeMb,
+            String virtualizationPlatform
+    ) {
+        this.hostname = hostname;
+        this.serverCategory = serverCategory;
+        this.managementIp = managementIp;
+        this.osName = osName;
+        this.osVersion = osVersion;
+        this.cpuCores = cpuCores;
+        this.memorySizeMb = memorySizeMb;
+        this.virtualizationPlatform = virtualizationPlatform;
+    }
 }

@@ -285,10 +285,137 @@ HTTP 200 OK
 | 인증되지 않은 요청 | 401 | 공통 인증 오류 |
 | 권한이 없는 요청 | 403 | 공통 권한 오류 |
 
-## 9. 후속 API 후보
 
-서버 상세정보 수정 API는 조회 API 구현 이후 별도 계약으로 확장한다.
+## 9. 서버 상세정보 수정 API
 
-- `PUT /api/configuration-items/{ciId}/server-detail`
+### 9.1 기본 정보
 
-수정 API는 기존 CI의 존재 여부와 서버 상세정보의 1:1 관계를 기준으로 설계한다.
+| 항목 | 내용 |
+|---|---|
+| Method | PUT |
+| URL | /api/configuration-items/{ciId}/server-detail |
+| 권한 | USER 이상 |
+| Content-Type | application/json |
+| 성공 HTTP Status | 200 OK |
+
+### 9.2 Request
+
+**Path Parameter**
+
+| 필드 | 설명 | 필수 |
+|---|---|---|
+| ciId | 수정할 ConfigurationItem ID | Y |
+
+**Request Body**
+
+```json
+{
+  "hostname": "web-prod-02",
+  "serverCategory": "VIRTUAL",
+  "managementIp": "192.168.10.12",
+  "osName": "Linux",
+  "osVersion": "RHEL 9.6",
+  "cpuCores": 16,
+  "memorySizeMb": 65536,
+  "virtualizationPlatform": "VMware"
+}
+```
+
+### 9.3 Request 필드 규칙
+
+| 필드 | 필수 | 유효성 규칙 |
+|---|---|---|
+| hostname | Y | 공백 불가, 최대 200자 |
+| serverCategory | Y | PHYSICAL 또는 VIRTUAL |
+| managementIp | N | 최대 100자 |
+| osName | N | 최대 100자 |
+| osVersion | N | 최대 100자 |
+| cpuCores | N | 입력 시 양수 |
+| memorySizeMb | N | 입력 시 양수 |
+| virtualizationPlatform | N | 최대 100자 |
+
+- ciId는 기존 ConfigurationItem ID를 사용한다.
+- 공통 CI 정보(ConfigurationItem)는 수정하지 않는다.
+- 서버 전용 정보(ServerDetail)만 수정한다.
+- hostname과 serverCategory는 필수 입력 항목이다.
+- 선택 항목은 null 입력이 가능하다.
+- 선택 항목을 생략하거나 null로 전달하면 기존 값은 null로 변경된다.
+- PUT 방식으로 서버 상세정보 전체를 교체한다.
+- 서버 상세정보가 존재하지 않는 CI에 대해 신규 ServerDetail을 생성하지 않는다.
+
+### 9.4 수정 처리 규칙
+
+서버 상세정보 수정은 `ServerDetailUpdateService`에서 처리한다.
+
+처리 순서:
+
+1. ciId에 해당하는 ConfigurationItem의 존재 여부를 확인한다.
+2. CI 유형 코드가 정확히 `SERVER`인지 확인한다.
+3. 해당 CI ID에 연결된 ServerDetail의 존재 여부를 확인한다.
+4. 요청받은 서버 상세정보 전체를 수정한다.
+5. 공통 CI 정보와 서버 상세정보를 통합 응답으로 반환한다.
+
+검증 및 수정 결과에 따른 처리:
+
+- CI가 존재하지 않으면 `CMDB_CI_001`을 반환한다.
+- CI 유형이 SERVER가 아니면 `CMDB_SERVER_001`을 반환한다.
+- SERVER CI에 연결된 ServerDetail이 없으면 `CMDB_SERVER_002`를 반환한다.
+- 요청 필드의 유효성 검증에 실패하면 HTTP 400을 반환한다.
+
+### 9.5 Response
+
+HTTP 200 OK
+
+등록 및 조회 API와 동일한 `ServerRegistrationResponse` 응답 구조를 사용한다.
+
+```json
+{
+  "success": true,
+  "message": "서버 상세정보를 수정했습니다.",
+  "data": {
+    "id": 100,
+    "ciCode": "CI-000101",
+    "ciName": "운영 WEB 서버 01",
+    "ciTypeId": 1,
+    "ciTypeCode": "SERVER",
+    "ciTypeName": "서버",
+    "status": "PLANNED",
+    "environment": "PROD",
+    "managerId": 1,
+    "managerName": "담당자",
+    "location": "IDC-A",
+    "description": "운영 WEB 서버",
+    "serverDetail": {
+      "hostname": "web-prod-02",
+      "managementIp": "192.168.10.12",
+      "serverCategory": "VIRTUAL",
+      "osName": "Linux",
+      "osVersion": "RHEL 9.6",
+      "cpuCores": 16,
+      "memorySizeMb": 65536,
+      "virtualizationPlatform": "VMware"
+    },
+    "createdAt": "2026-11-13T10:00:00",
+    "updatedAt": "2026-11-15T16:00:00"
+  }
+}
+```
+
+- 공통 CI 응답 필드는 기존 ConfigurationItemResponse를 기준으로 한다.
+- serverDetail은 ServerDetailResponse 객체로 제공한다.
+- 수정 API는 등록 및 조회 API와 동일한 ServerRegistrationResponse 구조를 사용한다.
+- 수정 대상은 ServerDetail이며 공통 CI 정보는 변경되지 않는다.
+
+### 9.6 오류 처리
+
+| 상황 | HTTP | 오류 코드 |
+|---|---:|---|
+| CI가 존재하지 않음 | 404 | CMDB_CI_001 |
+| CI 유형이 SERVER가 아님 | 400 | CMDB_SERVER_001 |
+| SERVER CI의 상세정보가 존재하지 않음 | 404 | CMDB_SERVER_002 |
+| 필수값 누락 또는 입력값 검증 실패 | 400 | 공통 검증 오류 |
+| 인증되지 않은 요청 | 401 | 공통 인증 오류 |
+| 권한이 없는 요청 | 403 | 공통 권한 오류 |
+
+- DB 제약조건 위반 등 예상하지 못한 오류는 공통 예외 처리 정책을 따른다.
+- 수정 API는 기존 ServerDetail을 대상으로 하며, ServerDetail이 없는 경우 신규 생성하지 않는다.

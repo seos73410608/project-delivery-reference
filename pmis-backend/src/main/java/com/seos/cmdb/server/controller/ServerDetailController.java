@@ -1,9 +1,12 @@
-
+﻿
 package com.seos.cmdb.server.controller;
 
+import com.seos.cmdb.server.dto.request.UpdateServerDetailRequest;
 import com.seos.cmdb.server.dto.response.ServerRegistrationResponse;
 import com.seos.cmdb.server.service.ServerDetailQueryService;
+import com.seos.cmdb.server.service.ServerDetailUpdateService;
 import com.seos.common.response.ApiResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -15,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 public class ServerDetailController {
 
     private final ServerDetailQueryService serverDetailQueryService;
+    private final ServerDetailUpdateService serverDetailUpdateService;
 
     /**
      * CI ID로 서버 상세정보 조회
@@ -31,6 +35,27 @@ public class ServerDetailController {
         return ResponseEntity.ok(
                 ApiResponse.success(
                         "서버 상세정보를 조회했습니다.",
+                        response
+                )
+        );
+    }
+
+    /**
+     * CI ID로 서버 상세정보 전체 수정
+     */
+    @PutMapping("/{ciId}/server-detail")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<ApiResponse<ServerRegistrationResponse>> updateServerDetail(
+            @PathVariable Long ciId,
+            @Valid @RequestBody UpdateServerDetailRequest request
+    ) {
+
+        ServerRegistrationResponse response =
+                serverDetailUpdateService.updateServerDetail(ciId, request);
+
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        "서버 상세정보를 수정했습니다.",
                         response
                 )
         );
