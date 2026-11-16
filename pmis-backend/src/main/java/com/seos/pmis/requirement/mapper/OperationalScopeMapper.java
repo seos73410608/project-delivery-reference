@@ -39,6 +39,7 @@ public class OperationalScopeMapper {
                 .effectiveTo(operationalScope.getEffectiveTo())
                 .createdAt(operationalScope.getCreatedAt())
                 .updatedAt(operationalScope.getUpdatedAt())
+                .version(operationalScope.getVersion())
                 .build();
     }
 }

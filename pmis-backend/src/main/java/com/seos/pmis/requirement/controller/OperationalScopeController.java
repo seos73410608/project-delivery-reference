@@ -4,9 +4,11 @@ package com.seos.pmis.requirement.controller;
 import com.seos.common.response.ApiResponse;
 import com.seos.pmis.requirement.dto.request.OperationalScopeCreateRequest;
 import com.seos.pmis.requirement.dto.request.OperationalScopeSearchRequest;
+import com.seos.pmis.requirement.dto.request.OperationalScopeUpdateRequest;
 import com.seos.pmis.requirement.dto.response.OperationalScopeResponse;
 import com.seos.pmis.requirement.service.OperationalScopeCreationService;
 import com.seos.pmis.requirement.service.OperationalScopeQueryService;
+import com.seos.pmis.requirement.service.OperationalScopeUpdateService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -28,6 +30,7 @@ public class OperationalScopeController {
 
     private final OperationalScopeCreationService operationalScopeCreationService;
     private final OperationalScopeQueryService operationalScopeQueryService;
+    private final OperationalScopeUpdateService operationalScopeUpdateService;
 
     /**
      * Operational Scope 생성
@@ -83,6 +86,26 @@ public class OperationalScopeController {
 
         return ApiResponse.success(
                 operationalScopeQueryService.getDetail(id)
+        );
+    }
+
+    /**
+     * Operational Scope 수정
+     */
+    @Operation(
+            summary = "Operational Scope 수정",
+            description = "버전 정보를 확인하여 운영 환경 범위의 기본 정보를 수정합니다."
+    )
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/{id}")
+    public ApiResponse<OperationalScopeResponse> update(
+            @PathVariable Long id,
+            @Valid @RequestBody OperationalScopeUpdateRequest request
+    ) {
+
+        return ApiResponse.success(
+                "Operational Scope가 수정되었습니다.",
+                operationalScopeUpdateService.update(id, request)
         );
     }
 }

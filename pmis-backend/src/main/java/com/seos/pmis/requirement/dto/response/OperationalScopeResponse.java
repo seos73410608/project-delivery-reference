@@ -91,4 +91,9 @@ public class OperationalScopeResponse {
      * 수정일시
      */
     private LocalDateTime updatedAt;
+
+    /**
+     * 낙관적 잠금 버전
+     */
+    private Long version;
 }

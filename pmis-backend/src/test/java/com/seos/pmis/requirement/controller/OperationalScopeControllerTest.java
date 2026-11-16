@@ -10,12 +10,14 @@ import com.seos.pmis.auth.service.CustomUserDetailsService;
 import com.seos.pmis.config.security.SecurityConfig;
 import com.seos.pmis.requirement.dto.request.OperationalScopeCreateRequest;
 import com.seos.pmis.requirement.dto.request.OperationalScopeSearchRequest;
+import com.seos.pmis.requirement.dto.request.OperationalScopeUpdateRequest;
 import com.seos.pmis.requirement.dto.response.OperationalScopeResponse;
 import com.seos.pmis.requirement.entity.OperationalScopeStatus;
 import com.seos.pmis.requirement.entity.OperationalScopeType;
 import com.seos.pmis.requirement.exception.OperationalScopeErrorCode;
 import com.seos.pmis.requirement.service.OperationalScopeCreationService;
 import com.seos.pmis.requirement.service.OperationalScopeQueryService;
+import com.seos.pmis.requirement.service.OperationalScopeUpdateService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -32,11 +34,13 @@ import java.time.LocalDate;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.never;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(OperationalScopeController.class)
@@ -56,6 +60,9 @@ class OperationalScopeControllerTest {
 
     @MockitoBean
     private OperationalScopeQueryService operationalScopeQueryService;
+
+    @MockitoBean
+    private OperationalScopeUpdateService operationalScopeUpdateService;
 
     @MockitoBean
     private JwtProvider jwtProvider;
@@ -349,6 +356,141 @@ class OperationalScopeControllerTest {
 
         then(operationalScopeQueryService).should()
                 .getDetail(999L);
+    }
+
+    /**
+     * Operational Scope 수정 테스트
+     */
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void update_ADMIN은_OperationalScope를_수정할_수_있다()
+            throws Exception {
+
+        OperationalScopeResponse response = OperationalScopeResponse.builder()
+                .id(1L)
+                .scopeCode("OPS-000001")
+                .scopeName("금융결제 운영 데이터베이스 수정")
+                .scopeType(OperationalScopeType.DATABASE)
+                .status(OperationalScopeStatus.PLANNED)
+                .version(1L)
+                .ownerId(10L)
+                .ownerUsername("manager")
+                .ownerName("담당자")
+                .description("수정된 운영 DB 범위")
+                .effectiveFrom(LocalDate.of(2026, 11, 1))
+                .build();
+
+        given(operationalScopeUpdateService.update(
+                eq(1L),
+                any(OperationalScopeUpdateRequest.class)
+        )).willReturn(response);
+
+        String request = """
+                {
+                    "version": 0,
+                    "scopeName": "금융결제 운영 데이터베이스 수정",
+                    "scopeType": "DATABASE",
+                    "ownerId": 10,
+                    "description": "수정된 운영 DB 범위",
+                    "effectiveFrom": "2026-11-01"
+                }
+                """;
+
+        mockMvc.perform(put("/api/operational-scopes/{id}", 1L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.code").value("SUCCESS"))
+                .andExpect(jsonPath("$.message")
+                        .value("Operational Scope가 수정되었습니다."))
+                .andExpect(jsonPath("$.data.id").value(1))
+                .andExpect(jsonPath("$.data.scopeCode").value("OPS-000001"))
+                .andExpect(jsonPath("$.data.scopeName")
+                        .value("금융결제 운영 데이터베이스 수정"))
+                .andExpect(jsonPath("$.data.version").value(1));
+
+        then(operationalScopeUpdateService).should()
+                .update(
+                        eq(1L),
+                        any(OperationalScopeUpdateRequest.class)
+                );
+    }
+
+    @Test
+    @WithMockUser(roles = "USER")
+    void update_USER는_OperationalScope를_수정할_수_없다()
+            throws Exception {
+
+        String request = """
+                {
+                    "version": 0,
+                    "scopeName": "운영 시스템 수정",
+                    "scopeType": "SYSTEM"
+                }
+                """;
+
+        mockMvc.perform(put("/api/operational-scopes/{id}", 1L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.success").value(false));
+
+        then(operationalScopeUpdateService).should(never())
+                .update(
+                        eq(1L),
+                        any(OperationalScopeUpdateRequest.class)
+                );
+    }
+
+    @Test
+    void update_인증되지_않은_사용자는_수정할_수_없다()
+            throws Exception {
+
+        String request = """
+                {
+                    "version": 0,
+                    "scopeName": "운영 시스템 수정",
+                    "scopeType": "SYSTEM"
+                }
+                """;
+
+        mockMvc.perform(put("/api/operational-scopes/{id}", 1L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.success").value(false));
+
+        then(operationalScopeUpdateService).should(never())
+                .update(
+                        eq(1L),
+                        any(OperationalScopeUpdateRequest.class)
+                );
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void update_version이_누락되면_400을_반환한다()
+            throws Exception {
+
+        String request = """
+                {
+                    "scopeName": "운영 시스템 수정",
+                    "scopeType": "SYSTEM"
+                }
+                """;
+
+        mockMvc.perform(put("/api/operational-scopes/{id}", 1L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false));
+
+        then(operationalScopeUpdateService).should(never())
+                .update(
+                        eq(1L),
+                        any(OperationalScopeUpdateRequest.class)
+                );
     }
 
     /**
