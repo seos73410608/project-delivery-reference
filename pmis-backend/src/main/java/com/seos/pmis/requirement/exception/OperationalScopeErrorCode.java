@@ -29,6 +29,12 @@ public enum OperationalScopeErrorCode implements ErrorCode {
             HttpStatus.BAD_REQUEST,
             "PMIS_OPERATIONAL_SCOPE_004",
             "적용 종료일은 적용 시작일보다 빠를 수 없습니다."
+    ),
+    
+    OPERATIONAL_SCOPE_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+            "PMIS_OPERATIONAL_SCOPE_005",
+            "Operational Scope를 찾을 수 없습니다."
     );
 
     private final HttpStatus httpStatus;
