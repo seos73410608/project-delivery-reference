@@ -20,3 +20,7 @@ logging:
   level:
     org.hibernate.SQL: WARN
     org.hibernate.orm.jdbc.bind: WARN
+
+jwt:
+  access-token-expiration: 120000
+  refresh-token-expiration: 600000

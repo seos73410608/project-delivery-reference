@@ -7,6 +7,8 @@ import {
 
 import MainLayout from "../layouts/MainLayout";
 
+import ProtectedRoute from "../features/auth/components/ProtectedRoute";
+
 import DashboardPage from "../pages/DashboardPage";
 
 import EvidencePage from "../features/evidence/pages/EvidencePage";
@@ -39,6 +41,11 @@ import RuntimeExecutionFilesPage from "../features/runtime/pages/RuntimeExecutio
  *
  * PMIS 전체 화면 Routing을 관리한다.
  *
+ * 인증 정책:
+ *
+ * - /login                         인증 없이 접근 가능
+ * - 그 외 MainLayout 하위 화면      Access Token 필요
+ *
  * 주요 Route:
  *
  * - /                              Dashboard
@@ -67,7 +74,7 @@ function AppRouter() {
 
 
         {/* =============================================
-            Login
+            Login - Public Route
             ============================================= */}
 
         <Route
@@ -79,183 +86,195 @@ function AppRouter() {
 
 
         {/* =============================================
-            Main Layout
+            Protected Routes
             ============================================= */}
 
         <Route
           element={
-            <MainLayout />
+            <ProtectedRoute />
           }
         >
 
-
           {/* ===========================================
-              Dashboard
+              Main Layout
               =========================================== */}
 
           <Route
-            path="/"
             element={
-              <DashboardPage />
+              <MainLayout />
             }
-          />
+          >
 
 
-          {/* ===========================================
-              Evidence - Existing Route
-              =========================================== */}
+            {/* =========================================
+                Dashboard
+                ========================================= */}
 
-          <Route
-            path="/evidence"
-            element={
-              <EvidencePage />
-            }
-          />
-
-
-          {/* ===========================================
-              Project Evidence Management
-              =========================================== */}
-
-          <Route
-            path="/project/:projectId/evidence"
-            element={
-              <EvidencePage />
-            }
-          />
+            <Route
+              path="/"
+              element={
+                <DashboardPage />
+              }
+            />
 
 
-          {/* ===========================================
-              WBS
-              =========================================== */}
+            {/* =========================================
+                Evidence - Existing Route
+                ========================================= */}
 
-          <Route
-            path="/wbs"
-            element={
-              <WbsPage />
-            }
-          />
-
-
-          {/* ===========================================
-              Project List
-              =========================================== */}
-
-          <Route
-            path="/project"
-            element={
-              <ProjectPage />
-            }
-          />
+            <Route
+              path="/evidence"
+              element={
+                <EvidencePage />
+              }
+            />
 
 
-          {/* ===========================================
-              Project Create
-              =========================================== */}
+            {/* =========================================
+                Project Evidence Management
+                ========================================= */}
 
-          <Route
-            path="/project/create"
-            element={
-              <ProjectFormPage />
-            }
-          />
-
-
-          {/* ===========================================
-              Project Detail
-              =========================================== */}
-
-          <Route
-            path="/project/:projectId/detail"
-            element={
-              <ProjectDetailPage />
-            }
-          />
+            <Route
+              path="/project/:projectId/evidence"
+              element={
+                <EvidencePage />
+              }
+            />
 
 
-          {/* ===========================================
-              Project Edit
-              =========================================== */}
+            {/* =========================================
+                WBS
+                ========================================= */}
 
-          <Route
-            path="/project/:projectId/edit"
-            element={
-              <ProjectFormPage />
-            }
-          />
-
-
-          {/* ===========================================
-              Schedule
-              =========================================== */}
-
-          <Route
-            path="/schedule"
-            element={
-              <SchedulePage />
-            }
-          />
+            <Route
+              path="/wbs"
+              element={
+                <WbsPage />
+              }
+            />
 
 
-          {/* ===========================================
-              Task Management
-              =========================================== */}
+            {/* =========================================
+                Project List
+                ========================================= */}
 
-          <Route
-            path="/task"
-            element={
-              <TaskPage />
-            }
-          />
-
-
-          {/* ===========================================
-              Issue
-              =========================================== */}
-
-          <Route
-            path="/issue"
-            element={
-              <IssuePage />
-            }
-          />
+            <Route
+              path="/project"
+              element={
+                <ProjectPage />
+              }
+            />
 
 
-          {/* ===========================================
-              Risk
-              =========================================== */}
+            {/* =========================================
+                Project Create
+                ========================================= */}
 
-          <Route
-            path="/risk"
-            element={
-              <RiskPage />
-            }
-          />
-
-
-          {/* ===========================================
-              Change Management
-              =========================================== */}
-
-          <Route
-            path="/project/:projectId/change"
-            element={
-              <ProjectChangePage />
-            }
-          />
+            <Route
+              path="/project/create"
+              element={
+                <ProjectFormPage />
+              }
+            />
 
 
-          {/* ===========================================
-              Runtime Execution Files
-              =========================================== */}
+            {/* =========================================
+                Project Detail
+                ========================================= */}
 
-          <Route
-            path="/runtime/executions/:executionUuid/files"
-            element={
-              <RuntimeExecutionFilesPage />
-            }
-          />
+            <Route
+              path="/project/:projectId/detail"
+              element={
+                <ProjectDetailPage />
+              }
+            />
 
+
+            {/* =========================================
+                Project Edit
+                ========================================= */}
+
+            <Route
+              path="/project/:projectId/edit"
+              element={
+                <ProjectFormPage />
+              }
+            />
+
+
+            {/* =========================================
+                Schedule
+                ========================================= */}
+
+            <Route
+              path="/schedule"
+              element={
+                <SchedulePage />
+              }
+            />
+
+
+            {/* =========================================
+                Task Management
+                ========================================= */}
+
+            <Route
+              path="/task"
+              element={
+                <TaskPage />
+              }
+            />
+
+
+            {/* =========================================
+                Issue
+                ========================================= */}
+
+            <Route
+              path="/issue"
+              element={
+                <IssuePage />
+              }
+            />
+
+
+            {/* =========================================
+                Risk
+                ========================================= */}
+
+            <Route
+              path="/risk"
+              element={
+                <RiskPage />
+              }
+            />
+
+
+            {/* =========================================
+                Change Management
+                ========================================= */}
+
+            <Route
+              path="/project/:projectId/change"
+              element={
+                <ProjectChangePage />
+              }
+            />
+
+
+            {/* =========================================
+                Runtime Execution Files
+                ========================================= */}
+
+            <Route
+              path="/runtime/executions/:executionUuid/files"
+              element={
+                <RuntimeExecutionFilesPage />
+              }
+            />
+
+
+          </Route>
 
         </Route>
 
