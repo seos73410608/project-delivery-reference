@@ -1,8 +1,11 @@
+
 package com.seos.cmdb.ci.controller;
 
 import com.seos.cmdb.ci.dto.request.CreateCiTypeRequest;
 import com.seos.cmdb.ci.dto.request.UpdateCiTypeRequest;
+import com.seos.cmdb.ci.dto.response.CiAttributeDefinitionResponse;
 import com.seos.cmdb.ci.dto.response.CiTypeResponse;
+import com.seos.cmdb.ci.service.CiAttributeDefinitionService;
 import com.seos.cmdb.ci.service.CiTypeService;
 import com.seos.common.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -26,6 +29,7 @@ import java.util.List;
 public class CiTypeController {
 
     private final CiTypeService ciTypeService;
+    private final CiAttributeDefinitionService ciAttributeDefinitionService;
 
     /**
      * CI Type 생성
@@ -79,6 +83,25 @@ public class CiTypeController {
 
         return ApiResponse.success(
                 ciTypeService.getById(id)
+        );
+    }
+
+    /**
+     * CI Type 적용 속성 정의 조회
+     */
+    @Operation(
+            summary = "CI Type 속성 정의 조회",
+            description = "공통 및 상위 CI Type에서 상속된 활성 속성 정의를 트리 구조로 조회합니다."
+    )
+    @PreAuthorize("hasRole('USER')")
+    @GetMapping("/{ciTypeId}/attribute-definitions")
+    public ApiResponse<List<CiAttributeDefinitionResponse>> getAttributeDefinitions(
+            @Parameter(description = "CI Type ID")
+            @PathVariable Long ciTypeId
+    ) {
+
+        return ApiResponse.success(
+                ciAttributeDefinitionService.getEffectiveDefinitions(ciTypeId)
         );
     }
 

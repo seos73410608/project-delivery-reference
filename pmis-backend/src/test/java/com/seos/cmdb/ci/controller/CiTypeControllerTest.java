@@ -4,6 +4,7 @@ package com.seos.cmdb.ci.controller;
 import com.seos.cmdb.ci.dto.request.CreateCiTypeRequest;
 import com.seos.cmdb.ci.dto.request.UpdateCiTypeRequest;
 import com.seos.cmdb.ci.dto.response.CiTypeResponse;
+import com.seos.cmdb.ci.service.CiAttributeDefinitionService;
 import com.seos.cmdb.ci.service.CiTypeService;
 import com.seos.pmis.auth.security.filter.JwtAuthenticationFilter;
 import com.seos.pmis.auth.security.handler.JwtAccessDeniedHandler;
@@ -44,6 +45,9 @@ class CiTypeControllerTest {
 
     @MockitoBean
     private CiTypeService ciTypeService;
+
+    @MockitoBean
+    private CiAttributeDefinitionService ciAttributeDefinitionService;
 
     @MockitoBean
     private JwtProvider jwtProvider;
