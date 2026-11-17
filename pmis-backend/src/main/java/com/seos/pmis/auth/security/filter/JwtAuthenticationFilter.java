@@ -1,3 +1,4 @@
+
 package com.seos.pmis.auth.security.filter;
 
 import com.seos.pmis.auth.security.jwt.JwtProvider;
@@ -17,8 +18,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
-@Component
 @RequiredArgsConstructor
+@Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtProvider jwtProvider;
@@ -35,7 +36,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             String token = resolveToken(request);
 
-            if (StringUtils.hasText(token) && jwtProvider.validateToken(token)) {
+            if (StringUtils.hasText(token)
+                    && jwtProvider.validateAccessToken(token)) {
 
                 String username = jwtProvider.getUsername(token);
 
@@ -70,9 +72,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    /**
-     * Authorization Header에서 Bearer Token 추출
-     */
     private String resolveToken(HttpServletRequest request) {
 
         String bearerToken = request.getHeader("Authorization");

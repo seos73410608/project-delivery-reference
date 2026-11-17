@@ -2,7 +2,6 @@
 package com.seos.pmis.auth.security.jwt;
 
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -11,10 +10,15 @@ import org.springframework.test.util.ReflectionTestUtils;
 import javax.crypto.SecretKey;
 import java.util.Date;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class JwtProviderTest {
+
+    private static final String TOKEN_TYPE_CLAIM = "tokenType";
+    private static final String ACCESS_TOKEN_TYPE = "ACCESS";
+    private static final String REFRESH_TOKEN_TYPE = "REFRESH";
 
     private JwtProvider jwtProvider;
     private SecretKey secretKey;
@@ -34,31 +38,116 @@ class JwtProviderTest {
     }
 
     @Test
-    void validateToken_returnsTrue_forValidToken() {
+    void validateAccessToken_returnsValid_forAccessToken() {
         String token = createToken(
-                new Date(System.currentTimeMillis() + 60_000)
-        );
+                ACCESS_TOKEN_TYPE,
+                new Date(System.currentTimeMillis() + 60_000));
 
-        assertTrue(jwtProvider.validateToken(token));
+        assertTrue(jwtProvider.validateAccessToken(token));
+        assertEquals(
+                JwtProvider.TokenValidationResult.VALID,
+                jwtProvider.validateAccessTokenDetailed(token));
     }
 
     @Test
-    void validateToken_returnsFalse_forExpiredToken() {
+    void validateRefreshToken_returnsValid_forRefreshToken() {
         String token = createToken(
-                new Date(System.currentTimeMillis() - 60_000)
-        );
+                REFRESH_TOKEN_TYPE,
+                new Date(System.currentTimeMillis() + 60_000));
 
-        assertFalse(jwtProvider.validateToken(token));
+        assertTrue(jwtProvider.validateRefreshToken(token));
+        assertEquals(
+                JwtProvider.TokenValidationResult.VALID,
+                jwtProvider.validateRefreshTokenDetailed(token));
     }
 
     @Test
-    void validateToken_returnsFalse_forInvalidSignature() {
-        String token = createTokenWithDifferentKey();
+    void validateAccessToken_returnsInvalidType_forRefreshToken() {
+        String token = createToken(
+                REFRESH_TOKEN_TYPE,
+                new Date(System.currentTimeMillis() + 60_000));
 
-        assertFalse(jwtProvider.validateToken(token));
+        assertFalse(jwtProvider.validateAccessToken(token));
+        assertEquals(
+                JwtProvider.TokenValidationResult.INVALID_TYPE,
+                jwtProvider.validateAccessTokenDetailed(token));
     }
 
-    private String createToken(Date expiration) {
+    @Test
+    void validateRefreshToken_returnsInvalidType_forAccessToken() {
+        String token = createToken(
+                ACCESS_TOKEN_TYPE,
+                new Date(System.currentTimeMillis() + 60_000));
+
+        assertFalse(jwtProvider.validateRefreshToken(token));
+        assertEquals(
+                JwtProvider.TokenValidationResult.INVALID_TYPE,
+                jwtProvider.validateRefreshTokenDetailed(token));
+    }
+
+    @Test
+    void validateAccessToken_returnsExpired_forExpiredAccessToken() {
+        String token = createToken(
+                ACCESS_TOKEN_TYPE,
+                new Date(System.currentTimeMillis() - 60_000));
+
+        assertEquals(
+                JwtProvider.TokenValidationResult.EXPIRED,
+                jwtProvider.validateAccessTokenDetailed(token));
+    }
+
+    @Test
+    void validateRefreshToken_returnsExpired_forExpiredRefreshToken() {
+        String token = createToken(
+                REFRESH_TOKEN_TYPE,
+                new Date(System.currentTimeMillis() - 60_000));
+
+        assertEquals(
+                JwtProvider.TokenValidationResult.EXPIRED,
+                jwtProvider.validateRefreshTokenDetailed(token));
+    }
+
+    @Test
+    void validateAccessToken_returnsInvalid_forInvalidSignature() {
+        String token = createTokenWithDifferentKey(ACCESS_TOKEN_TYPE);
+
+        assertEquals(
+                JwtProvider.TokenValidationResult.INVALID,
+                jwtProvider.validateAccessTokenDetailed(token));
+    }
+
+    @Test
+    void validateAccessToken_returnsInvalidType_forTokenWithoutTypeClaim() {
+        String token = createTokenWithoutType(
+                new Date(System.currentTimeMillis() + 60_000));
+
+        assertEquals(
+                JwtProvider.TokenValidationResult.INVALID_TYPE,
+                jwtProvider.validateAccessTokenDetailed(token));
+    }
+
+    @Test
+    void validateAccessToken_returnsInvalid_forBlankToken() {
+        assertEquals(
+                JwtProvider.TokenValidationResult.INVALID,
+                jwtProvider.validateAccessTokenDetailed(" "));
+    }
+
+    private String createToken(String tokenType, Date expiration) {
+        Date now = new Date();
+
+        return Jwts.builder()
+                .subject("test-user")
+                .claim("userId", 1L)
+                .claim("role", "ROLE_USER")
+                .claim(TOKEN_TYPE_CLAIM, tokenType)
+                .issuedAt(now)
+                .expiration(expiration)
+                .signWith(secretKey)
+                .compact();
+    }
+
+    private String createTokenWithoutType(Date expiration) {
         Date now = new Date();
 
         return Jwts.builder()
@@ -71,7 +160,7 @@ class JwtProviderTest {
                 .compact();
     }
 
-    private String createTokenWithDifferentKey() {
+    private String createTokenWithDifferentKey(String tokenType) {
         byte[] otherKeyBytes = new byte[32];
         for (int i = 0; i < otherKeyBytes.length; i++) {
             otherKeyBytes[i] = (byte) (i + 2);
@@ -84,6 +173,7 @@ class JwtProviderTest {
                 .subject("test-user")
                 .claim("userId", 1L)
                 .claim("role", "ROLE_USER")
+                .claim(TOKEN_TYPE_CLAIM, tokenType)
                 .issuedAt(now)
                 .expiration(new Date(now.getTime() + 60_000))
                 .signWith(otherKey)

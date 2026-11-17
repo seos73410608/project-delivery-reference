@@ -1,3 +1,4 @@
+
 package com.seos.pmis.auth.service;
 
 import com.seos.pmis.auth.dto.request.LoginRequest;
@@ -94,12 +95,21 @@ public class AuthService {
      */
     public LoginResponse refresh(RefreshTokenRequest request) {
 
-        if (!jwtProvider.validateRefreshToken(request.getRefreshToken())) {
+        String refreshToken = request.getRefreshToken();
+
+        JwtProvider.TokenValidationResult validationResult =
+                jwtProvider.validateRefreshTokenDetailed(refreshToken);
+
+        if (validationResult == JwtProvider.TokenValidationResult.EXPIRED) {
+            throw new BusinessException(CommonErrorCode.EXPIRED_TOKEN);
+        }
+
+        if (validationResult != JwtProvider.TokenValidationResult.VALID) {
             throw new BusinessException(CommonErrorCode.INVALID_TOKEN);
         }
 
         RefreshToken savedToken =
-                refreshTokenService.findByToken(request.getRefreshToken());
+                refreshTokenService.findByToken(refreshToken);
 
         if (savedToken.isExpired()) {
             throw new BusinessException(CommonErrorCode.EXPIRED_TOKEN);

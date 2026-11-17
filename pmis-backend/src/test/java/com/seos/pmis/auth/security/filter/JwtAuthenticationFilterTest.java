@@ -23,114 +23,133 @@ import static org.mockito.Mockito.verifyNoInteractions;
 @ExtendWith(MockitoExtension.class)
 class JwtAuthenticationFilterTest {
 
-    @Mock
-    private JwtProvider jwtProvider;
+        @Mock
+        private JwtProvider jwtProvider;
 
-    @Mock
-    private CustomUserDetailsService userDetailsService;
+        @Mock
+        private CustomUserDetailsService userDetailsService;
 
-    @InjectMocks
-    private JwtAuthenticationFilter jwtAuthenticationFilter;
+        @InjectMocks
+        private JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    @BeforeEach
-    void setUp() {
-        SecurityContextHolder.clearContext();
-    }
+        @BeforeEach
+        void setUp() {
+                SecurityContextHolder.clearContext();
+        }
 
-    @AfterEach
-    void tearDown() {
-        SecurityContextHolder.clearContext();
-    }
+        @AfterEach
+        void tearDown() {
+                SecurityContextHolder.clearContext();
+        }
 
-    @Test
-    void doFilter_유효한JWT와_활성사용자는_인증된다() throws Exception {
+        @Test
+        void doFilter_유효한AccessToken과_활성사용자는_인증된다() throws Exception {
 
-        UserPrincipal userPrincipal = createUserPrincipal(true);
+                UserPrincipal userPrincipal = createUserPrincipal(true);
 
-        given(jwtProvider.validateToken("valid-token"))
-                .willReturn(true);
+                given(jwtProvider.validateAccessToken("valid-access-token"))
+                                .willReturn(true);
 
-        given(jwtProvider.getUsername("valid-token"))
-                .willReturn("test-user");
+                given(jwtProvider.getUsername("valid-access-token"))
+                                .willReturn("test-user");
 
-        given(userDetailsService.loadUserByUsername("test-user"))
-                .willReturn(userPrincipal);
+                given(userDetailsService.loadUserByUsername("test-user"))
+                                .willReturn(userPrincipal);
 
-        MockHttpServletRequest request = createRequest("valid-token");
-        MockHttpServletResponse response = new MockHttpServletResponse();
-        FilterChain filterChain = (req, res) -> {
-        };
+                MockHttpServletRequest request = createRequest("valid-access-token");
+                MockHttpServletResponse response = new MockHttpServletResponse();
+                FilterChain filterChain = (req, res) -> {
+                };
 
-        jwtAuthenticationFilter.doFilter(request, response, filterChain);
+                jwtAuthenticationFilter.doFilter(request, response, filterChain);
 
-        assertThat(SecurityContextHolder.getContext().getAuthentication())
-                .isNotNull();
+                assertThat(SecurityContextHolder.getContext().getAuthentication())
+                                .isNotNull();
 
-        assertThat(SecurityContextHolder.getContext().getAuthentication()
-                .getPrincipal())
-                .isSameAs(userPrincipal);
-    }
+                assertThat(SecurityContextHolder.getContext().getAuthentication()
+                                .getPrincipal())
+                                .isSameAs(userPrincipal);
+        }
 
-    @Test
-    void doFilter_유효한JWT와_비활성사용자는_인증되지않는다() throws Exception {
+        @Test
+        void doFilter_유효한AccessToken과_비활성사용자는_인증되지않는다() throws Exception {
 
-        UserPrincipal userPrincipal = createUserPrincipal(false);
+                UserPrincipal userPrincipal = createUserPrincipal(false);
 
-        given(jwtProvider.validateToken("valid-token"))
-                .willReturn(true);
+                given(jwtProvider.validateAccessToken("valid-access-token"))
+                                .willReturn(true);
 
-        given(jwtProvider.getUsername("valid-token"))
-                .willReturn("test-user");
+                given(jwtProvider.getUsername("valid-access-token"))
+                                .willReturn("test-user");
 
-        given(userDetailsService.loadUserByUsername("test-user"))
-                .willReturn(userPrincipal);
+                given(userDetailsService.loadUserByUsername("test-user"))
+                                .willReturn(userPrincipal);
 
-        MockHttpServletRequest request = createRequest("valid-token");
-        MockHttpServletResponse response = new MockHttpServletResponse();
-        FilterChain filterChain = (req, res) -> {
-        };
+                MockHttpServletRequest request = createRequest("valid-access-token");
+                MockHttpServletResponse response = new MockHttpServletResponse();
+                FilterChain filterChain = (req, res) -> {
+                };
 
-        jwtAuthenticationFilter.doFilter(request, response, filterChain);
+                jwtAuthenticationFilter.doFilter(request, response, filterChain);
 
-        assertThat(SecurityContextHolder.getContext().getAuthentication())
-                .isNull();
-    }
+                assertThat(SecurityContextHolder.getContext().getAuthentication())
+                                .isNull();
+        }
 
-    @Test
-    void doFilter_유효하지않은JWT는_인증되지않는다() throws Exception {
+        @Test
+        void doFilter_유효하지않은AccessToken은_인증되지않는다() throws Exception {
 
-        given(jwtProvider.validateToken("invalid-token"))
-                .willReturn(false);
+                given(jwtProvider.validateAccessToken("invalid-access-token"))
+                                .willReturn(false);
 
-        MockHttpServletRequest request = createRequest("invalid-token");
-        MockHttpServletResponse response = new MockHttpServletResponse();
-        FilterChain filterChain = (req, res) -> {
-        };
+                MockHttpServletRequest request = createRequest("invalid-access-token");
+                MockHttpServletResponse response = new MockHttpServletResponse();
+                FilterChain filterChain = (req, res) -> {
+                };
 
-        jwtAuthenticationFilter.doFilter(request, response, filterChain);
+                jwtAuthenticationFilter.doFilter(request, response, filterChain);
 
-        assertThat(SecurityContextHolder.getContext().getAuthentication())
-                .isNull();
+                assertThat(SecurityContextHolder.getContext().getAuthentication())
+                                .isNull();
 
-        verifyNoInteractions(userDetailsService);
-    }
+                verifyNoInteractions(userDetailsService);
+        }
 
-    private MockHttpServletRequest createRequest(String token) {
+        @Test
+        void doFilter_RefreshToken은_인증되지않는다() throws Exception {
 
-        MockHttpServletRequest request = new MockHttpServletRequest();
-        request.addHeader("Authorization", "Bearer " + token);
+                given(jwtProvider.validateAccessToken("valid-refresh-token"))
+                                .willReturn(false);
 
-        return request;
-    }
+                MockHttpServletRequest request = createRequest("valid-refresh-token");
+                MockHttpServletResponse response = new MockHttpServletResponse();
+                FilterChain filterChain = (req, res) -> {
+                };
 
-    private UserPrincipal createUserPrincipal(boolean enabled) {
+                jwtAuthenticationFilter.doFilter(request, response, filterChain);
 
-        return UserPrincipal.builder()
-                .userId(1L)
-                .username("test-user")
-                .password("encoded-password")
-                .role("ROLE_USER")
-                .enabled(enabled)
-                .build();
-    }
+                assertThat(SecurityContextHolder.getContext().getAuthentication())
+                                .isNull();
+
+                verifyNoInteractions(userDetailsService);
+        }
+
+        private MockHttpServletRequest createRequest(String token) {
+
+                MockHttpServletRequest request = new MockHttpServletRequest();
+                request.addHeader("Authorization", "Bearer " + token);
+
+                return request;
+        }
+
+        private UserPrincipal createUserPrincipal(boolean enabled) {
+
+                return UserPrincipal.builder()
+                                .userId(1L)
+                                .username("test-user")
+                                .password("encoded-password")
+                                .role("ROLE_USER")
+                                .enabled(enabled)
+                                .build();
+        }
 }
