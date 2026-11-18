@@ -24,3 +24,14 @@ runtime:
 
 server:
   port: ${SERVER_PORT:8765}
+
+pmis:
+  redis:
+    enabled: ${PMIS_REDIS_ENABLED:false}
+    host: ${PMIS_REDIS_HOST:127.0.0.1}
+    port: ${PMIS_REDIS_PORT:6379}
+    database: ${PMIS_REDIS_DATABASE:1}
+
+  auth:
+    login-attempt:
+      ttl-seconds: ${PMIS_AUTH_LOGIN_ATTEMPT_TTL_SECONDS:300}

@@ -106,6 +106,11 @@ dependencies {
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.9")
 
     // ------------------------------------------------------------------------
+    // Redis
+    // ------------------------------------------------------------------------
+    implementation("org.springframework.boot:spring-boot-starter-data-redis")
+
+    // ------------------------------------------------------------------------
     // Test
     // ------------------------------------------------------------------------
     testImplementation("org.springframework.boot:spring-boot-starter-test")
