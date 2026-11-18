@@ -11,3 +11,11 @@ Tools/claude-code-uncompressed.zip
 # Temporary files
 pmis-frontend/result.txt
 status.txt
+# PMIS BFF
+/pmis-bff/node_modules/
+/pmis-bff/dist/
+/pmis-bff/coverage/
+/pmis-bff/*.log
+/pmis-bff/.env
+/pmis-bff/.env.*
+!/pmis-bff/.env.example
