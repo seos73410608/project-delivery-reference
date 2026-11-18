@@ -1,3 +1,4 @@
+
 package com.seos.pmis.auth.security.jwt;
 
 import io.jsonwebtoken.Claims;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
+import java.util.UUID;
 
 @Slf4j
 @Getter
@@ -21,6 +23,8 @@ import java.util.Date;
 public class JwtProvider {
 
     private static final String TOKEN_TYPE_CLAIM = "tokenType";
+    private static final String SESSION_ID_CLAIM = "sessionId";
+
     private static final String ACCESS_TOKEN_TYPE = "ACCESS";
     private static final String REFRESH_TOKEN_TYPE = "REFRESH";
 
@@ -52,34 +56,84 @@ public class JwtProvider {
 
     /**
      * Access Token 생성
+     * 기존 호출부 호환용
      */
     public String generateAccessToken(
             Long userId,
             String username,
-            String role) {
+            String role
+    ) {
 
         return generateToken(
                 userId,
                 username,
                 role,
+                null,
                 accessTokenExpiration,
-                ACCESS_TOKEN_TYPE);
+                ACCESS_TOKEN_TYPE
+        );
+    }
+
+    /**
+     * Access Token 생성
+     * 다중 세션 인증용
+     */
+    public String generateAccessToken(
+            Long userId,
+            String username,
+            String role,
+            UUID sessionId
+    ) {
+
+        return generateToken(
+                userId,
+                username,
+                role,
+                sessionId,
+                accessTokenExpiration,
+                ACCESS_TOKEN_TYPE
+        );
     }
 
     /**
      * Refresh Token 생성
+     * 기존 호출부 호환용
      */
     public String generateRefreshToken(
             Long userId,
             String username,
-            String role) {
+            String role
+    ) {
 
         return generateToken(
                 userId,
                 username,
                 role,
+                null,
                 refreshTokenExpiration,
-                REFRESH_TOKEN_TYPE);
+                REFRESH_TOKEN_TYPE
+        );
+    }
+
+    /**
+     * Refresh Token 생성
+     * 다중 세션 인증용
+     */
+    public String generateRefreshToken(
+            Long userId,
+            String username,
+            String role,
+            UUID sessionId
+    ) {
+
+        return generateToken(
+                userId,
+                username,
+                role,
+                sessionId,
+                refreshTokenExpiration,
+                REFRESH_TOKEN_TYPE
+        );
     }
 
     /**
@@ -89,19 +143,30 @@ public class JwtProvider {
             Long userId,
             String username,
             String role,
+            UUID sessionId,
             long expiration,
-            String tokenType) {
+            String tokenType
+    ) {
 
         Date now = new Date();
         Date expiry = new Date(now.getTime() + expiration);
 
-        return Jwts.builder()
+        var builder = Jwts.builder()
                 .subject(username)
                 .claim("userId", userId)
                 .claim("role", role)
                 .claim(TOKEN_TYPE_CLAIM, tokenType)
                 .issuedAt(now)
-                .expiration(expiry)
+                .expiration(expiry);
+
+        if (sessionId != null) {
+            builder.claim(
+                    SESSION_ID_CLAIM,
+                    sessionId.toString()
+            );
+        }
+
+        return builder
                 .signWith(secretKey)
                 .compact();
     }
@@ -122,6 +187,7 @@ public class JwtProvider {
      * 사용자 ID 조회
      */
     public Long getUserId(String token) {
+
         return getClaims(token).get("userId", Long.class);
     }
 
@@ -129,6 +195,7 @@ public class JwtProvider {
      * 사용자명 조회
      */
     public String getUsername(String token) {
+
         return getClaims(token).getSubject();
     }
 
@@ -136,6 +203,7 @@ public class JwtProvider {
      * 권한 조회
      */
     public String getRole(String token) {
+
         return getClaims(token).get("role", String.class);
     }
 
@@ -143,13 +211,33 @@ public class JwtProvider {
      * 토큰 유형 조회
      */
     public String getTokenType(String token) {
-        return getClaims(token).get(TOKEN_TYPE_CLAIM, String.class);
+
+        return getClaims(token)
+                .get(TOKEN_TYPE_CLAIM, String.class);
+    }
+
+    /**
+     * 세션 UUID 조회
+     */
+    public UUID getSessionId(String token) {
+
+        String sessionId = getClaims(token)
+                .get(SESSION_ID_CLAIM, String.class);
+
+        if (sessionId == null || sessionId.isBlank()) {
+            throw new IllegalArgumentException(
+                    "JWT에 sessionId가 없습니다."
+            );
+        }
+
+        return UUID.fromString(sessionId);
     }
 
     /**
      * 만료 시간 조회
      */
     public Date getExpiration(String token) {
+
         return getClaims(token).getExpiration();
     }
 
@@ -159,9 +247,11 @@ public class JwtProvider {
     public boolean isTokenExpired(String token) {
 
         try {
+
             return getExpiration(token).before(new Date());
 
         } catch (ExpiredJwtException e) {
+
             return true;
         }
     }
@@ -171,7 +261,8 @@ public class JwtProvider {
      */
     public boolean validateAccessToken(String token) {
 
-        return validateAccessTokenDetailed(token) == TokenValidationResult.VALID;
+        return validateAccessTokenDetailed(token)
+                == TokenValidationResult.VALID;
     }
 
     /**
@@ -179,23 +270,26 @@ public class JwtProvider {
      */
     public boolean validateRefreshToken(String refreshToken) {
 
-        return validateRefreshTokenDetailed(refreshToken) == TokenValidationResult.VALID;
+        return validateRefreshTokenDetailed(refreshToken)
+                == TokenValidationResult.VALID;
     }
 
     /**
-     * Access Token 상세 검증 결과
+     * Access Token 상세 검증
      */
     public TokenValidationResult validateAccessTokenDetailed(
-            String token) {
+            String token
+    ) {
 
         return validateTokenType(token, ACCESS_TOKEN_TYPE);
     }
 
     /**
-     * Refresh Token 상세 검증 결과
+     * Refresh Token 상세 검증
      */
     public TokenValidationResult validateRefreshTokenDetailed(
-            String token) {
+            String token
+    ) {
 
         return validateTokenType(token, REFRESH_TOKEN_TYPE);
     }
@@ -205,7 +299,8 @@ public class JwtProvider {
      */
     private TokenValidationResult validateTokenType(
             String token,
-            String expectedType) {
+            String expectedType
+    ) {
 
         if (token == null || token.isBlank()) {
             return TokenValidationResult.INVALID;
@@ -215,7 +310,10 @@ public class JwtProvider {
 
             Claims claims = getClaims(token);
 
-            String actualType = claims.get(TOKEN_TYPE_CLAIM, String.class);
+            String actualType = claims.get(
+                    TOKEN_TYPE_CLAIM,
+                    String.class
+            );
 
             if (!expectedType.equals(actualType)) {
                 return TokenValidationResult.INVALID_TYPE;
@@ -225,7 +323,8 @@ public class JwtProvider {
 
         } catch (ExpiredJwtException e) {
 
-            Object actualType = e.getClaims().get(TOKEN_TYPE_CLAIM);
+            Object actualType = e.getClaims()
+                    .get(TOKEN_TYPE_CLAIM);
 
             if (!expectedType.equals(actualType)) {
                 return TokenValidationResult.INVALID_TYPE;

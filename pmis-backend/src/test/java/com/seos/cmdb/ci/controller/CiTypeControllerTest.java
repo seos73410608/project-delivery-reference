@@ -1,6 +1,7 @@
 
 package com.seos.cmdb.ci.controller;
 
+import com.seos.pmis.auth.service.UserSessionService;
 import com.seos.cmdb.ci.dto.request.CreateCiTypeRequest;
 import com.seos.cmdb.ci.dto.request.UpdateCiTypeRequest;
 import com.seos.cmdb.ci.dto.response.CiTypeResponse;
@@ -54,6 +55,9 @@ class CiTypeControllerTest {
 
     @MockitoBean
     private CustomUserDetailsService userDetailsService;
+
+    @MockitoBean
+    private UserSessionService userSessionService;
 
     @Test
     @WithMockUser(roles = "ADMIN")

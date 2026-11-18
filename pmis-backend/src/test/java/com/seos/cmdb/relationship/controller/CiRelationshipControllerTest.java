@@ -1,5 +1,6 @@
 package com.seos.cmdb.relationship.controller;
 
+import com.seos.pmis.auth.service.UserSessionService;
 import com.seos.cmdb.relationship.dto.request.CreateCiRelationshipRequest;
 import com.seos.cmdb.relationship.dto.request.UpdateCiRelationshipRequest;
 import com.seos.cmdb.relationship.dto.response.CiRelationshipResponse;
@@ -52,6 +53,9 @@ class CiRelationshipControllerTest {
 
     @MockitoBean
     private CustomUserDetailsService userDetailsService;
+
+    @MockitoBean
+    private UserSessionService userSessionService;
 
     @Test
     @WithMockUser(roles = "PM")

@@ -4,7 +4,7 @@ package com.seos.pmis.auth.service;
 import com.seos.pmis.auth.dto.request.LoginRequest;
 import com.seos.pmis.auth.dto.request.RefreshTokenRequest;
 import com.seos.pmis.auth.dto.response.LoginResponse;
-import com.seos.pmis.auth.entity.RefreshToken;
+import com.seos.pmis.auth.entity.UserSession;
 import com.seos.pmis.auth.security.jwt.JwtProvider;
 import com.seos.common.exception.BusinessException;
 import com.seos.common.exception.code.CommonErrorCode;
@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -25,12 +26,9 @@ import java.util.Date;
 public class AuthService {
 
     private final UserRepository userRepository;
-
     private final PasswordEncoder passwordEncoder;
-
     private final JwtProvider jwtProvider;
-
-    private final RefreshTokenService refreshTokenService;
+    private final UserSessionService userSessionService;
 
     /**
      * 로그인
@@ -46,48 +44,40 @@ public class AuthService {
             throw new BusinessException(CommonErrorCode.ACCOUNT_DISABLED);
         }
 
-        if (!passwordEncoder.matches(
-                request.getPassword(),
-                user.getPassword()
-        )) {
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new BusinessException(
                     CommonErrorCode.INVALID_USERNAME_OR_PASSWORD
             );
         }
 
+        UUID sessionId = UUID.randomUUID();
+
         String accessToken = jwtProvider.generateAccessToken(
                 user.getId(),
                 user.getUsername(),
-                user.getRole().name()
+                user.getRole().name(),
+                sessionId
         );
 
         String refreshToken = jwtProvider.generateRefreshToken(
                 user.getId(),
                 user.getUsername(),
-                user.getRole().name()
+                user.getRole().name(),
+                sessionId
         );
 
-        Date expiration = jwtProvider.getExpiration(refreshToken);
+        LocalDateTime refreshTokenExpiresAt = toLocalDateTime(
+                jwtProvider.getExpiration(refreshToken)
+        );
 
-        refreshTokenService.save(
+        userSessionService.createSession(
                 user,
+                sessionId,
                 refreshToken,
-                LocalDateTime.ofInstant(
-                        expiration.toInstant(),
-                        ZoneId.systemDefault()
-                )
+                refreshTokenExpiresAt
         );
 
-        return LoginResponse.builder()
-                .userId(user.getId())
-                .username(user.getUsername())
-                .name(user.getName())
-                .role(user.getRole().name())
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
-                .accessTokenExpiration(jwtProvider.getAccessTokenExpiration())
-                .refreshTokenExpiration(jwtProvider.getRefreshTokenExpiration())
-                .build();
+        return createLoginResponse(user, accessToken, refreshToken);
     }
 
     /**
@@ -108,47 +98,84 @@ public class AuthService {
             throw new BusinessException(CommonErrorCode.INVALID_TOKEN);
         }
 
-        RefreshToken savedToken =
-                refreshTokenService.findByToken(refreshToken);
+        UUID sessionId;
 
-        if (savedToken.isExpired()) {
-            throw new BusinessException(CommonErrorCode.EXPIRED_TOKEN);
+        try {
+            sessionId = jwtProvider.getSessionId(refreshToken);
+        } catch (Exception e) {
+            throw new BusinessException(CommonErrorCode.INVALID_TOKEN);
         }
 
-        User user = savedToken.getUser();
+        String newRefreshToken;
+        try {
+            Long userId = jwtProvider.getUserId(refreshToken);
 
-        String newAccessToken = jwtProvider.generateAccessToken(
-                user.getId(),
-                user.getUsername(),
-                user.getRole().name()
-        );
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() ->
+                            new BusinessException(CommonErrorCode.INVALID_TOKEN)
+                    );
 
-        String newRefreshToken = jwtProvider.generateRefreshToken(
-                user.getId(),
-                user.getUsername(),
-                user.getRole().name()
-        );
+            if (!Boolean.TRUE.equals(user.getEnabled())) {
+                throw new BusinessException(CommonErrorCode.ACCOUNT_DISABLED);
+            }
 
-        Date expiration = jwtProvider.getExpiration(newRefreshToken);
+            newRefreshToken = jwtProvider.generateRefreshToken(
+                    user.getId(),
+                    user.getUsername(),
+                    user.getRole().name(),
+                    sessionId
+            );
 
-        refreshTokenService.save(
-                user,
-                newRefreshToken,
-                LocalDateTime.ofInstant(
-                        expiration.toInstant(),
-                        ZoneId.systemDefault()
-                )
-        );
+            LocalDateTime newExpiration = toLocalDateTime(
+                    jwtProvider.getExpiration(newRefreshToken)
+            );
 
+            UserSession session = userSessionService.rotateRefreshToken(
+                    sessionId,
+                    refreshToken,
+                    newRefreshToken,
+                    newExpiration
+            );
+
+            return createLoginResponse(
+                    session.getUser(),
+                    jwtProvider.generateAccessToken(
+                            user.getId(),
+                            user.getUsername(),
+                            user.getRole().name(),
+                            sessionId
+                    ),
+                    newRefreshToken
+            );
+
+        } catch (BusinessException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new BusinessException(CommonErrorCode.INVALID_TOKEN);
+        }
+    }
+
+    private LoginResponse createLoginResponse(
+            User user,
+            String accessToken,
+            String refreshToken
+    ) {
         return LoginResponse.builder()
                 .userId(user.getId())
                 .username(user.getUsername())
                 .name(user.getName())
                 .role(user.getRole().name())
-                .accessToken(newAccessToken)
-                .refreshToken(newRefreshToken)
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
                 .accessTokenExpiration(jwtProvider.getAccessTokenExpiration())
                 .refreshTokenExpiration(jwtProvider.getRefreshTokenExpiration())
                 .build();
+    }
+
+    private LocalDateTime toLocalDateTime(Date date) {
+        return LocalDateTime.ofInstant(
+                date.toInstant(),
+                ZoneId.systemDefault()
+        );
     }
 }

@@ -1,6 +1,7 @@
 
 package com.seos.cmdb.server.controller;
 
+import com.seos.pmis.auth.service.UserSessionService;
 import com.seos.cmdb.ci.entity.CiEnvironment;
 import com.seos.cmdb.ci.entity.CiStatus;
 import com.seos.cmdb.server.dto.request.CreateServerRequest;
@@ -49,6 +50,9 @@ class ServerRegistrationControllerTest {
 
     @MockitoBean
     private CustomUserDetailsService userDetailsService;
+
+    @MockitoBean
+    private UserSessionService userSessionService;
 
     @Test
     @WithMockUser(roles = "PM")

@@ -1,6 +1,7 @@
 
 package com.seos.cmdb.ci.controller;
 
+import com.seos.pmis.auth.service.UserSessionService;
 import com.seos.cmdb.ci.dto.request.ChangeConfigurationItemStatusRequest;
 import com.seos.cmdb.ci.dto.request.CreateConfigurationItemRequest;
 import com.seos.cmdb.ci.dto.request.UpdateConfigurationItemRequest;
@@ -53,6 +54,9 @@ class ConfigurationItemControllerTest {
 
     @MockitoBean
     private CustomUserDetailsService userDetailsService;
+
+    @MockitoBean
+    private UserSessionService userSessionService;
 
     @Test
     @WithMockUser(roles = "PM")

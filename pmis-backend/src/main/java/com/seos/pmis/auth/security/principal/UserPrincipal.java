@@ -1,3 +1,4 @@
+
 package com.seos.pmis.auth.security.principal;
 
 import lombok.Builder;
@@ -9,6 +10,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.io.Serial;
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 
 @Getter
 @Builder
@@ -37,6 +39,12 @@ public class UserPrincipal implements UserDetails {
      * ROLE_USER
      */
     private String role;
+
+    /**
+     * 현재 인증 세션 UUID
+     * 로그인 전 사용자 인증 단계에서는 null
+     */
+    private UUID sessionId;
 
     /**
      * 계정 활성 여부

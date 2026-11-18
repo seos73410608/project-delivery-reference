@@ -1,6 +1,7 @@
 
 package com.seos.pmis.requirement.controller;
 
+import com.seos.pmis.auth.service.UserSessionService;
 import com.seos.common.exception.BusinessException;
 import com.seos.cmdb.ci.exception.ConfigurationItemErrorCode;
 import com.seos.pmis.auth.security.filter.JwtAuthenticationFilter;
@@ -56,6 +57,9 @@ class OperationalScopeCiControllerTest {
 
     @MockitoBean
     private CustomUserDetailsService userDetailsService;
+
+    @MockitoBean
+    private UserSessionService userSessionService;
 
     private static final Long SCOPE_ID = 1L;
     private static final Long CI_ID = 100L;

@@ -1,6 +1,7 @@
 
 package com.seos.pmis.requirement.controller;
 
+import com.seos.pmis.auth.service.UserSessionService;
 import com.seos.common.exception.BusinessException;
 import com.seos.pmis.auth.security.filter.JwtAuthenticationFilter;
 import com.seos.pmis.auth.security.handler.JwtAccessDeniedHandler;
@@ -69,6 +70,9 @@ class OperationalScopeControllerTest {
 
     @MockitoBean
     private CustomUserDetailsService userDetailsService;
+
+    @MockitoBean
+    private UserSessionService userSessionService;
 
     /**
      * Operational Scope 생성 테스트
