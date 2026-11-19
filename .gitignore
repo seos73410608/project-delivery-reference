@@ -19,3 +19,5 @@ status.txt
 /pmis-bff/.env
 /pmis-bff/.env.*
 !/pmis-bff/.env.example
+
+/pmis-bff/compose.home.yaml
