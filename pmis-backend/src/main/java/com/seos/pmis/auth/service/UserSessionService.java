@@ -3,7 +3,10 @@ package com.seos.pmis.auth.service;
 
 import com.seos.common.exception.BusinessException;
 import com.seos.common.exception.code.CommonErrorCode;
+import com.seos.pmis.auth.entity.SessionEndReason;
 import com.seos.pmis.auth.entity.UserSession;
+import com.seos.pmis.auth.entity.UserSessionHistory;
+import com.seos.pmis.auth.repository.UserSessionHistoryRepository;
 import com.seos.pmis.auth.repository.UserSessionRepository;
 import com.seos.pmis.user.entity.User;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +19,13 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.util.HexFormat;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -25,6 +34,7 @@ import java.util.UUID;
 public class UserSessionService {
 
     private final UserSessionRepository userSessionRepository;
+    private final UserSessionHistoryRepository userSessionHistoryRepository;
 
     /**
      * 신규 세션 생성
@@ -62,6 +72,94 @@ public class UserSessionService {
                 .build();
 
         return userSessionRepository.save(session);
+    }
+
+    /**
+     * 사용자의 활성 세션 목록 조회
+     */
+    public List<UserSession> getActiveSessions(Long userId) {
+
+        if (userId == null) {
+            throw new IllegalArgumentException(
+                    "사용자 ID가 필요합니다."
+            );
+        }
+
+        return userSessionRepository.findAllByUserId(userId);
+    }
+
+    /**
+     * 사용자가 선택한 활성 세션 종료 및 이력 보존
+     *
+     * 이력 저장과 활성 세션 삭제는 동일 트랜잭션으로 처리한다.
+     */
+    @Transactional
+    public void terminateSelectedSessions(
+            User user,
+            List<UUID> sessionIds
+    ) {
+
+        if (user == null || user.getId() == null) {
+            throw new IllegalArgumentException(
+                    "유효한 사용자가 필요합니다."
+            );
+        }
+
+        if (sessionIds == null || sessionIds.isEmpty()
+                || sessionIds.stream().anyMatch(Objects::isNull)) {
+            throw new IllegalArgumentException(
+                    "종료할 세션을 선택해야 합니다."
+            );
+        }
+
+        Set<UUID> selectedSessionIds = Set.copyOf(sessionIds);
+
+        if (selectedSessionIds.size() != sessionIds.size()) {
+            throw new IllegalArgumentException(
+                    "중복된 세션 ID를 선택할 수 없습니다."
+            );
+        }
+
+        List<UserSession> activeSessions =
+                userSessionRepository.findAllByUserId(user.getId());
+
+        Map<UUID, UserSession> activeSessionMap = activeSessions.stream()
+                .collect(Collectors.toMap(
+                        UserSession::getSessionId,
+                        Function.identity()
+                ));
+
+        List<UserSession> selectedSessions = sessionIds.stream()
+                .map(activeSessionMap::get)
+                .toList();
+
+        if (selectedSessions.stream().anyMatch(Objects::isNull)) {
+            throw new IllegalArgumentException(
+                    "선택한 세션 중 존재하지 않거나 본인 소유가 아닌 세션이 있습니다."
+            );
+        }
+
+        LocalDateTime endedAt = LocalDateTime.now();
+
+        List<UserSessionHistory> histories = selectedSessions.stream()
+                .map(session -> UserSessionHistory.builder()
+                        .sessionId(session.getSessionId())
+                        .user(session.getUser())
+                        .createdAt(session.getCreatedAt())
+                        .lastAccessedAt(session.getLastAccessedAt())
+                        .endedAt(endedAt)
+                        .endReason(SessionEndReason.USER_SELECTED)
+                        .build())
+                .toList();
+
+        userSessionHistoryRepository.saveAll(histories);
+        userSessionRepository.deleteAll(selectedSessions);
+
+        log.info(
+                "User selected sessions terminated. userId={}, count={}",
+                user.getId(),
+                selectedSessions.size()
+        );
     }
 
     /**
@@ -109,9 +207,6 @@ public class UserSessionService {
 
     /**
      * Refresh Token 검증 및 회전
-     *
-     * 기존 토큰 해시와 전달된 토큰의 해시를 비교한다.
-     * 일치하면 신규 토큰 해시와 만료 시각으로 갱신한다.
      */
     @Transactional
     public UserSession rotateRefreshToken(

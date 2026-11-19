@@ -97,6 +97,37 @@ class RedisLoginAttemptStoreTest {
     }
 
     @Test
+    void consume_로그인시도정보를_원자적으로조회하고삭제한다() throws Exception {
+        LoginAttempt expected = createLoginAttempt();
+
+        String key = KEY_PREFIX + expected.getLoginAttemptId();
+        String json = objectMapper.writeValueAsString(expected);
+
+        given(valueOperations.getAndDelete(key)).willReturn(json);
+
+        Optional<LoginAttempt> result =
+                store.consume(expected.getLoginAttemptId());
+
+        assertThat(result).isPresent();
+        assertThat(result.get().getLoginAttemptId())
+                .isEqualTo(expected.getLoginAttemptId());
+
+        verify(valueOperations).getAndDelete(key);
+    }
+
+    @Test
+    void consume_저장된정보가없으면_빈Optional을반환한다() {
+        String loginAttemptId = "missing-attempt";
+        String key = KEY_PREFIX + loginAttemptId;
+
+        given(valueOperations.getAndDelete(key)).willReturn(null);
+
+        Optional<LoginAttempt> result = store.consume(loginAttemptId);
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
     void delete_로그인시도정보의_Redis키를삭제한다() {
         String loginAttemptId = "test-attempt";
         String key = KEY_PREFIX + loginAttemptId;

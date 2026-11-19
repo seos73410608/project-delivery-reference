@@ -1,7 +1,9 @@
+
 package com.seos.pmis.auth.controller;
 
 import com.seos.pmis.auth.dto.request.LoginRequest;
 import com.seos.pmis.auth.dto.request.RefreshTokenRequest;
+import com.seos.pmis.auth.dto.request.SessionSelectionRequest;
 import com.seos.pmis.auth.dto.response.LoginResponse;
 import com.seos.pmis.auth.service.AuthService;
 import com.seos.common.response.ApiResponse;
@@ -38,6 +40,27 @@ public class AuthController {
 
         return ApiResponse.success(
                 "로그인에 성공했습니다.",
+                response
+        );
+    }
+
+    /**
+     * 사용자 선택 세션 종료 후 로그인 완료
+     */
+    @Operation(
+            summary = "세션 선택 후 로그인 완료",
+            description = "로그인 시도 정보를 검증하고 사용자가 선택한 기존 세션을 종료한 뒤 신규 세션을 생성합니다."
+    )
+    @PostMapping("/login/session-selection")
+    public ApiResponse<LoginResponse> completeSessionSelection(
+            @Valid @RequestBody SessionSelectionRequest request
+    ) {
+
+        LoginResponse response =
+                authService.completeSessionSelection(request);
+
+        return ApiResponse.success(
+                "세션 선택 및 로그인이 완료되었습니다.",
                 response
         );
     }

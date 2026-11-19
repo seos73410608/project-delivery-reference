@@ -72,4 +72,24 @@ public class RedisLoginAttemptStore implements LoginAttemptStore {
         String key = KEY_PREFIX + loginAttemptId;
         redisTemplate.delete(key);
     }
+
+    @Override
+    public Optional<LoginAttempt> consume(String loginAttemptId) {
+        String key = KEY_PREFIX + loginAttemptId;
+
+        // Redis GETDEL: 조회와 삭제를 하나의 원자적 명령으로 처리
+        String value = redisTemplate.opsForValue().getAndDelete(key);
+
+        if (value == null) {
+            return Optional.empty();
+        }
+
+        try {
+            return Optional.of(
+                    objectMapper.readValue(value, LoginAttempt.class)
+            );
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException("로그인 임시 정보 역직렬화에 실패했습니다.", e);
+        }
+    }
 }
