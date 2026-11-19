@@ -1,0 +1,194 @@
+﻿import { randomUUID } from "node:crypto";
+import {
+  backendAuthService,
+  type BackendLoginRequest,
+  type BackendLoginResponse,
+  type BackendSessionSelectionRequest,
+  type BackendActiveSession,
+} from "./backend-auth.service.js";
+import type { SessionStore } from "../session/session-store.js";
+import type { AuthUser, BffSession } from "../session/session.types.js";
+
+export interface SessionSelectionRequired {
+  status: "SESSION_SELECTION_REQUIRED";
+  loginAttemptId: string;
+  requiredTerminationCount: number;
+  activeSessions: BackendActiveSession[];
+}
+
+export interface LoginSuccess {
+  status: "SUCCESS";
+  sessionId: string;
+  user: AuthUser;
+}
+
+export type AuthResult = LoginSuccess | SessionSelectionRequired;
+
+export class AuthServiceError extends Error {
+  constructor(
+    message: string,
+    public readonly code: string,
+    public readonly statusCode: number,
+  ) {
+    super(message);
+    this.name = "AuthServiceError";
+  }
+}
+
+export class AuthService {
+  constructor(
+    private readonly sessionStore: SessionStore,
+  ) {}
+
+  async login(request: BackendLoginRequest): Promise<AuthResult> {
+    const response = await backendAuthService.login(request);
+    return this.processLoginResponse(response);
+  }
+
+  async completeSessionSelection(
+    request: BackendSessionSelectionRequest,
+  ): Promise<AuthResult> {
+    const response =
+      await backendAuthService.completeSessionSelection(request);
+
+    return this.processLoginResponse(response);
+  }
+
+  private async processLoginResponse(
+    response: BackendLoginResponse,
+  ): Promise<AuthResult> {
+    if (response.status === "SESSION_SELECTION_REQUIRED") {
+      if (
+        !response.loginAttemptId ||
+        typeof response.requiredTerminationCount !== "number" ||
+        !Array.isArray(response.activeSessions)
+      ) {
+        throw new AuthServiceError(
+          "Backend 세션 선택 응답이 올바르지 않습니다.",
+          "INVALID_BACKEND_RESPONSE",
+          502,
+        );
+      }
+
+      return {
+        status: "SESSION_SELECTION_REQUIRED",
+        loginAttemptId: response.loginAttemptId,
+        requiredTerminationCount: response.requiredTerminationCount,
+        activeSessions: response.activeSessions,
+      };
+    }
+
+    if (response.status !== "SUCCESS") {
+      throw new AuthServiceError(
+        "Backend 로그인 상태를 확인할 수 없습니다.",
+        "INVALID_BACKEND_RESPONSE",
+        502,
+      );
+    }
+
+    const user = this.createAuthUser(response);
+    const accessToken = this.requireToken(response.accessToken, "Access Token");
+    const refreshToken = this.requireToken(
+      response.refreshToken,
+      "Refresh Token",
+    );
+
+    const now = Date.now();
+    const expiresAt = this.getJwtExpiration(refreshToken);
+
+    if (expiresAt <= now) {
+      throw new AuthServiceError(
+        "Backend에서 이미 만료된 Refresh Token을 반환했습니다.",
+        "INVALID_REFRESH_TOKEN_EXPIRATION",
+        502,
+      );
+    }
+
+    const session: BffSession = {
+      sessionId: randomUUID(),
+      accessToken,
+      refreshToken,
+      user,
+      expiresAt,
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    await this.sessionStore.set(session);
+
+    return {
+      status: "SUCCESS",
+      sessionId: session.sessionId,
+      user: session.user,
+    };
+  }
+
+  private createAuthUser(response: BackendLoginResponse): AuthUser {
+    if (
+      typeof response.userId !== "number" ||
+      typeof response.username !== "string" ||
+      typeof response.name !== "string" ||
+      typeof response.role !== "string"
+    ) {
+      throw new AuthServiceError(
+        "Backend 사용자 정보가 올바르지 않습니다.",
+        "INVALID_BACKEND_USER",
+        502,
+      );
+    }
+
+    return {
+      userId: response.userId,
+      username: response.username,
+      name: response.name,
+      role: response.role,
+    };
+  }
+
+  private requireToken(
+    token: string | undefined,
+    tokenName: string,
+  ): string {
+    if (!token || !token.trim()) {
+      throw new AuthServiceError(
+        `Backend ${tokenName}이 누락되었습니다.`,
+        "MISSING_BACKEND_TOKEN",
+        502,
+      );
+    }
+
+    return token;
+  }
+
+  private getJwtExpiration(token: string): number {
+    try {
+      const parts = token.split(".");
+
+      if (parts.length !== 3 || !parts[1]) {
+        throw new Error("Invalid JWT structure");
+      }
+
+      const payload = JSON.parse(
+        Buffer.from(parts[1], "base64url").toString("utf8"),
+      ) as { exp?: unknown };
+
+      if (typeof payload.exp !== "number" || !Number.isFinite(payload.exp)) {
+        throw new Error("Invalid JWT expiration");
+      }
+
+      return payload.exp * 1000;
+    } catch {
+      throw new AuthServiceError(
+        "Backend Refresh Token의 만료 정보를 확인할 수 없습니다.",
+        "INVALID_REFRESH_TOKEN",
+        502,
+      );
+    }
+  }
+}
+
+export function createAuthService(
+  sessionStore: SessionStore,
+): AuthService {
+  return new AuthService(sessionStore);
+}

@@ -37,10 +37,46 @@ function getUrl(name: string): string {
   }
 }
 
+function getSessionStore(): "memory" | "redis" {
+  const value = getRequiredString("SESSION_STORE");
+
+  if (value !== "memory" && value !== "redis") {
+    throw new Error("SESSION_STORE must be either memory or redis");
+  }
+
+  return value;
+}
+
+function getRedisUrl(sessionStore: "memory" | "redis"): string | null {
+  if (sessionStore === "memory") {
+    return null;
+  }
+
+  const value = getRequiredString("REDIS_URL");
+
+  try {
+    const url = new URL(value);
+
+    if (url.protocol !== "redis:" && url.protocol !== "rediss:") {
+      throw new Error();
+    }
+
+    return url.toString();
+  } catch {
+    throw new Error("REDIS_URL must be a valid Redis or Redis TLS URL");
+  }
+}
+
 const nodeEnv = process.env.NODE_ENV ?? "development";
 
 if (!["development", "production", "test"].includes(nodeEnv)) {
   throw new Error("NODE_ENV must be development, production, or test");
+}
+
+const sessionStore = getSessionStore();
+
+if (nodeEnv === "production" && sessionStore !== "redis") {
+  throw new Error("SESSION_STORE=redis is required in production");
 }
 
 export const env = Object.freeze({
@@ -49,4 +85,6 @@ export const env = Object.freeze({
   port: getPort(),
   frontendOrigin: getUrl("FRONTEND_ORIGIN"),
   backendApiUrl: getUrl("BACKEND_API_URL"),
+  sessionStore,
+  redisUrl: getRedisUrl(sessionStore),
 });
