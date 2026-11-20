@@ -4,6 +4,7 @@ import { AuthServiceError } from "../services/auth.service.js";
 import { BackendApiError } from "../services/backend-auth.service.js";
 import {
   getSessionCookieOptions,
+  SESSION_COOKIE_CLEAR_OPTIONS,
   SESSION_COOKIE_NAME,
 } from "../session/session-cookie.js";
 
@@ -100,6 +101,56 @@ const authRoutes: FastifyPluginAsync = async (app) => {
       }
     },
   );
+
+  // Refresh Token 갱신
+  app.post("/refresh", async (request, reply) => {
+    const sessionId = request.cookies[SESSION_COOKIE_NAME];
+
+    if (!sessionId) {
+      return reply.status(401).send({
+        success: false,
+        code: "UNAUTHORIZED",
+        message: "인증이 필요합니다.",
+      });
+    }
+
+    try {
+      const session = await app.authService.refresh(sessionId);
+
+      return reply
+        .setCookie(
+          SESSION_COOKIE_NAME,
+          session.sessionId,
+          getSessionCookieOptions(session.expiresAt),
+        )
+        .send({
+          success: true,
+          code: "SUCCESS",
+          message: "토큰 갱신에 성공했습니다.",
+        });
+    } catch (error) {
+      const shouldInvalidateSession =
+        (error instanceof AuthServiceError &&
+          error.code === "UNAUTHORIZED") ||
+        (error instanceof BackendApiError &&
+          ["AUTH_003", "AUTH_004", "AUTH_009"].includes(error.code));
+
+      if (shouldInvalidateSession) {
+        try {
+          await app.sessionStore.delete(sessionId);
+        } catch {
+          // 세션 저장소 정리 실패와 관계없이 브라우저 쿠키는 만료시킨다.
+        }
+
+        reply.clearCookie(
+          SESSION_COOKIE_NAME,
+          SESSION_COOKIE_CLEAR_OPTIONS,
+        );
+      }
+
+      return sendAuthError(error, reply);
+    }
+  });
 
   // 현재 로그인 사용자 조회
   app.get("/me", async (request, reply) => {

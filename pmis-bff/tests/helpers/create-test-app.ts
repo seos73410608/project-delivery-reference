@@ -2,11 +2,13 @@
 import cookie from "@fastify/cookie";
 import type { AuthService } from "../../src/auth/services/auth.service.js";
 import type { SessionStore } from "../../src/auth/session/session-store.js";
+import type { BffSession } from "../../src/auth/session/session.types.js";
 import authRoutes from "../../src/auth/routes/auth.routes.js";
 
 interface TestAppDependencies {
   sessionStore: SessionStore;
-  authService: Pick<AuthService, "login" | "completeSessionSelection">;
+  authService: Pick<AuthService, "login" | "completeSessionSelection"> &
+    { refresh?: (sessionId: string) => Promise<BffSession> };
 }
 
 export async function createTestApp(
@@ -36,4 +38,6 @@ export async function createTestApp(
 
   return app;
 }
+
+
 

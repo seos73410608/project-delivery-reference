@@ -1,4 +1,5 @@
-﻿import { randomUUID } from "node:crypto";
+﻿
+import { randomUUID } from "node:crypto";
 import {
   backendAuthService,
   type BackendLoginRequest,
@@ -52,6 +53,70 @@ export class AuthService {
       await backendAuthService.completeSessionSelection(request);
 
     return this.processLoginResponse(response);
+  }
+
+  async refresh(sessionId: string): Promise<BffSession> {
+    const session = await this.sessionStore.get(sessionId);
+
+    if (!session) {
+      throw new AuthServiceError(
+        "세션이 유효하지 않거나 만료되었습니다.",
+        "UNAUTHORIZED",
+        401,
+      );
+    }
+
+    const response = await backendAuthService.refresh({
+      refreshToken: session.refreshToken,
+    });
+
+    if (response.status !== "SUCCESS") {
+      throw new AuthServiceError(
+        "Backend Refresh 응답이 올바르지 않습니다.",
+        "INVALID_BACKEND_RESPONSE",
+        502,
+      );
+    }
+
+    if (response.userId !== session.user.userId) {
+      throw new AuthServiceError(
+        "Backend Refresh 응답의 사용자 정보가 기존 세션과 일치하지 않습니다.",
+        "INVALID_BACKEND_USER",
+        502,
+      );
+    }
+
+    const accessToken = this.requireToken(
+      response.accessToken,
+      "Access Token",
+    );
+    const refreshToken = this.requireToken(
+      response.refreshToken,
+      "Refresh Token",
+    );
+
+    const now = Date.now();
+    const expiresAt = this.getJwtExpiration(refreshToken);
+
+    if (expiresAt <= now) {
+      throw new AuthServiceError(
+        "Backend에서 이미 만료된 Refresh Token을 반환했습니다.",
+        "INVALID_REFRESH_TOKEN_EXPIRATION",
+        502,
+      );
+    }
+
+    const refreshedSession: BffSession = {
+      ...session,
+      accessToken,
+      refreshToken,
+      expiresAt,
+      updatedAt: now,
+    };
+
+    await this.sessionStore.set(refreshedSession);
+
+    return refreshedSession;
   }
 
   private async processLoginResponse(
