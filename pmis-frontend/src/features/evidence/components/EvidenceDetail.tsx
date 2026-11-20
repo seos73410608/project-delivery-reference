@@ -8,7 +8,7 @@ import {
   type FormEvent,
 } from "react";
 
-import { getUser } from "@/features/auth/utils/authStorage";
+import { useAuth } from "@/features/auth/context/AuthProvider";
 
 import type {
   Evidence,
@@ -189,6 +189,7 @@ function sleep(ms: number): Promise<void> {
 }
 
 function EvidenceDetail({ evidence }: EvidenceDetailProps) {
+  const { user: currentUser } = useAuth();
   // OCR 전용 파일 입력
   const ocrFileInputRef = useRef<HTMLInputElement>(null);
 
@@ -879,8 +880,6 @@ function EvidenceDetail({ evidence }: EvidenceDetailProps) {
   }
 
   // 로그인 사용자 및 선택 버전 삭제 권한
-  const currentUser = getUser();
-
   const canDeleteSelectedVersion = (() => {
     if (!currentUser || !selectedVersion) {
       return false;

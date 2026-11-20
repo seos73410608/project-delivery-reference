@@ -1,5 +1,6 @@
+
 /**
- * Login Request
+ * BFF Login Request
  *
  * POST /api/auth/login
  */
@@ -8,44 +9,11 @@ export interface LoginRequest {
     password: string;
 }
 
-
-/**
- * Login Response Data
- *
- * POST /api/auth/login
- *
- * Backend Response:
- *
- * {
- *   userId: 1,
- *   username: "admin",
- *   name: "관리자",
- *   role: "ROLE_ADMIN",
- *   accessToken: "...",
- *   refreshToken: "...",
- *   accessTokenExpiration: 3600000,
- *   refreshTokenExpiration: 1209600000
- * }
- */
-export interface LoginResponse {
-    userId: number;
-    username: string;
-    name: string;
-    role: string;
-    accessToken: string;
-    refreshToken: string;
-    accessTokenExpiration: number;
-    refreshTokenExpiration: number;
-}
-
-
 /**
  * Authenticated User
  *
- * Frontend에서 로그인된 사용자 정보를 관리하기 위한 타입이다.
- *
- * Token 자체는 AuthUser에 포함하지 않는다.
- * Token은 별도의 storage에서 관리한다.
+ * BFF가 인증된 사용자에게 제공하는 정보.
+ * Access Token / Refresh Token은 포함하지 않는다.
  */
 export interface AuthUser {
     userId: number;
@@ -54,15 +22,59 @@ export interface AuthUser {
     role: string;
 }
 
+/**
+ * Active Backend Session
+ */
+export interface ActiveSession {
+    sessionId: string;
+    createdAt: string;
+    lastAccessedAt: string;
+}
+
+/**
+ * Login Success
+ */
+export interface LoginSuccess {
+    status: "SUCCESS";
+    user: AuthUser;
+}
+
+/**
+ * Login Session Selection Required
+ */
+export interface SessionSelectionRequired {
+    status: "SESSION_SELECTION_REQUIRED";
+    loginAttemptId: string;
+    requiredTerminationCount: number;
+    activeSessions: ActiveSession[];
+}
+
+/**
+ * Login Result
+ *
+ * 로그인 성공 또는 기존 세션 선택 필요 상태.
+ */
+export type LoginResult =
+    | LoginSuccess
+    | SessionSelectionRequired;
+
+/**
+ * Session Selection Request
+ *
+ * POST /api/auth/login/session-selection
+ */
+export interface SessionSelectionRequest {
+    loginAttemptId: string;
+    sessionIds: string[];
+}
 
 /**
  * Authentication State
  *
- * Frontend 인증 상태를 표현한다.
+ * 인증 토큰은 브라우저에서 관리하지 않는다.
  */
 export interface AuthState {
+    isInitializing: boolean;
     isAuthenticated: boolean;
     user: AuthUser | null;
-    accessToken: string | null;
-    refreshToken: string | null;
 }

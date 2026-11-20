@@ -1,13 +1,23 @@
 
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 
-import { getAccessToken } from "@/features/auth/utils/authStorage";
+import { useAuth } from "@/features/auth/context/AuthProvider";
 
 function ProtectedRoute() {
     const location = useLocation();
-    const accessToken = getAccessToken();
+    const { isInitializing, isAuthenticated } = useAuth();
 
-    if (!accessToken) {
+    // 앱 시작 시 BFF 세션 인증 복원 대기
+    if (isInitializing) {
+        return (
+            <div role="status" aria-live="polite">
+                인증 정보를 확인하고 있습니다...
+            </div>
+        );
+    }
+
+    // 인증되지 않은 사용자는 로그인 페이지로 이동
+    if (!isAuthenticated) {
         return (
             <Navigate
                 to="/login"
