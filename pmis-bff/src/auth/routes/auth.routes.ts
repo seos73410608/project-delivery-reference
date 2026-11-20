@@ -101,6 +101,44 @@ const authRoutes: FastifyPluginAsync = async (app) => {
     },
   );
 
+  // 현재 로그인 사용자 조회
+  app.get("/me", async (request, reply) => {
+    const sessionId = request.cookies[SESSION_COOKIE_NAME];
+
+    if (!sessionId) {
+      return reply.status(401).send({
+        success: false,
+        code: "UNAUTHORIZED",
+        message: "인증이 필요합니다.",
+      });
+    }
+
+    try {
+      const session = await app.sessionStore.get(sessionId);
+
+      if (!session) {
+        return reply.status(401).send({
+          success: false,
+          code: "UNAUTHORIZED",
+          message: "세션이 유효하지 않거나 만료되었습니다.",
+        });
+      }
+
+      return reply.send({
+        success: true,
+        code: "SUCCESS",
+        message: "사용자 정보 조회에 성공했습니다.",
+        data: session.user,
+      });
+    } catch {
+      return reply.status(500).send({
+        success: false,
+        code: "INTERNAL_SERVER_ERROR",
+        message: "인증 상태 조회 중 오류가 발생했습니다.",
+      });
+    }
+  });
+
   // 다중 세션 선택 로그인
   app.post<{ Body: SessionSelectionBody }>(
     "/login/session-selection",
