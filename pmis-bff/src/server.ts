@@ -10,6 +10,11 @@ import authRoutes from "./auth/routes/auth.routes.js";
 
 const app = Fastify({
   logger: true,
+  ajv: {
+    customOptions: {
+      removeAdditional: false,
+    },
+  },
 });
 
 async function startServer(): Promise<void> {
@@ -79,3 +84,4 @@ startServer().catch((error: unknown) => {
   app.log.error(error);
   process.exit(1);
 });
+
