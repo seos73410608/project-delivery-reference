@@ -1,4 +1,5 @@
-﻿import { env } from "../../config/env.js";
+﻿
+import { env } from "../../config/env.js";
 
 export interface BackendApiResponse<T> {
   success: boolean;
@@ -76,14 +77,25 @@ export class BackendAuthService {
   ): Promise<BackendLoginResponse> {
     return this.post<BackendLoginResponse>("/api/auth/refresh", request);
   }
+
   async logout(accessToken: string): Promise<void> {
+    const authorization = `Bearer ${accessToken}`;
+
+    console.info("[BackendAuthService.logout] Request", {
+      method: "POST",
+      path: "/api/auth/logout",
+      authorizationPresent: authorization.length > 7,
+      bearerScheme: authorization.startsWith("Bearer "),
+      tokenLength: accessToken.length,
+    });
+
     let response: Response;
 
     try {
       response = await fetch(`${this.baseUrl}/api/auth/logout`, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${accessToken}`,
+          Authorization: authorization,
           Accept: "application/json",
         },
       });
