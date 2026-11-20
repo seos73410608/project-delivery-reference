@@ -119,6 +119,22 @@ export class AuthService {
     return refreshedSession;
   }
 
+  async logout(sessionId: string): Promise<void> {
+    const session = await this.sessionStore.get(sessionId);
+
+    if (!session) {
+      throw new AuthServiceError(
+        "세션이 유효하지 않거나 만료되었습니다.",
+        "UNAUTHORIZED",
+        401,
+      );
+    }
+
+    await backendAuthService.logout(session.accessToken);
+
+    await this.sessionStore.delete(sessionId);
+  }
+
   private async processLoginResponse(
     response: BackendLoginResponse,
   ): Promise<AuthResult> {

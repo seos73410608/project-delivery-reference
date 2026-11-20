@@ -76,6 +76,45 @@ export class BackendAuthService {
   ): Promise<BackendLoginResponse> {
     return this.post<BackendLoginResponse>("/api/auth/refresh", request);
   }
+  async logout(accessToken: string): Promise<void> {
+    let response: Response;
+
+    try {
+      response = await fetch(`${this.baseUrl}/api/auth/logout`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          Accept: "application/json",
+        },
+      });
+    } catch {
+      throw new BackendApiError(
+        "Backend 서버에 연결할 수 없습니다.",
+        "BACKEND_UNAVAILABLE",
+        503,
+      );
+    }
+
+    let result: BackendApiResponse<null>;
+
+    try {
+      result = (await response.json()) as BackendApiResponse<null>;
+    } catch {
+      throw new BackendApiError(
+        "Backend 응답을 해석할 수 없습니다.",
+        "INVALID_BACKEND_RESPONSE",
+        502,
+      );
+    }
+
+    if (!response.ok || !result.success) {
+      throw new BackendApiError(
+        result.message ?? "Backend 로그아웃에 실패했습니다.",
+        result.code || "BACKEND_REQUEST_FAILED",
+        response.status,
+      );
+    }
+  }
 
   private async post<T>(
     path: string,

@@ -152,6 +152,37 @@ const authRoutes: FastifyPluginAsync = async (app) => {
     }
   });
 
+  // 현재 로그인 세션 로그아웃
+  app.post("/logout", async (request, reply) => {
+    const sessionId = request.cookies[SESSION_COOKIE_NAME];
+
+    if (!sessionId) {
+      return reply.status(401).send({
+        success: false,
+        code: "UNAUTHORIZED",
+        message: "인증이 필요합니다.",
+      });
+    }
+
+    try {
+      await app.authService.logout(sessionId);
+
+      return reply
+        .clearCookie(
+          SESSION_COOKIE_NAME,
+          SESSION_COOKIE_CLEAR_OPTIONS,
+        )
+        .send({
+          success: true,
+          code: "SUCCESS",
+          message: "로그아웃이 완료되었습니다.",
+        });
+    } catch (error) {
+      // Backend 로그아웃 실패 시 BFF 세션과 브라우저 쿠키를 유지한다.
+      return sendAuthError(error, reply);
+    }
+  });
+
   // 현재 로그인 사용자 조회
   app.get("/me", async (request, reply) => {
     const sessionId = request.cookies[SESSION_COOKIE_NAME];

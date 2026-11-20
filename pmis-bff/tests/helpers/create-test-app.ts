@@ -1,4 +1,5 @@
-﻿import Fastify from "fastify";
+﻿
+import Fastify from "fastify";
 import cookie from "@fastify/cookie";
 import type { AuthService } from "../../src/auth/services/auth.service.js";
 import type { SessionStore } from "../../src/auth/session/session-store.js";
@@ -7,8 +8,10 @@ import authRoutes from "../../src/auth/routes/auth.routes.js";
 
 interface TestAppDependencies {
   sessionStore: SessionStore;
-  authService: Pick<AuthService, "login" | "completeSessionSelection"> &
-    { refresh?: (sessionId: string) => Promise<BffSession> };
+  authService: Pick<AuthService, "login" | "completeSessionSelection"> & {
+    refresh?: (sessionId: string) => Promise<BffSession>;
+    logout?: (sessionId: string) => Promise<void>;
+  };
 }
 
 export async function createTestApp(
@@ -38,6 +41,3 @@ export async function createTestApp(
 
   return app;
 }
-
-
-
