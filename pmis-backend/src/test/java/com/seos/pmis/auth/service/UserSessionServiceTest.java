@@ -4,18 +4,18 @@ package com.seos.pmis.auth.service;
 import com.seos.pmis.auth.entity.SessionEndReason;
 import com.seos.pmis.auth.entity.UserSession;
 import com.seos.pmis.auth.entity.UserSessionHistory;
-import org.mockito.ArgumentCaptor;
-import org.mockito.InOrder;
 import com.seos.pmis.auth.repository.UserSessionHistoryRepository;
 import com.seos.pmis.auth.repository.UserSessionRepository;
 import com.seos.pmis.user.entity.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InOrder;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.StreamSupport;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -75,7 +75,6 @@ class UserSessionServiceTest {
         verify(userSessionRepository, never()).findAllByUserId(any());
     }
 
-
     @Test
     void terminateSelectedSessions_선택한세션의_이력을정확히저장하고_이후삭제한다() {
         UUID sessionId = UUID.randomUUID();
@@ -115,9 +114,10 @@ class UserSessionServiceTest {
                 .deleteAll(List.of(session));
 
         List<UserSessionHistory> histories =
-                java.util.stream.StreamSupport
-                        .stream(captor.getValue().spliterator(), false)
-                        .toList();
+                StreamSupport.stream(
+                        captor.getValue().spliterator(),
+                        false
+                ).toList();
 
         assertThat(histories).hasSize(1);
 
@@ -126,12 +126,112 @@ class UserSessionServiceTest {
         assertThat(history.getSessionId()).isEqualTo(sessionId);
         assertThat(history.getUser()).isSameAs(user);
         assertThat(history.getCreatedAt()).isEqualTo(createdAt);
-        assertThat(history.getLastAccessedAt()).isEqualTo(lastAccessedAt);
+        assertThat(history.getLastAccessedAt())
+                .isEqualTo(lastAccessedAt);
         assertThat(history.getEndReason())
                 .isEqualTo(SessionEndReason.USER_SELECTED);
         assertThat(history.getEndedAt()).isNotNull();
     }
 
+    @Test
+    void terminateSession_현재세션을_USER_LOGOUT으로_이력저장후삭제한다() {
+        UUID sessionId = UUID.randomUUID();
+
+        LocalDateTime createdAt =
+                LocalDateTime.of(2026, 11, 16, 9, 0);
+        LocalDateTime lastAccessedAt =
+                LocalDateTime.of(2026, 11, 20, 8, 30);
+
+        UserSession session = mock(UserSession.class);
+
+        given(session.getSessionId()).willReturn(sessionId);
+        given(session.getUser()).willReturn(user);
+        given(session.getCreatedAt()).willReturn(createdAt);
+        given(session.getLastAccessedAt()).willReturn(lastAccessedAt);
+
+        given(userSessionRepository.findAllByUserId(1L))
+                .willReturn(List.of(session));
+
+        userSessionService.terminateSession(user, sessionId);
+
+        ArgumentCaptor<Iterable<UserSessionHistory>> captor =
+                ArgumentCaptor.forClass(Iterable.class);
+
+        InOrder inOrder = inOrder(
+                userSessionHistoryRepository,
+                userSessionRepository
+        );
+
+        inOrder.verify(userSessionHistoryRepository)
+                .saveAll(captor.capture());
+
+        inOrder.verify(userSessionRepository)
+                .deleteAll(List.of(session));
+
+        List<UserSessionHistory> histories =
+                StreamSupport.stream(
+                        captor.getValue().spliterator(),
+                        false
+                ).toList();
+
+        assertThat(histories).hasSize(1);
+
+        UserSessionHistory history = histories.get(0);
+
+        assertThat(history.getSessionId()).isEqualTo(sessionId);
+        assertThat(history.getUser()).isSameAs(user);
+        assertThat(history.getCreatedAt()).isEqualTo(createdAt);
+        assertThat(history.getLastAccessedAt())
+                .isEqualTo(lastAccessedAt);
+        assertThat(history.getEndReason())
+                .isEqualTo(SessionEndReason.USER_LOGOUT);
+        assertThat(history.getEndedAt()).isNotNull();
+
+        verify(userSessionRepository)
+                .findAllByUserId(1L);
+    }
+
+    @Test
+    void terminateSession_본인소유가아닌세션은_종료하지않는다() {
+        UUID otherSessionId = UUID.randomUUID();
+
+        given(userSessionRepository.findAllByUserId(1L))
+                .willReturn(List.of());
+
+        assertThatThrownBy(
+                () -> userSessionService.terminateSession(
+                        user,
+                        otherSessionId
+                )
+        )
+                .isInstanceOf(IllegalArgumentException.class);
+
+        verify(userSessionHistoryRepository, never())
+                .saveAll(anyList());
+
+        verify(userSessionRepository, never())
+                .deleteAll(anyList());
+    }
+
+    @Test
+    void terminateSession_세션ID가_null이면_예외가발생한다() {
+        assertThatThrownBy(
+                () -> userSessionService.terminateSession(
+                        user,
+                        null
+                )
+        )
+                .isInstanceOf(IllegalArgumentException.class);
+
+        verify(userSessionRepository, never())
+                .findAllByUserId(any());
+
+        verify(userSessionHistoryRepository, never())
+                .saveAll(anyList());
+
+        verify(userSessionRepository, never())
+                .deleteAll(anyList());
+    }
 
     @Test
     void terminateSelectedSessions_중복된세션ID는_거부한다() {
@@ -145,8 +245,11 @@ class UserSessionServiceTest {
         )
                 .isInstanceOf(IllegalArgumentException.class);
 
-        verify(userSessionHistoryRepository, never()).saveAll(anyList());
-        verify(userSessionRepository, never()).deleteAll(anyList());
+        verify(userSessionHistoryRepository, never())
+                .saveAll(anyList());
+
+        verify(userSessionRepository, never())
+                .deleteAll(anyList());
     }
 
     @Test
@@ -164,8 +267,11 @@ class UserSessionServiceTest {
         )
                 .isInstanceOf(IllegalArgumentException.class);
 
-        verify(userSessionHistoryRepository, never()).saveAll(anyList());
-        verify(userSessionRepository, never()).deleteAll(anyList());
+        verify(userSessionHistoryRepository, never())
+                .saveAll(anyList());
+
+        verify(userSessionRepository, never())
+                .deleteAll(anyList());
     }
 
     @Test
@@ -178,19 +284,24 @@ class UserSessionServiceTest {
         )
                 .isInstanceOf(IllegalArgumentException.class);
 
-        verify(userSessionHistoryRepository, never()).saveAll(anyList());
-        verify(userSessionRepository, never()).deleteAll(anyList());
+        verify(userSessionHistoryRepository, never())
+                .saveAll(anyList());
+
+        verify(userSessionRepository, never())
+                .deleteAll(anyList());
     }
 
     private UserSession createSession(UUID sessionId) {
-        LocalDateTime now = LocalDateTime.of(2026, 11, 19, 10, 0);
+        LocalDateTime now =
+                LocalDateTime.of(2026, 11, 19, 10, 0);
 
         UserSession session = mock(UserSession.class);
 
         given(session.getSessionId()).willReturn(sessionId);
         given(session.getUser()).willReturn(user);
         given(session.getCreatedAt()).willReturn(now.minusDays(3));
-        given(session.getLastAccessedAt()).willReturn(now.minusMinutes(5));
+        given(session.getLastAccessedAt())
+                .willReturn(now.minusMinutes(5));
 
         return session;
     }

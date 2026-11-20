@@ -226,6 +226,30 @@ public class AuthService {
     }
 
     /**
+     * 현재 로그인한 세션 로그아웃
+     *
+     * 인증된 사용자의 현재 세션만 종료한다.
+     * 종료 이력 저장 및 활성 세션 삭제는 UserSessionService에서 처리한다.
+     */
+    public void logout(Long userId, UUID sessionId) {
+
+        if (userId == null || sessionId == null) {
+            throw new BusinessException(CommonErrorCode.INVALID_TOKEN);
+        }
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() ->
+                        new BusinessException(CommonErrorCode.INVALID_TOKEN)
+                );
+
+        if (!Boolean.TRUE.equals(user.getEnabled())) {
+            throw new BusinessException(CommonErrorCode.ACCOUNT_DISABLED);
+        }
+
+        userSessionService.terminateSession(user, sessionId);
+    }
+
+    /**
      * 사용자 계정 및 비밀번호 검증
      */
     private void validateUserCredentials(User user, String rawPassword) {

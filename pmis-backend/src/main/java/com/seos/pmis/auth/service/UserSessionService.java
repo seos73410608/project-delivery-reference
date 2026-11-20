@@ -90,13 +90,59 @@ public class UserSessionService {
 
     /**
      * 사용자가 선택한 활성 세션 종료 및 이력 보존
-     *
-     * 이력 저장과 활성 세션 삭제는 동일 트랜잭션으로 처리한다.
      */
     @Transactional
     public void terminateSelectedSessions(
             User user,
             List<UUID> sessionIds
+    ) {
+
+        terminateSessions(
+                user,
+                sessionIds,
+                SessionEndReason.USER_SELECTED
+        );
+    }
+
+    /**
+     * 현재 로그인한 세션 종료 및 이력 보존
+     *
+     * 로그아웃 요청 시 인증된 사용자의 현재 세션 하나만 종료한다.
+     */
+    @Transactional
+    public void terminateSession(
+            User user,
+            UUID sessionId
+    ) {
+
+        if (sessionId == null) {
+            throw new IllegalArgumentException(
+                    "종료할 세션 ID가 필요합니다."
+            );
+        }
+
+        terminateSessions(
+                user,
+                List.of(sessionId),
+                SessionEndReason.USER_LOGOUT
+        );
+    }
+
+    /**
+     * 활성 세션 종료 공통 처리
+     *
+     * 1. 사용자 및 세션 ID 검증
+     * 2. 본인 소유의 활성 세션인지 확인
+     * 3. 종료 이력 저장
+     * 4. 활성 세션 삭제
+     *
+     * 이력 저장과 활성 세션 삭제는 동일 트랜잭션으로 처리한다.
+     */
+    @Transactional
+    public void terminateSessions(
+            User user,
+            List<UUID> sessionIds,
+            SessionEndReason endReason
     ) {
 
         if (user == null || user.getId() == null) {
@@ -109,6 +155,12 @@ public class UserSessionService {
                 || sessionIds.stream().anyMatch(Objects::isNull)) {
             throw new IllegalArgumentException(
                     "종료할 세션을 선택해야 합니다."
+            );
+        }
+
+        if (endReason == null) {
+            throw new IllegalArgumentException(
+                    "세션 종료 사유가 필요합니다."
             );
         }
 
@@ -148,7 +200,7 @@ public class UserSessionService {
                         .createdAt(session.getCreatedAt())
                         .lastAccessedAt(session.getLastAccessedAt())
                         .endedAt(endedAt)
-                        .endReason(SessionEndReason.USER_SELECTED)
+                        .endReason(endReason)
                         .build())
                 .toList();
 
@@ -156,9 +208,10 @@ public class UserSessionService {
         userSessionRepository.deleteAll(selectedSessions);
 
         log.info(
-                "User selected sessions terminated. userId={}, count={}",
+                "User sessions terminated. userId={}, count={}, reason={}",
                 user.getId(),
-                selectedSessions.size()
+                selectedSessions.size(),
+                endReason
         );
     }
 

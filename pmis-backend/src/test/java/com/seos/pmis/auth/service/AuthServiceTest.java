@@ -348,6 +348,98 @@ class AuthServiceTest {
     }
 
     // ---------------------------------------------------------
+    // Logout
+    // ---------------------------------------------------------
+
+    @Test
+    void logout_현재인증세션을_정상적으로종료한다() {
+
+        given(userRepository.findById(1L))
+                .willReturn(Optional.of(user));
+
+        authService.logout(1L, sessionId);
+
+        verify(userRepository).findById(1L);
+
+        verify(userSessionService).terminateSession(
+                user,
+                sessionId
+        );
+    }
+
+    @Test
+    void logout_존재하지않는사용자이면_INVALID_TOKEN을_반환한다() {
+
+        given(userRepository.findById(999L))
+                .willReturn(Optional.empty());
+
+        assertThatThrownBy(() ->
+                authService.logout(999L, sessionId)
+        )
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(CommonErrorCode.INVALID_TOKEN);
+
+        verify(userSessionService, never())
+                .terminateSession(any(), any());
+    }
+
+    @Test
+    void logout_비활성화된사용자이면_ACCOUNT_DISABLED를_반환한다() {
+
+        User disabledUser = User.builder()
+                .id(1L)
+                .username("test-user")
+                .password("encoded-password")
+                .name("테스트 사용자")
+                .email("test@example.com")
+                .role(UserRole.ROLE_USER)
+                .enabled(false)
+                .build();
+
+        given(userRepository.findById(1L))
+                .willReturn(Optional.of(disabledUser));
+
+        assertThatThrownBy(() ->
+                authService.logout(1L, sessionId)
+        )
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(CommonErrorCode.ACCOUNT_DISABLED);
+
+        verify(userSessionService, never())
+                .terminateSession(any(), any());
+    }
+
+    @Test
+    void logout_사용자ID가_null이면_INVALID_TOKEN을_반환한다() {
+
+        assertThatThrownBy(() ->
+                authService.logout(null, sessionId)
+        )
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(CommonErrorCode.INVALID_TOKEN);
+
+        verifyNoInteractions(userRepository);
+        verifyNoInteractions(userSessionService);
+    }
+
+    @Test
+    void logout_세션ID가_null이면_INVALID_TOKEN을_반환한다() {
+
+        assertThatThrownBy(() ->
+                authService.logout(1L, null)
+        )
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(CommonErrorCode.INVALID_TOKEN);
+
+        verifyNoInteractions(userRepository);
+        verifyNoInteractions(userSessionService);
+    }
+
+    // ---------------------------------------------------------
     // Refresh Token
     // ---------------------------------------------------------
 

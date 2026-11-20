@@ -5,12 +5,14 @@ import com.seos.pmis.auth.dto.request.LoginRequest;
 import com.seos.pmis.auth.dto.request.RefreshTokenRequest;
 import com.seos.pmis.auth.dto.request.SessionSelectionRequest;
 import com.seos.pmis.auth.dto.response.LoginResponse;
+import com.seos.pmis.auth.security.principal.UserPrincipal;
 import com.seos.pmis.auth.service.AuthService;
 import com.seos.common.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(
@@ -83,6 +85,26 @@ public class AuthController {
                 "토큰이 재발급되었습니다.",
                 response
         );
+    }
+
+    /**
+     * 현재 로그인한 세션 로그아웃
+     */
+    @Operation(
+            summary = "로그아웃",
+            description = "현재 인증된 사용자의 로그인 세션을 종료합니다."
+    )
+    @PostMapping("/logout")
+    public ApiResponse<Void> logout(
+            @AuthenticationPrincipal UserPrincipal principal
+    ) {
+
+        authService.logout(
+                principal.getUserId(),
+                principal.getSessionId()
+        );
+
+        return ApiResponse.success("로그아웃되었습니다.");
     }
 
 }
