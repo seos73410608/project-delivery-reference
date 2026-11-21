@@ -32,7 +32,7 @@ public class UserOrganizationAssignment extends BaseEntity {
     private Organization organization;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "assignment_type", nullable = false, length = 20)
+    @Column(name = "assignment_type", nullable = false, length = 30)
     private OrganizationAssignmentType assignmentType;
 
     @Column(name = "is_primary", nullable = false)
