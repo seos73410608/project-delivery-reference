@@ -9,10 +9,11 @@ import com.seos.pmis.project.entity.Project;
 import com.seos.pmis.project.entity.ProjectPriority;
 import com.seos.pmis.project.entity.ProjectStatus;
 import com.seos.pmis.project.repository.ProjectRepository;
+import com.seos.pmis.projectoperation.dto.response.ProjectOperationResponse;
 import com.seos.pmis.projectoperation.entity.ProjectOperation;
 import com.seos.pmis.projectoperation.entity.ProjectOperationRelationshipType;
 import com.seos.pmis.projectoperation.entity.ProjectOperationStatus;
-import com.seos.pmis.projectoperation.exception.ProjectOperationErrorCode;
+import com.seos.pmis.projectoperation.mapper.ProjectOperationMapper;
 import com.seos.pmis.projectoperation.repository.ProjectOperationRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -42,12 +43,16 @@ class ProjectOperationServiceTest {
     @Mock
     private OperationRepository operationRepository;
 
+    @Mock
+    private ProjectOperationMapper projectOperationMapper;
+
     @InjectMocks
     private ProjectOperationService projectOperationService;
 
     private Project project;
     private Operation operation;
     private ProjectOperation projectOperation;
+    private ProjectOperationResponse response;
 
     @BeforeEach
     void setUp() {
@@ -78,11 +83,22 @@ class ProjectOperationServiceTest {
                 .status(ProjectOperationStatus.PLANNED)
                 .effectiveFrom(LocalDate.of(2026, 1, 1))
                 .build();
+
+        response = ProjectOperationResponse.builder()
+                .id(1L)
+                .relationshipType(ProjectOperationRelationshipType.BUILD_RESULT)
+                .status(ProjectOperationStatus.PLANNED)
+                .projectId(1L)
+                .operationId(1L)
+                .build();
     }
+
+    // -------------------------------------------------------------------------
+    // Create
+    // -------------------------------------------------------------------------
 
     @Test
     void create_프로젝트와_운영_서비스_관계를_생성한다() {
-        // given
         when(projectRepository.findById(1L))
                 .thenReturn(Optional.of(project));
         when(operationRepository.findById(1L))
@@ -98,7 +114,6 @@ class ProjectOperationServiceTest {
         when(projectOperationRepository.save(any(ProjectOperation.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
-        // when
         ProjectOperation result = projectOperationService.create(
                 1L,
                 1L,
@@ -108,7 +123,6 @@ class ProjectOperationServiceTest {
                 "최초 구축 프로젝트 운영 이관"
         );
 
-        // then
         assertThat(result.getProject()).isEqualTo(project);
         assertThat(result.getOperation()).isEqualTo(operation);
         assertThat(result.getRelationshipType())
@@ -123,7 +137,6 @@ class ProjectOperationServiceTest {
 
     @Test
     void create_관계_유형이_null이면_예외가_발생한다() {
-        // when & then
         assertThatThrownBy(() -> projectOperationService.create(
                 1L, 1L, null,
                 LocalDate.of(2026, 1, 1), null, null
@@ -139,7 +152,6 @@ class ProjectOperationServiceTest {
 
     @Test
     void create_관계_기간이_잘못되면_예외가_발생한다() {
-        // when & then
         assertThatThrownBy(() -> projectOperationService.create(
                 1L,
                 1L,
@@ -159,7 +171,6 @@ class ProjectOperationServiceTest {
 
     @Test
     void create_동일한_PLANNED_관계가_있으면_중복_예외가_발생한다() {
-        // given
         when(projectRepository.findById(1L))
                 .thenReturn(Optional.of(project));
         when(operationRepository.findById(1L))
@@ -169,7 +180,6 @@ class ProjectOperationServiceTest {
                         1L, 1L, ProjectOperationStatus.PLANNED))
                 .thenReturn(true);
 
-        // when & then
         assertThatThrownBy(() -> projectOperationService.create(
                 1L,
                 1L,
@@ -186,7 +196,6 @@ class ProjectOperationServiceTest {
 
     @Test
     void create_동일한_ACTIVE_관계가_있으면_중복_예외가_발생한다() {
-        // given
         when(projectRepository.findById(1L))
                 .thenReturn(Optional.of(project));
         when(operationRepository.findById(1L))
@@ -200,7 +209,6 @@ class ProjectOperationServiceTest {
                         1L, 1L, ProjectOperationStatus.ACTIVE))
                 .thenReturn(true);
 
-        // when & then
         assertThatThrownBy(() -> projectOperationService.create(
                 1L,
                 1L,
@@ -217,11 +225,9 @@ class ProjectOperationServiceTest {
 
     @Test
     void create_프로젝트가_없으면_예외가_발생한다() {
-        // given
         when(projectRepository.findById(999L))
                 .thenReturn(Optional.empty());
 
-        // when & then
         assertThatThrownBy(() -> projectOperationService.create(
                 999L,
                 1L,
@@ -237,13 +243,11 @@ class ProjectOperationServiceTest {
 
     @Test
     void create_운영_서비스가_없으면_예외가_발생한다() {
-        // given
         when(projectRepository.findById(1L))
                 .thenReturn(Optional.of(project));
         when(operationRepository.findById(999L))
                 .thenReturn(Optional.empty());
 
-        // when & then
         assertThatThrownBy(() -> projectOperationService.create(
                 1L,
                 999L,
@@ -256,15 +260,52 @@ class ProjectOperationServiceTest {
     }
 
     @Test
+    void createResponse_프로젝트_운영_관계를_생성하고_응답한다() {
+        when(projectRepository.findById(1L))
+                .thenReturn(Optional.of(project));
+        when(operationRepository.findById(1L))
+                .thenReturn(Optional.of(operation));
+        when(projectOperationRepository
+                .existsByProject_IdAndOperation_IdAndStatus(
+                        1L, 1L, ProjectOperationStatus.PLANNED))
+                .thenReturn(false);
+        when(projectOperationRepository
+                .existsByProject_IdAndOperation_IdAndStatus(
+                        1L, 1L, ProjectOperationStatus.ACTIVE))
+                .thenReturn(false);
+        when(projectOperationRepository.save(any(ProjectOperation.class)))
+                .thenAnswer(invocation -> {
+                    ProjectOperation saved = invocation.getArgument(0);
+                    return saved;
+                });
+        when(projectOperationMapper.toResponse(any(ProjectOperation.class)))
+                .thenReturn(response);
+
+        ProjectOperationResponse result = projectOperationService.createResponse(
+                1L,
+                1L,
+                ProjectOperationRelationshipType.BUILD_RESULT,
+                LocalDate.of(2026, 1, 1),
+                null,
+                "최초 구축 프로젝트 운영 이관"
+        );
+
+        assertThat(result).isEqualTo(response);
+        verify(projectOperationMapper).toResponse(any(ProjectOperation.class));
+    }
+
+    // -------------------------------------------------------------------------
+    // Update
+    // -------------------------------------------------------------------------
+
+    @Test
     void update_프로젝트_운영_관계_정보를_수정한다() {
-        // given
         when(projectOperationRepository.findById(1L))
                 .thenReturn(Optional.of(projectOperation));
 
         LocalDate effectiveFrom = LocalDate.of(2026, 2, 1);
         LocalDate effectiveTo = LocalDate.of(2026, 12, 31);
 
-        // when
         ProjectOperation result = projectOperationService.update(
                 1L,
                 ProjectOperationRelationshipType.ENHANCEMENT,
@@ -273,7 +314,6 @@ class ProjectOperationServiceTest {
                 "운영 관계 수정"
         );
 
-        // then
         assertThat(result.getRelationshipType())
                 .isEqualTo(ProjectOperationRelationshipType.ENHANCEMENT);
         assertThat(result.getEffectiveFrom()).isEqualTo(effectiveFrom);
@@ -283,11 +323,9 @@ class ProjectOperationServiceTest {
 
     @Test
     void update_관계_유형이_null이면_예외가_발생한다() {
-        // given
         when(projectOperationRepository.findById(1L))
                 .thenReturn(Optional.of(projectOperation));
 
-        // when & then
         assertThatThrownBy(() -> projectOperationService.update(
                 1L, null,
                 LocalDate.of(2026, 1, 1),
@@ -299,11 +337,9 @@ class ProjectOperationServiceTest {
 
     @Test
     void update_관계_기간이_잘못되면_예외가_발생한다() {
-        // given
         when(projectOperationRepository.findById(1L))
                 .thenReturn(Optional.of(projectOperation));
 
-        // when & then
         assertThatThrownBy(() -> projectOperationService.update(
                 1L,
                 ProjectOperationRelationshipType.BUILD_RESULT,
@@ -315,87 +351,96 @@ class ProjectOperationServiceTest {
     }
 
     @Test
+    void updateResponse_프로젝트_운영_관계를_수정하고_응답한다() {
+        when(projectOperationRepository.findById(1L))
+                .thenReturn(Optional.of(projectOperation));
+        when(projectOperationMapper.toResponse(projectOperation))
+                .thenReturn(response);
+
+        ProjectOperationResponse result = projectOperationService.updateResponse(
+                1L,
+                ProjectOperationRelationshipType.ENHANCEMENT,
+                LocalDate.of(2026, 2, 1),
+                LocalDate.of(2026, 12, 31),
+                "운영 관계 수정"
+        );
+
+        assertThat(result).isEqualTo(response);
+        assertThat(projectOperation.getRelationshipType())
+                .isEqualTo(ProjectOperationRelationshipType.ENHANCEMENT);
+        verify(projectOperationMapper).toResponse(projectOperation);
+    }
+
+    // -------------------------------------------------------------------------
+    // Change Status
+    // -------------------------------------------------------------------------
+
+    @Test
     void changeStatus_PLANNED에서_ACTIVE로_변경한다() {
-        // given
         when(projectOperationRepository.findById(1L))
                 .thenReturn(Optional.of(projectOperation));
 
-        // when
         ProjectOperation result = projectOperationService.changeStatus(
                 1L, ProjectOperationStatus.ACTIVE
         );
 
-        // then
         assertThat(result.getStatus()).isEqualTo(ProjectOperationStatus.ACTIVE);
     }
 
     @Test
     void changeStatus_PLANNED에서_CANCELLED로_변경한다() {
-        // given
         when(projectOperationRepository.findById(1L))
                 .thenReturn(Optional.of(projectOperation));
 
-        // when
         ProjectOperation result = projectOperationService.changeStatus(
                 1L, ProjectOperationStatus.CANCELLED
         );
 
-        // then
         assertThat(result.getStatus()).isEqualTo(ProjectOperationStatus.CANCELLED);
     }
 
     @Test
     void changeStatus_ACTIVE에서_COMPLETED로_변경한다() {
-        // given
         projectOperation.changeStatus(ProjectOperationStatus.ACTIVE);
 
         when(projectOperationRepository.findById(1L))
                 .thenReturn(Optional.of(projectOperation));
 
-        // when
         ProjectOperation result = projectOperationService.changeStatus(
                 1L, ProjectOperationStatus.COMPLETED
         );
 
-        // then
         assertThat(result.getStatus()).isEqualTo(ProjectOperationStatus.COMPLETED);
     }
 
     @Test
     void changeStatus_ACTIVE에서_CANCELLED로_변경한다() {
-        // given
         projectOperation.changeStatus(ProjectOperationStatus.ACTIVE);
 
         when(projectOperationRepository.findById(1L))
                 .thenReturn(Optional.of(projectOperation));
 
-        // when
         ProjectOperation result = projectOperationService.changeStatus(
                 1L, ProjectOperationStatus.CANCELLED
         );
 
-        // then
         assertThat(result.getStatus()).isEqualTo(ProjectOperationStatus.CANCELLED);
     }
 
     @Test
     void changeStatus_null이면_예외가_발생한다() {
-        // given
         when(projectOperationRepository.findById(1L))
                 .thenReturn(Optional.of(projectOperation));
 
-        // when & then
         assertThatThrownBy(() -> projectOperationService.changeStatus(1L, null))
                 .isInstanceOf(BusinessException.class);
     }
 
     @Test
     void changeStatus_PLANNED에서_COMPLETED로_변경할_수_없다() {
-        // given
         when(projectOperationRepository.findById(1L))
                 .thenReturn(Optional.of(projectOperation));
 
-        // when & then
         assertThatThrownBy(() -> projectOperationService.changeStatus(
                 1L, ProjectOperationStatus.COMPLETED
         ))
@@ -407,11 +452,9 @@ class ProjectOperationServiceTest {
 
     @Test
     void changeStatus_동일한_상태로_변경할_수_없다() {
-        // given
         when(projectOperationRepository.findById(1L))
                 .thenReturn(Optional.of(projectOperation));
 
-        // when & then
         assertThatThrownBy(() -> projectOperationService.changeStatus(
                 1L, ProjectOperationStatus.PLANNED
         ))
@@ -420,13 +463,11 @@ class ProjectOperationServiceTest {
 
     @Test
     void changeStatus_COMPLETED는_다른_상태로_변경할_수_없다() {
-        // given
         projectOperation.changeStatus(ProjectOperationStatus.COMPLETED);
 
         when(projectOperationRepository.findById(1L))
                 .thenReturn(Optional.of(projectOperation));
 
-        // when & then
         assertThatThrownBy(() -> projectOperationService.changeStatus(
                 1L, ProjectOperationStatus.ACTIVE
         ))
@@ -435,13 +476,11 @@ class ProjectOperationServiceTest {
 
     @Test
     void changeStatus_CANCELLED는_다른_상태로_변경할_수_없다() {
-        // given
         projectOperation.changeStatus(ProjectOperationStatus.CANCELLED);
 
         when(projectOperationRepository.findById(1L))
                 .thenReturn(Optional.of(projectOperation));
 
-        // when & then
         assertThatThrownBy(() -> projectOperationService.changeStatus(
                 1L, ProjectOperationStatus.ACTIVE
         ))
@@ -449,33 +488,67 @@ class ProjectOperationServiceTest {
     }
 
     @Test
+    void changeStatusResponse_상태를_변경하고_응답한다() {
+        when(projectOperationRepository.findById(1L))
+                .thenReturn(Optional.of(projectOperation));
+        when(projectOperationMapper.toResponse(projectOperation))
+                .thenReturn(response);
+
+        ProjectOperationResponse result = projectOperationService.changeStatusResponse(
+                1L,
+                ProjectOperationStatus.ACTIVE
+        );
+
+        assertThat(result).isEqualTo(response);
+        assertThat(projectOperation.getStatus())
+                .isEqualTo(ProjectOperationStatus.ACTIVE);
+        verify(projectOperationMapper).toResponse(projectOperation);
+    }
+
+    // -------------------------------------------------------------------------
+    // Detail
+    // -------------------------------------------------------------------------
+
+    @Test
     void getDetail_프로젝트_운영_관계를_조회한다() {
-        // given
         when(projectOperationRepository.findById(1L))
                 .thenReturn(Optional.of(projectOperation));
 
-        // when
         ProjectOperation result = projectOperationService.getDetail(1L);
 
-        // then
         assertThat(result).isEqualTo(projectOperation);
         verify(projectOperationRepository).findById(1L);
     }
 
     @Test
     void getDetail_프로젝트_운영_관계가_없으면_예외가_발생한다() {
-        // given
         when(projectOperationRepository.findById(999L))
                 .thenReturn(Optional.empty());
 
-        // when & then
         assertThatThrownBy(() -> projectOperationService.getDetail(999L))
                 .isInstanceOf(BusinessException.class);
     }
 
     @Test
+    void getDetailResponse_프로젝트_운영_관계를_조회하고_응답한다() {
+        when(projectOperationRepository.findById(1L))
+                .thenReturn(Optional.of(projectOperation));
+        when(projectOperationMapper.toResponse(projectOperation))
+                .thenReturn(response);
+
+        ProjectOperationResponse result =
+                projectOperationService.getDetailResponse(1L);
+
+        assertThat(result).isEqualTo(response);
+        verify(projectOperationMapper).toResponse(projectOperation);
+    }
+
+    // -------------------------------------------------------------------------
+    // Find By Project
+    // -------------------------------------------------------------------------
+
+    @Test
     void findByProject_프로젝트에_연결된_운영_관계를_조회한다() {
-        // given
         List<ProjectOperation> relationships = List.of(projectOperation);
 
         when(projectRepository.findById(1L))
@@ -483,18 +556,36 @@ class ProjectOperationServiceTest {
         when(projectOperationRepository.findAllByProject_Id(1L))
                 .thenReturn(relationships);
 
-        // when
         List<ProjectOperation> result =
                 projectOperationService.findByProject(1L);
 
-        // then
         assertThat(result).hasSize(1);
         assertThat(result.get(0)).isEqualTo(projectOperation);
     }
 
     @Test
+    void findByProjectResponses_프로젝트에_연결된_운영_관계를_응답으로_조회한다() {
+        when(projectRepository.findById(1L))
+                .thenReturn(Optional.of(project));
+        when(projectOperationRepository.findAllByProject_Id(1L))
+                .thenReturn(List.of(projectOperation));
+        when(projectOperationMapper.toResponse(projectOperation))
+                .thenReturn(response);
+
+        List<ProjectOperationResponse> result =
+                projectOperationService.findByProjectResponses(1L);
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0)).isEqualTo(response);
+        verify(projectOperationMapper).toResponse(projectOperation);
+    }
+
+    // -------------------------------------------------------------------------
+    // Find By Operation
+    // -------------------------------------------------------------------------
+
+    @Test
     void findByOperation_운영_서비스에_연결된_프로젝트_관계를_조회한다() {
-        // given
         List<ProjectOperation> relationships = List.of(projectOperation);
 
         when(operationRepository.findById(1L))
@@ -502,12 +593,27 @@ class ProjectOperationServiceTest {
         when(projectOperationRepository.findAllByOperation_Id(1L))
                 .thenReturn(relationships);
 
-        // when
         List<ProjectOperation> result =
                 projectOperationService.findByOperation(1L);
 
-        // then
         assertThat(result).hasSize(1);
         assertThat(result.get(0)).isEqualTo(projectOperation);
+    }
+
+    @Test
+    void findByOperationResponses_운영_서비스에_연결된_프로젝트_관계를_응답으로_조회한다() {
+        when(operationRepository.findById(1L))
+                .thenReturn(Optional.of(operation));
+        when(projectOperationRepository.findAllByOperation_Id(1L))
+                .thenReturn(List.of(projectOperation));
+        when(projectOperationMapper.toResponse(projectOperation))
+                .thenReturn(response);
+
+        List<ProjectOperationResponse> result =
+                projectOperationService.findByOperationResponses(1L);
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0)).isEqualTo(response);
+        verify(projectOperationMapper).toResponse(projectOperation);
     }
 }

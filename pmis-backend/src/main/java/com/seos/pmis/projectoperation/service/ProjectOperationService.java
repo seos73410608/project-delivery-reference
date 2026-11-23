@@ -1,4 +1,3 @@
-
 package com.seos.pmis.projectoperation.service;
 
 import com.seos.common.exception.BusinessException;
@@ -6,10 +5,12 @@ import com.seos.pmis.operation.entity.Operation;
 import com.seos.pmis.operation.repository.OperationRepository;
 import com.seos.pmis.project.entity.Project;
 import com.seos.pmis.project.repository.ProjectRepository;
+import com.seos.pmis.projectoperation.dto.response.ProjectOperationResponse;
 import com.seos.pmis.projectoperation.entity.ProjectOperation;
 import com.seos.pmis.projectoperation.entity.ProjectOperationRelationshipType;
 import com.seos.pmis.projectoperation.entity.ProjectOperationStatus;
 import com.seos.pmis.projectoperation.exception.ProjectOperationErrorCode;
+import com.seos.pmis.projectoperation.mapper.ProjectOperationMapper;
 import com.seos.pmis.projectoperation.repository.ProjectOperationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,7 @@ public class ProjectOperationService {
     private final ProjectOperationRepository projectOperationRepository;
     private final ProjectRepository projectRepository;
     private final OperationRepository operationRepository;
+    private final ProjectOperationMapper projectOperationMapper;
 
     /**
      * 프로젝트와 운영 서비스 연결
@@ -60,6 +62,28 @@ public class ProjectOperationService {
     }
 
     /**
+     * 프로젝트 운영 관계 생성 및 응답
+     */
+    @Transactional
+    public ProjectOperationResponse createResponse(
+            Long projectId,
+            Long operationId,
+            ProjectOperationRelationshipType relationshipType,
+            LocalDate effectiveFrom,
+            LocalDate effectiveTo,
+            String description) {
+        ProjectOperation projectOperation = create(
+                projectId,
+                operationId,
+                relationshipType,
+                effectiveFrom,
+                effectiveTo,
+                description);
+
+        return projectOperationMapper.toResponse(projectOperation);
+    }
+
+    /**
      * 프로젝트 운영 관계 정보 수정
      */
     @Transactional
@@ -84,6 +108,26 @@ public class ProjectOperationService {
     }
 
     /**
+     * 프로젝트 운영 관계 수정 및 응답
+     */
+    @Transactional
+    public ProjectOperationResponse updateResponse(
+            Long projectOperationId,
+            ProjectOperationRelationshipType relationshipType,
+            LocalDate effectiveFrom,
+            LocalDate effectiveTo,
+            String description) {
+        ProjectOperation projectOperation = update(
+                projectOperationId,
+                relationshipType,
+                effectiveFrom,
+                effectiveTo,
+                description);
+
+        return projectOperationMapper.toResponse(projectOperation);
+    }
+
+    /**
      * 프로젝트 운영 관계 상태 변경
      */
     @Transactional
@@ -100,10 +144,33 @@ public class ProjectOperationService {
     }
 
     /**
+     * 프로젝트 운영 관계 상태 변경 및 응답
+     */
+    @Transactional
+    public ProjectOperationResponse changeStatusResponse(
+            Long projectOperationId,
+            ProjectOperationStatus status) {
+        ProjectOperation projectOperation = changeStatus(
+                projectOperationId,
+                status);
+
+        return projectOperationMapper.toResponse(projectOperation);
+    }
+
+    /**
      * 프로젝트 운영 관계 단건 조회
      */
     public ProjectOperation getDetail(Long projectOperationId) {
         return findProjectOperation(projectOperationId);
+    }
+
+    /**
+     * 프로젝트 운영 관계 단건 조회 및 응답
+     */
+    public ProjectOperationResponse getDetailResponse(Long projectOperationId) {
+        ProjectOperation projectOperation = getDetail(projectOperationId);
+
+        return projectOperationMapper.toResponse(projectOperation);
     }
 
     /**
@@ -116,12 +183,30 @@ public class ProjectOperationService {
     }
 
     /**
+     * 프로젝트에 연결된 운영 관계 조회 및 응답
+     */
+    public List<ProjectOperationResponse> findByProjectResponses(Long projectId) {
+        return findByProject(projectId).stream()
+                .map(projectOperationMapper::toResponse)
+                .toList();
+    }
+
+    /**
      * 운영 서비스에 연결된 프로젝트 관계 조회
      */
     public List<ProjectOperation> findByOperation(Long operationId) {
         findOperation(operationId);
 
         return projectOperationRepository.findAllByOperation_Id(operationId);
+    }
+
+    /**
+     * 운영 서비스에 연결된 프로젝트 관계 조회 및 응답
+     */
+    public List<ProjectOperationResponse> findByOperationResponses(Long operationId) {
+        return findByOperation(operationId).stream()
+                .map(projectOperationMapper::toResponse)
+                .toList();
     }
 
     /**
