@@ -7,6 +7,7 @@ import com.seos.pmis.operation.entity.OperationParticipant;
 import com.seos.pmis.operation.entity.OperationParticipantRole;
 import com.seos.pmis.operation.entity.OperationType;
 import com.seos.pmis.operation.repository.OperationParticipantRepository;
+import com.seos.pmis.projectoperation.dto.response.ProjectOperationHandoverResponse;
 import com.seos.pmis.projectoperation.entity.ProjectOperation;
 import com.seos.pmis.projectoperation.entity.ProjectOperationHandover;
 import com.seos.pmis.projectoperation.entity.ProjectOperationHandoverStatus;
@@ -14,6 +15,7 @@ import com.seos.pmis.projectoperation.entity.ProjectOperationHandoverType;
 import com.seos.pmis.projectoperation.entity.ProjectOperationRelationshipType;
 import com.seos.pmis.projectoperation.entity.ProjectOperationStatus;
 import com.seos.pmis.projectoperation.exception.ProjectOperationErrorCode;
+import com.seos.pmis.projectoperation.mapper.ProjectOperationHandoverMapper;
 import com.seos.pmis.projectoperation.repository.ProjectOperationHandoverRepository;
 import com.seos.pmis.projectoperation.repository.ProjectOperationRepository;
 import com.seos.pmis.user.entity.User;
@@ -49,6 +51,9 @@ class ProjectOperationHandoverServiceTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private ProjectOperationHandoverMapper handoverMapper;
 
     @InjectMocks
     private ProjectOperationHandoverService service;
@@ -157,6 +162,12 @@ class ProjectOperationHandoverServiceTest {
     private void mockHandover(ProjectOperationHandover handover) {
         when(handoverRepository.findById(handover.getId()))
                 .thenReturn(Optional.of(handover));
+    }
+
+    private ProjectOperationHandoverResponse createResponse(Long id) {
+        return ProjectOperationHandoverResponse.builder()
+                .id(id)
+                .build();
     }
 
     @Test
@@ -757,5 +768,320 @@ class ProjectOperationHandoverServiceTest {
 
         verify(handoverRepository, never())
                 .findAllByProjectOperation_IdOrderBySequenceNoAsc(any());
+    }
+
+    // ---------------------------------------------------------------------
+    // Response wrapper tests
+    // ---------------------------------------------------------------------
+
+    @Test
+    void createInitialResponse_생성된_인수인계를_응답으로_변환한다() {
+        mockProjectOperation();
+        mockNoActiveHandover();
+
+        when(handoverRepository
+                .findAllByProjectOperation_IdOrderBySequenceNoAsc(1L))
+                .thenReturn(List.of());
+
+        mockParticipant(participantB);
+
+        when(handoverRepository.save(any(ProjectOperationHandover.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        ProjectOperationHandoverResponse response = createResponse(10L);
+
+        when(handoverMapper.toResponse(any(ProjectOperationHandover.class)))
+                .thenReturn(response);
+
+        ProjectOperationHandoverResponse result =
+                service.createInitialResponse(
+                        1L, 20L, plannedDate, "최초 운영 인수인계");
+
+        assertThat(result).isSameAs(response);
+        verify(handoverMapper).toResponse(any(ProjectOperationHandover.class));
+    }
+
+    @Test
+    void createOperatorChangeResponse_생성된_운영자_변경을_응답으로_변환한다() {
+        mockProjectOperation();
+        mockNoActiveHandover();
+
+        when(handoverRepository
+                .findFirstByProjectOperation_IdOrderBySequenceNoDesc(1L))
+                .thenReturn(Optional.of(completedHandover));
+
+        mockParticipant(participantB);
+        mockParticipant(participantC);
+
+        when(handoverRepository.save(any(ProjectOperationHandover.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        ProjectOperationHandoverResponse response = createResponse(11L);
+
+        when(handoverMapper.toResponse(any(ProjectOperationHandover.class)))
+                .thenReturn(response);
+
+        ProjectOperationHandoverResponse result =
+                service.createOperatorChangeResponse(
+                        1L, 20L, 30L, plannedDate, "운영자 변경");
+
+        assertThat(result).isSameAs(response);
+        verify(handoverMapper).toResponse(any(ProjectOperationHandover.class));
+    }
+
+    @Test
+    void createReHandoverResponse_생성된_재인수인계를_응답으로_변환한다() {
+        mockProjectOperation();
+        mockNoActiveHandover();
+
+        when(handoverRepository
+                .findFirstByProjectOperation_IdOrderBySequenceNoDesc(1L))
+                .thenReturn(Optional.of(initialHandover));
+
+        mockParticipant(participantA);
+        mockParticipant(participantB);
+
+        when(handoverRepository.save(any(ProjectOperationHandover.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        ProjectOperationHandoverResponse response = createResponse(12L);
+
+        when(handoverMapper.toResponse(any(ProjectOperationHandover.class)))
+                .thenReturn(response);
+
+        ProjectOperationHandoverResponse result =
+                service.createReHandoverResponse(
+                        1L, 10L, 20L, plannedDate, "재인수인계");
+
+        assertThat(result).isSameAs(response);
+        verify(handoverMapper).toResponse(any(ProjectOperationHandover.class));
+    }
+
+    @Test
+    void requestResponse_요청_처리_후_응답으로_변환한다() {
+        ProjectOperationHandover handover =
+                ProjectOperationHandover.builder()
+                        .id(10L)
+                        .status(ProjectOperationHandoverStatus.DRAFT)
+                        .build();
+
+        mockHandover(handover);
+
+        when(userRepository.findById(100L))
+                .thenReturn(Optional.of(user));
+
+        ProjectOperationHandoverResponse response = createResponse(10L);
+
+        when(handoverMapper.toResponse(handover))
+                .thenReturn(response);
+
+        ProjectOperationHandoverResponse result =
+                service.requestResponse(10L, 100L, requestedAt);
+
+        assertThat(result).isSameAs(response);
+        assertThat(handover.getStatus())
+                .isEqualTo(ProjectOperationHandoverStatus.REQUESTED);
+        verify(handoverMapper).toResponse(handover);
+    }
+
+    @Test
+    void startResponse_작업_시작_후_응답으로_변환한다() {
+        ProjectOperationHandover handover =
+                ProjectOperationHandover.builder()
+                        .id(10L)
+                        .status(ProjectOperationHandoverStatus.REQUESTED)
+                        .build();
+
+        mockHandover(handover);
+
+        ProjectOperationHandoverResponse response = createResponse(10L);
+
+        when(handoverMapper.toResponse(handover))
+                .thenReturn(response);
+
+        ProjectOperationHandoverResponse result =
+                service.startResponse(10L);
+
+        assertThat(result).isSameAs(response);
+        assertThat(handover.getStatus())
+                .isEqualTo(ProjectOperationHandoverStatus.IN_PROGRESS);
+        verify(handoverMapper).toResponse(handover);
+    }
+
+    @Test
+    void submitForReviewResponse_검토_요청_후_응답으로_변환한다() {
+        ProjectOperationHandover handover =
+                ProjectOperationHandover.builder()
+                        .id(10L)
+                        .status(ProjectOperationHandoverStatus.IN_PROGRESS)
+                        .build();
+
+        mockHandover(handover);
+
+        ProjectOperationHandoverResponse response = createResponse(10L);
+
+        when(handoverMapper.toResponse(handover))
+                .thenReturn(response);
+
+        ProjectOperationHandoverResponse result =
+                service.submitForReviewResponse(10L);
+
+        assertThat(result).isSameAs(response);
+        assertThat(handover.getStatus())
+                .isEqualTo(ProjectOperationHandoverStatus.REVIEW);
+        verify(handoverMapper).toResponse(handover);
+    }
+
+    @Test
+    void acceptResponse_승인_처리_후_응답으로_변환한다() {
+        ProjectOperationHandover handover =
+                ProjectOperationHandover.builder()
+                        .id(10L)
+                        .status(ProjectOperationHandoverStatus.REVIEW)
+                        .requestedAt(requestedAt)
+                        .build();
+
+        LocalDateTime acceptedAt = requestedAt.plusDays(1);
+
+        mockHandover(handover);
+
+        when(userRepository.findById(100L))
+                .thenReturn(Optional.of(user));
+
+        ProjectOperationHandoverResponse response = createResponse(10L);
+
+        when(handoverMapper.toResponse(handover))
+                .thenReturn(response);
+
+        ProjectOperationHandoverResponse result =
+                service.acceptResponse(10L, 100L, acceptedAt);
+
+        assertThat(result).isSameAs(response);
+        assertThat(handover.getStatus())
+                .isEqualTo(ProjectOperationHandoverStatus.ACCEPTED);
+        verify(handoverMapper).toResponse(handover);
+    }
+
+    @Test
+    void completeResponse_완료_처리_후_응답으로_변환한다() {
+        LocalDateTime acceptedAt = requestedAt.plusDays(1);
+        LocalDateTime completedAt = acceptedAt.plusDays(1);
+
+        ProjectOperationHandover handover =
+                ProjectOperationHandover.builder()
+                        .id(10L)
+                        .status(ProjectOperationHandoverStatus.ACCEPTED)
+                        .requestedAt(requestedAt)
+                        .acceptedAt(acceptedAt)
+                        .build();
+
+        mockHandover(handover);
+
+        ProjectOperationHandoverResponse response = createResponse(10L);
+
+        when(handoverMapper.toResponse(handover))
+                .thenReturn(response);
+
+        ProjectOperationHandoverResponse result =
+                service.completeResponse(10L, completedAt);
+
+        assertThat(result).isSameAs(response);
+        assertThat(handover.getStatus())
+                .isEqualTo(ProjectOperationHandoverStatus.COMPLETED);
+        verify(handoverMapper).toResponse(handover);
+    }
+
+    @Test
+    void rejectResponse_반려_처리_후_응답으로_변환한다() {
+        ProjectOperationHandover handover =
+                ProjectOperationHandover.builder()
+                        .id(10L)
+                        .status(ProjectOperationHandoverStatus.DRAFT)
+                        .build();
+
+        mockHandover(handover);
+
+        ProjectOperationHandoverResponse response = createResponse(10L);
+
+        when(handoverMapper.toResponse(handover))
+                .thenReturn(response);
+
+        ProjectOperationHandoverResponse result =
+                service.rejectResponse(10L);
+
+        assertThat(result).isSameAs(response);
+        assertThat(handover.getStatus())
+                .isEqualTo(ProjectOperationHandoverStatus.REJECTED);
+        verify(handoverMapper).toResponse(handover);
+    }
+
+    @Test
+    void cancelResponse_취소_처리_후_응답으로_변환한다() {
+        ProjectOperationHandover handover =
+                ProjectOperationHandover.builder()
+                        .id(10L)
+                        .status(ProjectOperationHandoverStatus.DRAFT)
+                        .build();
+
+        mockHandover(handover);
+
+        ProjectOperationHandoverResponse response = createResponse(10L);
+
+        when(handoverMapper.toResponse(handover))
+                .thenReturn(response);
+
+        ProjectOperationHandoverResponse result =
+                service.cancelResponse(10L);
+
+        assertThat(result).isSameAs(response);
+        assertThat(handover.getStatus())
+                .isEqualTo(ProjectOperationHandoverStatus.CANCELLED);
+        verify(handoverMapper).toResponse(handover);
+    }
+
+    @Test
+    void getDetailResponse_상세_조회_결과를_응답으로_변환한다() {
+        mockHandover(completedHandover);
+
+        ProjectOperationHandoverResponse response = createResponse(2L);
+
+        when(handoverMapper.toResponse(completedHandover))
+                .thenReturn(response);
+
+        ProjectOperationHandoverResponse result =
+                service.getDetailResponse(2L);
+
+        assertThat(result).isSameAs(response);
+        verify(handoverMapper).toResponse(completedHandover);
+    }
+
+    @Test
+    void getHistoryResponses_전체_이력을_응답_목록으로_변환한다() {
+        List<ProjectOperationHandover> history =
+                List.of(initialHandover, completedHandover);
+
+        mockProjectOperation();
+
+        when(handoverRepository
+                .findAllByProjectOperation_IdOrderBySequenceNoAsc(1L))
+                .thenReturn(history);
+
+        ProjectOperationHandoverResponse initialResponse = createResponse(1L);
+        ProjectOperationHandoverResponse completedResponse = createResponse(2L);
+
+        when(handoverMapper.toResponse(initialHandover))
+                .thenReturn(initialResponse);
+
+        when(handoverMapper.toResponse(completedHandover))
+                .thenReturn(completedResponse);
+
+        List<ProjectOperationHandoverResponse> result =
+                service.getHistoryResponses(1L);
+
+        assertThat(result)
+                .containsExactly(initialResponse, completedResponse);
+
+        verify(handoverMapper).toResponse(initialHandover);
+        verify(handoverMapper).toResponse(completedHandover);
     }
 }

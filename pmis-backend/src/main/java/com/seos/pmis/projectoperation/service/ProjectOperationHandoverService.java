@@ -18,6 +18,8 @@ import com.seos.pmis.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.seos.pmis.projectoperation.dto.response.ProjectOperationHandoverResponse;
+import com.seos.pmis.projectoperation.mapper.ProjectOperationHandoverMapper;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -40,6 +42,8 @@ public class ProjectOperationHandoverService {
     private final ProjectOperationRepository projectOperationRepository;
     private final OperationParticipantRepository participantRepository;
     private final UserRepository userRepository;
+
+    private final ProjectOperationHandoverMapper handoverMapper;
 
     /**
      * 최초 운영 인수인계 생성
@@ -208,6 +212,67 @@ public class ProjectOperationHandoverService {
     }
 
     /**
+     * 최초 운영 인수인계 생성 및 응답 변환
+     */
+    @Transactional
+    public ProjectOperationHandoverResponse createInitialResponse(
+            Long projectOperationId,
+            Long toParticipantId,
+            LocalDate plannedHandoverDate,
+            String notes) {
+
+        ProjectOperationHandover handover = createInitial(
+                projectOperationId,
+                toParticipantId,
+                plannedHandoverDate,
+                notes);
+
+        return handoverMapper.toResponse(handover);
+    }
+
+    /**
+     * 운영자 변경 인수인계 생성 및 응답 변환
+     */
+    @Transactional
+    public ProjectOperationHandoverResponse createOperatorChangeResponse(
+            Long projectOperationId,
+            Long fromParticipantId,
+            Long toParticipantId,
+            LocalDate plannedHandoverDate,
+            String notes) {
+
+        ProjectOperationHandover handover = createOperatorChange(
+                projectOperationId,
+                fromParticipantId,
+                toParticipantId,
+                plannedHandoverDate,
+                notes);
+
+        return handoverMapper.toResponse(handover);
+    }
+
+    /**
+     * 동일 운영자 재인수인계 생성 및 응답 변환
+     */
+    @Transactional
+    public ProjectOperationHandoverResponse createReHandoverResponse(
+            Long projectOperationId,
+            Long fromParticipantId,
+            Long toParticipantId,
+            LocalDate plannedHandoverDate,
+            String notes) {
+
+        ProjectOperationHandover handover = createReHandover(
+                projectOperationId,
+                fromParticipantId,
+                toParticipantId,
+                plannedHandoverDate,
+                notes);
+
+        return handoverMapper.toResponse(handover);
+    }
+
+    /**
      * 인수인계 요청
      */
     @Transactional
@@ -370,6 +435,93 @@ public class ProjectOperationHandoverService {
     }
 
     /**
+     * 인수인계 요청 및 응답 변환
+     */
+    @Transactional
+    public ProjectOperationHandoverResponse requestResponse(
+            Long handoverId,
+            Long handedOverByUserId,
+            LocalDateTime requestedAt) {
+
+        ProjectOperationHandover handover = request(
+                handoverId,
+                handedOverByUserId,
+                requestedAt);
+
+        return handoverMapper.toResponse(handover);
+    }
+
+    /**
+     * 인수인계 작업 시작 및 응답 변환
+     */
+    @Transactional
+    public ProjectOperationHandoverResponse startResponse(Long handoverId) {
+        ProjectOperationHandover handover = start(handoverId);
+        return handoverMapper.toResponse(handover);
+    }
+
+    /**
+     * 인수인계 검토 요청 및 응답 변환
+     */
+    @Transactional
+    public ProjectOperationHandoverResponse submitForReviewResponse(
+            Long handoverId) {
+
+        ProjectOperationHandover handover = submitForReview(handoverId);
+        return handoverMapper.toResponse(handover);
+    }
+
+    /**
+     * 인수인계 승인 및 응답 변환
+     */
+    @Transactional
+    public ProjectOperationHandoverResponse acceptResponse(
+            Long handoverId,
+            Long acceptedByUserId,
+            LocalDateTime acceptedAt) {
+
+        ProjectOperationHandover handover = accept(
+                handoverId,
+                acceptedByUserId,
+                acceptedAt);
+
+        return handoverMapper.toResponse(handover);
+    }
+
+    /**
+     * 인수인계 완료 및 응답 변환
+     */
+    @Transactional
+    public ProjectOperationHandoverResponse completeResponse(
+            Long handoverId,
+            LocalDateTime completedAt) {
+
+        ProjectOperationHandover handover = complete(
+                handoverId,
+                completedAt);
+
+        return handoverMapper.toResponse(handover);
+    }
+
+    /**
+     * 인수인계 반려 및 응답 변환
+     */
+    @Transactional
+    public ProjectOperationHandoverResponse rejectResponse(Long handoverId) {
+        ProjectOperationHandover handover = reject(handoverId);
+        return handoverMapper.toResponse(handover);
+    }
+
+    /**
+     * 인수인계 취소 및 응답 변환
+     */
+    @Transactional
+    public ProjectOperationHandoverResponse cancelResponse(Long handoverId) {
+        ProjectOperationHandover handover = cancel(handoverId);
+        return handoverMapper.toResponse(handover);
+    }
+
+    /**
      * 프로젝트 운영 관계의 전체 인수인계 이력 조회
      */
     public List<ProjectOperationHandover> getHistory(
@@ -380,6 +532,36 @@ public class ProjectOperationHandoverService {
         return handoverRepository
                 .findAllByProjectOperation_IdOrderBySequenceNoAsc(
                         projectOperationId);
+    }
+
+        /**
+     * 인수인계 상세 조회
+     */
+    public ProjectOperationHandover getDetail(Long handoverId) {
+        return findHandover(handoverId);
+    }
+
+    /**
+     * 인수인계 상세 조회 및 응답 변환
+     */
+    public ProjectOperationHandoverResponse getDetailResponse(
+            Long handoverId) {
+
+        ProjectOperationHandover handover = getDetail(handoverId);
+
+        return handoverMapper.toResponse(handover);
+    }
+
+    /**
+     * 프로젝트 운영 관계의 전체 인수인계 이력 조회 및 응답 변환
+     */
+    public List<ProjectOperationHandoverResponse> getHistoryResponses(
+            Long projectOperationId) {
+
+        return getHistory(projectOperationId)
+                .stream()
+                .map(handoverMapper::toResponse)
+                .toList();
     }
 
     /**
