@@ -6,6 +6,7 @@ import type { BffSession } from "../../src/auth/session/session.types.js";
 import authRoutes from "../../src/auth/routes/auth.routes.js";
 import projectRoutes from "../../src/project/routes/project.routes.js";
 import projectDetailRoutes from "../../src/project/routes/project-detail.routes.js";
+import projectOperationRoutes from "../../src/project-operation/routes/project-operation.routes.js";
 
 interface TestAppDependencies {
   sessionStore: SessionStore;
@@ -47,6 +48,10 @@ export async function createTestApp(
 
   await app.register(projectDetailRoutes, {
     prefix: "/api/projects",
+  });
+
+  await app.register(projectOperationRoutes, {
+    prefix: "/api/project-operations",
   });
 
   await app.ready();
