@@ -7,6 +7,7 @@ import authRoutes from "../../src/auth/routes/auth.routes.js";
 import projectRoutes from "../../src/project/routes/project.routes.js";
 import projectDetailRoutes from "../../src/project/routes/project-detail.routes.js";
 import projectOperationRoutes from "../../src/project-operation/routes/project-operation.routes.js";
+import projectOperationHandoverRoutes from "../../src/project-operation-handover/routes/project-operation-handover.routes.js";
 
 interface TestAppDependencies {
   sessionStore: SessionStore;
@@ -52,6 +53,10 @@ export async function createTestApp(
 
   await app.register(projectOperationRoutes, {
     prefix: "/api/project-operations",
+  });
+
+  await app.register(projectOperationHandoverRoutes, {
+    prefix: "/api/project-operation-handovers",
   });
 
   await app.ready();

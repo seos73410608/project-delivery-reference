@@ -8,6 +8,7 @@ import { createAuthService } from "./auth/services/auth.service.js";
 import authRoutes from "./auth/routes/auth.routes.js";
 import projectRoutes from "./project/routes/project.routes.js";
 import projectDetailRoutes from "./project/routes/project-detail.routes.js";
+import projectOperationHandoverRoutes from "./project-operation-handover/routes/project-operation-handover.routes.js";
 
 const app = Fastify({
   logger: true,
@@ -51,6 +52,10 @@ async function startServer(): Promise<void> {
 
   await app.register(projectDetailRoutes, {
     prefix: "/api/projects",
+  });
+
+  await app.register(projectOperationHandoverRoutes, {
+    prefix: "/api/project-operation-handovers",
   });
 
   app.get("/health", async () => {
