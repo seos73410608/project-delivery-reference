@@ -30,9 +30,19 @@ export class BackendApiClient {
 
     if (request.query) {
       for (const [key, value] of Object.entries(request.query)) {
-        if (value !== null && value !== undefined) {
-          url.searchParams.set(key, String(value));
+        if (value === null || value === undefined) {
+          continue;
         }
+
+        if (Array.isArray(value)) {
+          for (const item of value) {
+            url.searchParams.append(key, String(item));
+          }
+
+          continue;
+        }
+
+        url.searchParams.set(key, String(value));
       }
     }
 
@@ -64,14 +74,6 @@ export class BackendApiClient {
     }
 
     if (response.status === 204) {
-      if (!response.ok) {
-        throw new BackendApiError(
-          "Backend 요청에 실패했습니다.",
-          "BACKEND_REQUEST_FAILED",
-          response.status,
-        );
-      }
-
       return null;
     }
 

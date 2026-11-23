@@ -19,7 +19,12 @@ export interface BackendApiRequest {
   accessToken: string;
   query?: Record<
     string,
-    string | number | boolean | null | undefined
+    | string
+    | number
+    | boolean
+    | null
+    | undefined
+    | (string | number | boolean)[]
   >;
   body?: unknown;
 }

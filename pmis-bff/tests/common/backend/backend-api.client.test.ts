@@ -55,6 +55,7 @@ describe("BackendApiClient", () => {
           size: 20,
           keyword: "PMIS",
           active: true,
+          sort: ["projectName,asc", "createdAt,desc"],
           ignored: null,
         },
       }),
@@ -70,6 +71,10 @@ describe("BackendApiClient", () => {
     expect(requestUrl.searchParams.get("size")).toBe("20");
     expect(requestUrl.searchParams.get("keyword")).toBe("PMIS");
     expect(requestUrl.searchParams.get("active")).toBe("true");
+    expect(requestUrl.searchParams.getAll("sort")).toEqual([
+      "projectName,asc",
+      "createdAt,desc",
+    ]);
     expect(requestUrl.searchParams.has("ignored")).toBe(false);
 
     expect(options).toMatchObject({
