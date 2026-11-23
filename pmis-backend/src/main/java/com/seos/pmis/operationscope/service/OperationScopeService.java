@@ -4,9 +4,11 @@ package com.seos.pmis.operationscope.service;
 import com.seos.common.exception.BusinessException;
 import com.seos.pmis.operation.entity.Operation;
 import com.seos.pmis.operation.repository.OperationRepository;
+import com.seos.pmis.operationscope.dto.response.OperationScopeResponse;
 import com.seos.pmis.operationscope.entity.OperationScope;
 import com.seos.pmis.operationscope.entity.OperationScopeStatus;
 import com.seos.pmis.operationscope.exception.OperationScopeErrorCode;
+import com.seos.pmis.operationscope.mapper.OperationScopeMapper;
 import com.seos.pmis.operationscope.repository.OperationScopeRepository;
 import com.seos.pmis.requirement.entity.OperationalScope;
 import com.seos.pmis.requirement.repository.OperationalScopeRepository;
@@ -28,6 +30,7 @@ public class OperationScopeService {
     private final OperationScopeRepository operationScopeRepository;
     private final OperationRepository operationRepository;
     private final OperationalScopeRepository operationalScopeRepository;
+    private final OperationScopeMapper operationScopeMapper;
 
     /**
      * 운영 서비스와 운영 범위 연결
@@ -120,6 +123,81 @@ public class OperationScopeService {
 
         return operationScopeRepository
                 .findAllByOperationalScope_Id(operationalScopeId);
+    }
+
+    /**
+     * 운영 서비스와 운영 범위 연결 및 응답 반환
+     */
+    @Transactional
+    public OperationScopeResponse createResponse(
+            Long operationId,
+            Long operationalScopeId,
+            LocalDate effectiveFrom,
+            LocalDate effectiveTo,
+            String description) {
+        return operationScopeMapper.toResponse(
+                create(
+                        operationId,
+                        operationalScopeId,
+                        effectiveFrom,
+                        effectiveTo,
+                        description));
+    }
+
+    /**
+     * 운영 범위 관계 수정 및 응답 반환
+     */
+    @Transactional
+    public OperationScopeResponse updateResponse(
+            Long operationScopeId,
+            LocalDate effectiveFrom,
+            LocalDate effectiveTo,
+            String description) {
+        return operationScopeMapper.toResponse(
+                update(
+                        operationScopeId,
+                        effectiveFrom,
+                        effectiveTo,
+                        description));
+    }
+
+    /**
+     * 운영 범위 관계 상태 변경 및 응답 반환
+     */
+    @Transactional
+    public OperationScopeResponse changeStatusResponse(
+            Long operationScopeId,
+            OperationScopeStatus status) {
+        return operationScopeMapper.toResponse(
+                changeStatus(operationScopeId, status));
+    }
+
+    /**
+     * 운영 범위 관계 단건 조회 및 응답 반환
+     */
+    public OperationScopeResponse getDetailResponse(Long operationScopeId) {
+        return operationScopeMapper.toResponse(
+                getDetail(operationScopeId));
+    }
+
+    /**
+     * 운영 서비스에 연결된 운영 범위 관계 목록 응답 반환
+     */
+    public List<OperationScopeResponse> findResponsesByOperation(
+            Long operationId) {
+        return findByOperation(operationId).stream()
+                .map(operationScopeMapper::toResponse)
+                .toList();
+    }
+
+    /**
+     * 운영 범위에 연결된 운영 서비스 관계 목록 응답 반환
+     */
+    public List<OperationScopeResponse> findResponsesByOperationalScope(
+            Long operationalScopeId) {
+        return findByOperationalScope(operationalScopeId).stream()
+                .map(operationScopeMapper::toResponse)
+                .toList();
     }
 
     /**
