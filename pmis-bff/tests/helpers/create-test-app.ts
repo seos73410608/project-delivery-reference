@@ -26,6 +26,8 @@ export async function createTestApp(
     },
   });
 
+  app.decorateRequest("backendAccessToken", null);
+
   app.decorate("sessionStore", dependencies.sessionStore);
   app.decorate(
     "authService",

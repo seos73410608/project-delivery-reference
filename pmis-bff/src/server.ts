@@ -17,6 +17,8 @@ const app = Fastify({
   },
 });
 
+app.decorateRequest("backendAccessToken", null);
+
 async function startServer(): Promise<void> {
   const sessionStoreRuntime = await createSessionStore((error) => {
     app.log.error(error, "Redis session store error");
