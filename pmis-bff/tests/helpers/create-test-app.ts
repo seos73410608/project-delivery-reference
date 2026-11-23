@@ -1,10 +1,11 @@
-﻿
-import Fastify from "fastify";
+﻿import Fastify from "fastify";
 import cookie from "@fastify/cookie";
 import type { AuthService } from "../../src/auth/services/auth.service.js";
 import type { SessionStore } from "../../src/auth/session/session-store.js";
 import type { BffSession } from "../../src/auth/session/session.types.js";
 import authRoutes from "../../src/auth/routes/auth.routes.js";
+import projectRoutes from "../../src/project/routes/project.routes.js";
+import projectDetailRoutes from "../../src/project/routes/project-detail.routes.js";
 
 interface TestAppDependencies {
   sessionStore: SessionStore;
@@ -35,8 +36,17 @@ export async function createTestApp(
   );
 
   await app.register(cookie);
+
   await app.register(authRoutes, {
     prefix: "/api/auth",
+  });
+
+  await app.register(projectRoutes, {
+    prefix: "/api/projects",
+  });
+
+  await app.register(projectDetailRoutes, {
+    prefix: "/api/projects",
   });
 
   await app.ready();

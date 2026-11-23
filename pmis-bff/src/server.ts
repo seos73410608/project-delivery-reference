@@ -1,5 +1,4 @@
-﻿
-import Fastify from "fastify";
+﻿import Fastify from "fastify";
 import helmet from "@fastify/helmet";
 import cors from "@fastify/cors";
 import cookie from "@fastify/cookie";
@@ -7,6 +6,8 @@ import { env } from "./config/env.js";
 import { createSessionStore } from "./auth/session/session-store-factory.js";
 import { createAuthService } from "./auth/services/auth.service.js";
 import authRoutes from "./auth/routes/auth.routes.js";
+import projectRoutes from "./project/routes/project.routes.js";
+import projectDetailRoutes from "./project/routes/project-detail.routes.js";
 
 const app = Fastify({
   logger: true,
@@ -42,6 +43,14 @@ async function startServer(): Promise<void> {
 
   await app.register(authRoutes, {
     prefix: "/api/auth",
+  });
+
+  await app.register(projectRoutes, {
+    prefix: "/api/projects",
+  });
+
+  await app.register(projectDetailRoutes, {
+    prefix: "/api/projects",
   });
 
   app.get("/health", async () => {
@@ -86,4 +95,3 @@ startServer().catch((error: unknown) => {
   app.log.error(error);
   process.exit(1);
 });
-
