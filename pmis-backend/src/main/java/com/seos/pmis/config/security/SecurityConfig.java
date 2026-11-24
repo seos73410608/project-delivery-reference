@@ -1,3 +1,4 @@
+
 package com.seos.pmis.config.security;
 
 import com.seos.pmis.auth.security.filter.JwtAuthenticationFilter;
@@ -38,7 +39,6 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
-
                 // -----------------------------------------------------------------
                 // CSRF
                 // -----------------------------------------------------------------
@@ -84,9 +84,13 @@ public class SecurityConfig {
                                 "/webjars/**"
                         ).permitAll()
 
-                        // Authentication
-                        .requestMatchers("/api/auth/**")
-                        .permitAll()
+                        // Authentication: 인증 없이 접근 가능한 API만 허용
+                        .requestMatchers(
+                                HttpMethod.POST,
+                                "/api/auth/login",
+                                "/api/auth/login/session-selection",
+                                "/api/auth/refresh"
+                        ).permitAll()
 
                         // Public Test API
                         .requestMatchers(
@@ -108,7 +112,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.OPTIONS, "/**")
                         .permitAll()
 
-                        // Others
+                        // Others (로그아웃 포함)
                         .anyRequest()
                         .authenticated()
                 )
