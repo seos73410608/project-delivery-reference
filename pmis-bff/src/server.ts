@@ -10,6 +10,7 @@ import projectRoutes from "./project/routes/project.routes.js";
 import projectDetailRoutes from "./project/routes/project-detail.routes.js";
 import projectOperationHandoverRoutes from "./project-operation-handover/routes/project-operation-handover.routes.js";
 import operationScopeRoutes from "./operation-scope/routes/operation-scope.routes.js";
+import operationalScopeCiRoutes from "./operational-scope-ci/routes/operational-scope-ci.routes.js";
 
 const app = Fastify({
   logger: true,
@@ -61,6 +62,10 @@ async function startServer(): Promise<void> {
 
   await app.register(operationScopeRoutes, {
     prefix: "/api/operation-scopes",
+  });
+
+  await app.register(operationalScopeCiRoutes, {
+    prefix: "/api/operational-scopes",
   });
 
   app.get("/health", async () => {
