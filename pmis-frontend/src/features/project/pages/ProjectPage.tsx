@@ -1,6 +1,7 @@
 import {
   useCallback,
   useEffect,
+  useRef,
   useState,
 } from 'react';
 
@@ -39,6 +40,14 @@ function ProjectPage() {
    * Router
    */
   const navigate = useNavigate();
+
+
+  /**
+   * 요청 순서 관리
+   *
+   * 가장 최근 요청만 화면 상태를 변경하도록 한다.
+   */
+  const requestSequenceRef = useRef(0);
 
 
   /**
@@ -94,11 +103,18 @@ function ProjectPage() {
 
   /**
    * 프로젝트 목록 조회
+   *
+   * 요청 순번을 이용해 가장 최근 요청만
+   * 화면 상태에 반영한다.
    */
   const fetchProjects = useCallback(
     async (
       params: ProjectSearchParams,
     ) => {
+
+      const requestSequence =
+        ++requestSequenceRef.current;
+
 
       try {
 
@@ -108,6 +124,18 @@ function ProjectPage() {
 
         const response =
           await getProjects(params);
+
+
+        /**
+         * 이후에 시작된 요청이 있다면
+         * 현재 응답은 반영하지 않는다.
+         */
+        if (
+          requestSequence !==
+          requestSequenceRef.current
+        ) {
+          return;
+        }
 
 
         setProjects(
@@ -131,6 +159,18 @@ function ProjectPage() {
 
       } catch (err) {
 
+        /**
+         * 최신 요청이 아닌 경우
+         * 오류도 화면에 반영하지 않는다.
+         */
+        if (
+          requestSequence !==
+          requestSequenceRef.current
+        ) {
+          return;
+        }
+
+
         console.error(
           '프로젝트 목록 조회 실패:',
           err,
@@ -146,7 +186,15 @@ function ProjectPage() {
 
       } finally {
 
-        setLoading(false);
+        /**
+         * 최신 요청만 Loading 상태를 해제한다.
+         */
+        if (
+          requestSequence ===
+          requestSequenceRef.current
+        ) {
+          setLoading(false);
+        }
 
       }
 
@@ -156,13 +204,23 @@ function ProjectPage() {
 
 
   /**
-   * 최초 프로젝트 목록 조회
+   * 최초 프로젝트 목록 조회 및 언마운트 처리
    */
   useEffect(() => {
 
     fetchProjects(
       INITIAL_SEARCH_PARAMS,
     );
+
+
+    return () => {
+
+      /**
+       * 진행 중인 모든 요청을 무효화한다.
+       */
+      requestSequenceRef.current += 1;
+
+    };
 
   }, [fetchProjects]);
 
@@ -215,9 +273,7 @@ function ProjectPage() {
     const newParams:
       ProjectSearchParams = {
         ...params,
-
         page: 0,
-
         size: DEFAULT_PAGE_SIZE,
       };
 
@@ -225,6 +281,9 @@ function ProjectPage() {
     setSearchParams(
       newParams,
     );
+
+
+    setPage(0);
 
 
     fetchProjects(
@@ -242,6 +301,9 @@ function ProjectPage() {
     setSearchParams(
       INITIAL_SEARCH_PARAMS,
     );
+
+
+    setPage(0);
 
 
     fetchProjects(
@@ -269,9 +331,7 @@ function ProjectPage() {
     const newParams:
       ProjectSearchParams = {
         ...searchParams,
-
         page: nextPage,
-
         size: DEFAULT_PAGE_SIZE,
       };
 

@@ -1,3 +1,4 @@
+
 import {
     useEffect,
     useState,
@@ -80,12 +81,6 @@ function ProjectFormPage() {
      * =====================================================
      * Loading
      * =====================================================
-     *
-     * Create:
-     *     false
-     *
-     * Edit:
-     *     Project 상세 조회 중 true
      */
 
     const [
@@ -122,8 +117,6 @@ function ProjectFormPage() {
 
         /**
          * Create mode
-         *
-         * Project 조회가 필요 없다.
          */
 
         if (!isEditMode) {
@@ -252,9 +245,7 @@ function ProjectFormPage() {
         /**
          * 생성 완료
          *
-         * 생성된 프로젝트 상세 페이지로 이동
-         *
-         * /project/{id}
+         * /project/{id}/detail
          */
 
         navigate(
@@ -286,8 +277,6 @@ function ProjectFormPage() {
         /**
          * 수정 완료
          *
-         * 프로젝트 상세 페이지로 이동
-         *
          * /project/{id}/detail
          */
 
@@ -311,7 +300,7 @@ function ProjectFormPage() {
          *
          * /project/{id}/edit
          *     ↓
-         * /project/{id}
+         * /project/{id}/detail
          */
 
         if (
@@ -320,7 +309,7 @@ function ProjectFormPage() {
         ) {
 
             navigate(
-                `/project/${projectId}`,
+                `/project/${projectId}/detail`,
             );
 
             return;
@@ -346,8 +335,6 @@ function ProjectFormPage() {
      * =====================================================
      * Loading
      * =====================================================
-     *
-     * Edit mode에서만 발생한다.
      */
 
     if (

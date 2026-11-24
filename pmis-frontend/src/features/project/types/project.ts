@@ -17,7 +17,7 @@ export interface Project {
   projectName: string;
   customerName: string;
   projectManager: string;
-  description: string;
+  description: string | null;
   startDate: string;
   endDate: string;
   status: ProjectStatus;
@@ -31,7 +31,7 @@ export interface ProjectCreateRequest {
   projectName: string;
   customerName: string;
   projectManager: string;
-  description: string;
+  description?: string;
   startDate: string;
   endDate: string;
   priority: ProjectPriority;
@@ -41,7 +41,7 @@ export interface ProjectUpdateRequest {
   projectName: string;
   customerName: string;
   projectManager: string;
-  description: string;
+  description?: string;
   startDate: string;
   endDate: string;
   status: ProjectStatus;
@@ -52,11 +52,16 @@ export interface ProjectSearchParams {
   projectCode?: string;
   projectName?: string;
   customerName?: string;
+  projectManager?: string;
   status?: ProjectStatus;
   priority?: ProjectPriority;
+  startDateFrom?: string;
+  startDateTo?: string;
+  endDateFrom?: string;
+  endDateTo?: string;
   page?: number;
   size?: number;
-  sort?: string;
+  sort?: string | string[];
 }
 
 /**
