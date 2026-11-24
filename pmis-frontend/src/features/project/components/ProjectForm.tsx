@@ -3,6 +3,10 @@ import {
     useState,
 } from "react";
 
+import {
+    getApiErrorMessage,
+} from "@/api/error";
+
 import type {
     Project,
     ProjectCreateRequest,
@@ -584,10 +588,20 @@ function ProjectForm({
             );
 
 
+            /**
+             * Backend 오류 메시지가 있으면
+             * 해당 메시지를 화면에 표시한다.
+             *
+             * Backend 메시지가 없는 경우
+             * 기본 오류 메시지를 표시한다.
+             */
             setError(
-                isEditMode
-                    ? "프로젝트 수정에 실패했습니다."
-                    : "프로젝트 등록에 실패했습니다.",
+                getApiErrorMessage(
+                    err,
+                    isEditMode
+                        ? "프로젝트 수정에 실패했습니다."
+                        : "프로젝트 등록에 실패했습니다.",
+                ),
             );
 
         } finally {
