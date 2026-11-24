@@ -48,6 +48,52 @@ export class RedisSessionStore implements SessionStore {
     await this.client.del(this.getKey(sessionId));
   }
 
+  async compareAndSet(
+    sessionId: string,
+    expectedAccessToken: string,
+    session: BffSession,
+  ): Promise<boolean> {
+    if (
+      session.sessionId !== sessionId ||
+      session.expiresAt <= Date.now()
+    ) {
+      return false;
+    }
+
+    const key = this.getKey(sessionId);
+    const ttlMilliseconds = session.expiresAt - Date.now();
+
+    const result = await this.client.eval(
+      `
+        local current = redis.call("GET", KEYS[1])
+
+        if not current then
+          return 0
+        end
+
+        local decoded = cjson.decode(current)
+
+        if decoded.accessToken ~= ARGV[1] then
+          return 0
+        end
+
+        redis.call("SET", KEYS[1], ARGV[2], "PX", ARGV[3])
+
+        return 1
+      `,
+      {
+        keys: [key],
+        arguments: [
+          expectedAccessToken,
+          JSON.stringify(session),
+          String(ttlMilliseconds),
+        ],
+      },
+    );
+
+    return result === 1;
+  }
+
   private getKey(sessionId: string): string {
     return `${this.keyPrefix}${sessionId}`;
   }

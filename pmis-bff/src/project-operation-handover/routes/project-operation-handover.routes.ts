@@ -78,6 +78,7 @@ export default async function projectOperationHandoverRoutes(
         const data = await projectOperationHandoverService.createInitial(
           accessToken,
           request.body,
+          request.backendAuthContext ?? undefined,
         );
 
         return reply.status(201).send({
@@ -115,6 +116,7 @@ export default async function projectOperationHandoverRoutes(
           await projectOperationHandoverService.createOperatorChange(
             accessToken,
             request.body,
+            request.backendAuthContext ?? undefined,
           );
 
         return reply.status(201).send({
@@ -151,6 +153,7 @@ export default async function projectOperationHandoverRoutes(
         const data = await projectOperationHandoverService.createReHandover(
           accessToken,
           request.body,
+          request.backendAuthContext ?? undefined,
         );
 
         return reply.status(201).send({
@@ -187,6 +190,7 @@ export default async function projectOperationHandoverRoutes(
         const data = await projectOperationHandoverService.getById(
           accessToken,
           request.params.id,
+          request.backendAuthContext ?? undefined,
         );
 
         return reply.send({
@@ -224,6 +228,7 @@ export default async function projectOperationHandoverRoutes(
           await projectOperationHandoverService.getByProjectOperation(
             accessToken,
             request.params.projectOperationId,
+            request.backendAuthContext ?? undefined,
           );
 
         return reply.send({
@@ -260,6 +265,7 @@ export default async function projectOperationHandoverRoutes(
         const data = await projectOperationHandoverService.request(
           accessToken,
           request.params.id,
+          request.backendAuthContext ?? undefined,
         );
 
         return reply.send({
@@ -296,6 +302,7 @@ export default async function projectOperationHandoverRoutes(
         const data = await projectOperationHandoverService.start(
           accessToken,
           request.params.id,
+          request.backendAuthContext ?? undefined,
         );
 
         return reply.send({
@@ -333,6 +340,7 @@ export default async function projectOperationHandoverRoutes(
           await projectOperationHandoverService.submitForReview(
             accessToken,
             request.params.id,
+            request.backendAuthContext ?? undefined,
           );
 
         return reply.send({
@@ -369,6 +377,7 @@ export default async function projectOperationHandoverRoutes(
         const data = await projectOperationHandoverService.accept(
           accessToken,
           request.params.id,
+          request.backendAuthContext ?? undefined,
         );
 
         return reply.send({
@@ -405,6 +414,7 @@ export default async function projectOperationHandoverRoutes(
         const data = await projectOperationHandoverService.complete(
           accessToken,
           request.params.id,
+          request.backendAuthContext ?? undefined,
         );
 
         return reply.send({
@@ -441,6 +451,7 @@ export default async function projectOperationHandoverRoutes(
         const data = await projectOperationHandoverService.reject(
           accessToken,
           request.params.id,
+          request.backendAuthContext ?? undefined,
         );
 
         return reply.send({
@@ -477,6 +488,7 @@ export default async function projectOperationHandoverRoutes(
         const data = await projectOperationHandoverService.cancel(
           accessToken,
           request.params.id,
+          request.backendAuthContext ?? undefined,
         );
 
         return reply.send({

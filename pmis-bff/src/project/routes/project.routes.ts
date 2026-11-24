@@ -1,4 +1,3 @@
-
 import type {
   FastifyInstance,
   FastifyReply,
@@ -81,6 +80,7 @@ export default async function projectRoutes(
         const data = await projectService.createProject(
           accessToken,
           request.body,
+          request.backendAuthContext ?? undefined,
         );
 
         return reply.status(201).send({
@@ -117,6 +117,7 @@ export default async function projectRoutes(
         const data = await projectService.searchProjects(
           accessToken,
           request.query,
+          request.backendAuthContext ?? undefined,
         );
 
         return reply.send({
@@ -158,6 +159,7 @@ export default async function projectRoutes(
           accessToken,
           request.params.projectId,
           request.body,
+          request.backendAuthContext ?? undefined,
         );
 
         return reply.send({
@@ -194,6 +196,7 @@ export default async function projectRoutes(
         const data = await projectService.deleteProject(
           accessToken,
           request.params.projectId,
+          request.backendAuthContext ?? undefined,
         );
 
         return reply.send({

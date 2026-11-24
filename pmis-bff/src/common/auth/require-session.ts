@@ -3,11 +3,14 @@ import type {
   FastifyRequest,
   preHandlerHookHandler,
 } from "fastify";
+import type { BackendApiAuthContext } from "../backend/backend-api.types.js";
 import { SESSION_COOKIE_NAME } from "../../auth/session/session-cookie.js";
 
 declare module "fastify" {
   interface FastifyRequest {
     backendAccessToken: string | null;
+    backendSessionId: string | null;
+    backendAuthContext: BackendApiAuthContext | null;
   }
 }
 
@@ -39,6 +42,18 @@ export const requireSession: preHandlerHookHandler = async (
     }
 
     request.backendAccessToken = session.accessToken;
+    request.backendSessionId = sessionId;
+    request.backendAuthContext = {
+      refreshAccessToken: async (rejectedAccessToken: string) => {
+        const refreshedSession =
+          await request.server.authService.refreshAccessToken(
+            sessionId,
+            rejectedAccessToken,
+          );
+
+        return refreshedSession.accessToken;
+      },
+    };
   } catch {
     reply.status(500).send({
       success: false,

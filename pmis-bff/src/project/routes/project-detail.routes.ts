@@ -1,4 +1,3 @@
-
 import type {
   FastifyInstance,
 } from "fastify";
@@ -39,6 +38,7 @@ export default async function projectDetailRoutes(
           await projectService.getProjectDetail(
             accessToken,
             request.params.projectId,
+            request.backendAuthContext ?? undefined,
           );
 
         return reply.send({

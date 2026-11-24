@@ -1,3 +1,4 @@
+
 import type {
   FastifyInstance,
   FastifyReply,
@@ -83,6 +84,7 @@ export default async function projectOperationRoutes(
         const data = await projectOperationService.createProjectOperation(
           accessToken,
           request.body,
+          request.backendAuthContext ?? undefined,
         );
 
         return reply.status(201).send({
@@ -119,6 +121,7 @@ export default async function projectOperationRoutes(
         const data = await projectOperationService.getProjectOperation(
           accessToken,
           request.params.id,
+          request.backendAuthContext ?? undefined,
         );
 
         return reply.send({
@@ -160,6 +163,7 @@ export default async function projectOperationRoutes(
           accessToken,
           request.params.id,
           request.body,
+          request.backendAuthContext ?? undefined,
         );
 
         return reply.send({
@@ -202,6 +206,7 @@ export default async function projectOperationRoutes(
             accessToken,
             request.params.id,
             request.body,
+            request.backendAuthContext ?? undefined,
           );
 
         return reply.send({
@@ -239,6 +244,7 @@ export default async function projectOperationRoutes(
           await projectOperationService.findProjectOperationsByProject(
             accessToken,
             request.params.projectId,
+            request.backendAuthContext ?? undefined,
           );
 
         return reply.send({
@@ -276,6 +282,7 @@ export default async function projectOperationRoutes(
           await projectOperationService.findProjectOperationsByOperation(
             accessToken,
             request.params.operationId,
+            request.backendAuthContext ?? undefined,
           );
 
         return reply.send({

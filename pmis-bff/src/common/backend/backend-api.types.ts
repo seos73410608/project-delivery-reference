@@ -13,10 +13,17 @@ export type BackendHttpMethod =
   | "PATCH"
   | "DELETE";
 
+export interface BackendApiAuthContext {
+  refreshAccessToken: (
+    rejectedAccessToken: string,
+  ) => Promise<string>;
+}
+
 export interface BackendApiRequest {
   method: BackendHttpMethod;
   path: string;
   accessToken: string;
+  authContext?: BackendApiAuthContext;
   query?: Record<
     string,
     | string

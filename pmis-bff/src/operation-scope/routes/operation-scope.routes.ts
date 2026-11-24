@@ -1,3 +1,4 @@
+
 import type {
   FastifyInstance,
   FastifyReply,
@@ -83,6 +84,7 @@ export default async function operationScopeRoutes(
         const data = await operationScopeService.createOperationScope(
           accessToken,
           request.body,
+          request.backendAuthContext ?? undefined,
         );
 
         return reply.status(201).send({
@@ -120,6 +122,7 @@ export default async function operationScopeRoutes(
           await operationScopeService.findOperationScopesByOperation(
             accessToken,
             request.params.operationId,
+            request.backendAuthContext ?? undefined,
           );
 
         return reply.send({
@@ -157,6 +160,7 @@ export default async function operationScopeRoutes(
           await operationScopeService.findOperationScopesByOperationalScope(
             accessToken,
             request.params.operationalScopeId,
+            request.backendAuthContext ?? undefined,
           );
 
         return reply.send({
@@ -193,6 +197,7 @@ export default async function operationScopeRoutes(
         const data = await operationScopeService.getOperationScope(
           accessToken,
           request.params.id,
+          request.backendAuthContext ?? undefined,
         );
 
         return reply.send({
@@ -234,6 +239,7 @@ export default async function operationScopeRoutes(
           accessToken,
           request.params.id,
           request.body,
+          request.backendAuthContext ?? undefined,
         );
 
         return reply.send({
@@ -275,6 +281,7 @@ export default async function operationScopeRoutes(
           accessToken,
           request.params.id,
           request.body,
+          request.backendAuthContext ?? undefined,
         );
 
         return reply.send({

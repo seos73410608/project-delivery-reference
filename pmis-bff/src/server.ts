@@ -23,6 +23,8 @@ const app = Fastify({
 });
 
 app.decorateRequest("backendAccessToken", null);
+app.decorateRequest("backendSessionId", null);
+app.decorateRequest("backendAuthContext", null);
 
 async function startServer(): Promise<void> {
   const sessionStoreRuntime = await createSessionStore((error) => {

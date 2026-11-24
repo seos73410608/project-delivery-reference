@@ -1,5 +1,4 @@
-﻿
-import { randomUUID } from "node:crypto";
+﻿import { randomUUID } from "node:crypto";
 import {
   backendAuthService,
   type BackendLoginRequest,
@@ -37,6 +36,11 @@ export class AuthServiceError extends Error {
 }
 
 export class AuthService {
+  private readonly refreshPromises = new Map<
+    string,
+    Promise<BffSession>
+  >();
+
   constructor(
     private readonly sessionStore: SessionStore,
   ) {}
@@ -56,6 +60,17 @@ export class AuthService {
   }
 
   async refresh(sessionId: string): Promise<BffSession> {
+    return this.refreshSession(sessionId);
+  }
+
+  async refreshAccessToken(
+    sessionId: string,
+    rejectedAccessToken: string,
+  ): Promise<BffSession> {
+    return this.refreshSession(sessionId, rejectedAccessToken);
+  }
+
+  async logout(sessionId: string): Promise<void> {
     const session = await this.sessionStore.get(sessionId);
 
     if (!session) {
@@ -64,6 +79,65 @@ export class AuthService {
         "UNAUTHORIZED",
         401,
       );
+    }
+
+    await backendAuthService.logout(session.accessToken);
+
+    await this.sessionStore.delete(sessionId);
+  }
+
+  private refreshSession(
+    sessionId: string,
+    rejectedAccessToken?: string,
+  ): Promise<BffSession> {
+    const existingPromise = this.refreshPromises.get(sessionId);
+
+    if (existingPromise) {
+      return existingPromise;
+    }
+
+    const refreshPromise = this.performRefresh(
+      sessionId,
+      rejectedAccessToken,
+    );
+
+    this.refreshPromises.set(sessionId, refreshPromise);
+
+    void refreshPromise.then(
+      () => {
+        if (this.refreshPromises.get(sessionId) === refreshPromise) {
+          this.refreshPromises.delete(sessionId);
+        }
+      },
+      () => {
+        if (this.refreshPromises.get(sessionId) === refreshPromise) {
+          this.refreshPromises.delete(sessionId);
+        }
+      },
+    );
+
+    return refreshPromise;
+  }
+
+  private async performRefresh(
+    sessionId: string,
+    rejectedAccessToken?: string,
+  ): Promise<BffSession> {
+    const session = await this.sessionStore.get(sessionId);
+
+    if (!session) {
+      throw new AuthServiceError(
+        "세션이 유효하지 않거나 만료되었습니다.",
+        "UNAUTHORIZED",
+        401,
+      );
+    }
+
+    if (
+      rejectedAccessToken !== undefined &&
+      session.accessToken !== rejectedAccessToken
+    ) {
+      return session;
     }
 
     const response = await backendAuthService.refresh({
@@ -114,25 +188,35 @@ export class AuthService {
       updatedAt: now,
     };
 
-    await this.sessionStore.set(refreshedSession);
+    const updated = await this.sessionStore.compareAndSet(
+      sessionId,
+      session.accessToken,
+      refreshedSession,
+    );
 
-    return refreshedSession;
-  }
+    if (updated) {
+      return refreshedSession;
+    }
 
-  async logout(sessionId: string): Promise<void> {
-    const session = await this.sessionStore.get(sessionId);
+    const currentSession = await this.sessionStore.get(sessionId);
 
-    if (!session) {
+    if (!currentSession) {
       throw new AuthServiceError(
-        "세션이 유효하지 않거나 만료되었습니다.",
+        "세션이 갱신되기 전에 종료되었습니다.",
         "UNAUTHORIZED",
         401,
       );
     }
 
-    await backendAuthService.logout(session.accessToken);
+    if (currentSession.accessToken !== session.accessToken) {
+      return currentSession;
+    }
 
-    await this.sessionStore.delete(sessionId);
+    throw new AuthServiceError(
+      "세션 갱신 결과를 저장하지 못했습니다.",
+      "SESSION_REFRESH_CONFLICT",
+      409,
+    );
   }
 
   private async processLoginResponse(

@@ -16,6 +16,10 @@ interface TestAppDependencies {
   sessionStore: SessionStore;
   authService: Pick<AuthService, "login" | "completeSessionSelection"> & {
     refresh?: (sessionId: string) => Promise<BffSession>;
+    refreshAccessToken?: (
+      sessionId: string,
+      rejectedAccessToken: string,
+    ) => Promise<BffSession>;
     logout?: (sessionId: string) => Promise<void>;
   };
 }
@@ -33,6 +37,8 @@ export async function createTestApp(
   });
 
   app.decorateRequest("backendAccessToken", null);
+  app.decorateRequest("backendSessionId", null);
+  app.decorateRequest("backendAuthContext", null);
 
   app.decorate("sessionStore", dependencies.sessionStore);
   app.decorate(

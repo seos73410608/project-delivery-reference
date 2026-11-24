@@ -16,6 +16,7 @@ describe("BackendApiClient", () => {
   let fetchMock: ReturnType<typeof vi.fn>;
 
   const accessToken = "test-access-token";
+  const refreshedAccessToken = "refreshed-access-token";
 
   beforeEach(() => {
     backendApiClient = new BackendApiClient();
@@ -241,5 +242,186 @@ describe("BackendApiClient", () => {
       code: "INVALID_BACKEND_RESPONSE",
       statusCode: 502,
     });
+  });
+
+  it("401 응답이면 Access Token 갱신 후 원래 요청을 재시도한다", async () => {
+    const refreshAccessToken = vi.fn()
+      .mockResolvedValue(refreshedAccessToken);
+
+    fetchMock
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            success: false,
+            code: "AUTH_001",
+            message: "인증이 만료되었습니다.",
+            data: null,
+          }),
+          {
+            status: 401,
+            headers: {
+              "Content-Type": "application/json",
+            },
+          },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            success: true,
+            code: "SUCCESS",
+            data: [{ projectId: 1 }],
+          }),
+          {
+            status: 200,
+            headers: {
+              "Content-Type": "application/json",
+            },
+          },
+        ),
+      );
+
+    await expect(
+      backendApiClient.request({
+        method: "GET",
+        path: "/api/projects",
+        accessToken,
+        authContext: {
+          refreshAccessToken,
+        },
+      }),
+    ).resolves.toEqual([{ projectId: 1 }]);
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(refreshAccessToken).toHaveBeenCalledOnce();
+    expect(refreshAccessToken).toHaveBeenCalledWith(accessToken);
+
+    const [, firstOptions] = fetchMock.mock.calls[0];
+    const [, retryOptions] = fetchMock.mock.calls[1];
+
+    expect(firstOptions.headers.Authorization)
+      .toBe(`Bearer ${accessToken}`);
+
+    expect(retryOptions.headers.Authorization)
+      .toBe(`Bearer ${refreshedAccessToken}`);
+  });
+
+  it("Access Token 갱신 실패 시 갱신 오류를 전달한다", async () => {
+    const refreshError = new Error("Token refresh failed");
+
+    const refreshAccessToken = vi.fn()
+      .mockRejectedValue(refreshError);
+
+    fetchMock.mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          success: false,
+          code: "AUTH_001",
+          message: "인증이 만료되었습니다.",
+          data: null,
+        }),
+        {
+          status: 401,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      ),
+    );
+
+    await expect(
+      backendApiClient.request({
+        method: "GET",
+        path: "/api/projects",
+        accessToken,
+        authContext: {
+          refreshAccessToken,
+        },
+      }),
+    ).rejects.toBe(refreshError);
+
+    expect(fetchMock).toHaveBeenCalledOnce();
+    expect(refreshAccessToken).toHaveBeenCalledOnce();
+  });
+
+  it("재시도 요청에서도 401이면 추가 갱신 없이 종료한다", async () => {
+    const refreshAccessToken = vi.fn()
+      .mockResolvedValue(refreshedAccessToken);
+
+    const unauthorizedResponse = () =>
+      new Response(
+        JSON.stringify({
+          success: false,
+          code: "AUTH_001",
+          message: "인증이 만료되었습니다.",
+          data: null,
+        }),
+        {
+          status: 401,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      );
+
+    fetchMock
+      .mockResolvedValueOnce(unauthorizedResponse())
+      .mockResolvedValueOnce(unauthorizedResponse());
+
+    await expect(
+      backendApiClient.request({
+        method: "GET",
+        path: "/api/projects",
+        accessToken,
+        authContext: {
+          refreshAccessToken,
+        },
+      }),
+    ).rejects.toMatchObject({
+      code: "AUTH_001",
+      statusCode: 401,
+    });
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(refreshAccessToken).toHaveBeenCalledOnce();
+  });
+
+  it("403 응답이면 Access Token 갱신을 시도하지 않는다", async () => {
+    const refreshAccessToken = vi.fn()
+      .mockResolvedValue(refreshedAccessToken);
+
+    fetchMock.mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          success: false,
+          code: "AUTH_002",
+          message: "접근 권한이 없습니다.",
+          data: null,
+        }),
+        {
+          status: 403,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      ),
+    );
+
+    await expect(
+      backendApiClient.request({
+        method: "DELETE",
+        path: "/api/projects/1",
+        accessToken,
+        authContext: {
+          refreshAccessToken,
+        },
+      }),
+    ).rejects.toMatchObject({
+      code: "AUTH_002",
+      statusCode: 403,
+    });
+
+    expect(fetchMock).toHaveBeenCalledOnce();
+    expect(refreshAccessToken).not.toHaveBeenCalled();
   });
 });

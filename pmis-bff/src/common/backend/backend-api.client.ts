@@ -23,6 +23,36 @@ export class BackendApiClient {
   async request<T>(
     request: BackendApiRequest,
   ): Promise<T | null> {
+    try {
+      return await this.requestOnce<T>(
+        request,
+        request.accessToken,
+      );
+    } catch (error) {
+      if (
+        !(error instanceof BackendApiError) ||
+        error.statusCode !== 401 ||
+        !request.authContext
+      ) {
+        throw error;
+      }
+
+      const refreshedAccessToken =
+        await request.authContext.refreshAccessToken(
+          request.accessToken,
+        );
+
+      return this.requestOnce<T>(
+        request,
+        refreshedAccessToken,
+      );
+    }
+  }
+
+  private async requestOnce<T>(
+    request: BackendApiRequest,
+    accessToken: string,
+  ): Promise<T | null> {
     const url = new URL(
       request.path.replace(/^\/+/, ""),
       `${this.baseUrl}/`,
@@ -47,7 +77,7 @@ export class BackendApiClient {
     }
 
     const headers: Record<string, string> = {
-      Authorization: `Bearer ${request.accessToken}`,
+      Authorization: `Bearer ${accessToken}`,
       Accept: "application/json",
     };
 

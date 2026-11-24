@@ -74,6 +74,7 @@ export default async function operationalScopeRoutes(
         const data = await operationalScopeService.createOperationalScope(
           accessToken,
           request.body,
+          request.backendAuthContext ?? undefined,
         );
 
         return reply.status(201).send({
@@ -110,6 +111,7 @@ export default async function operationalScopeRoutes(
         const data = await operationalScopeService.searchOperationalScopes(
           accessToken,
           request.query,
+          request.backendAuthContext ?? undefined,
         );
 
         return reply.send({
@@ -146,6 +148,7 @@ export default async function operationalScopeRoutes(
         const data = await operationalScopeService.getOperationalScope(
           accessToken,
           request.params.id,
+          request.backendAuthContext ?? undefined,
         );
 
         return reply.send({
@@ -187,6 +190,7 @@ export default async function operationalScopeRoutes(
           accessToken,
           request.params.id,
           request.body,
+          request.backendAuthContext ?? undefined,
         );
 
         return reply.send({

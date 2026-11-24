@@ -26,4 +26,28 @@ export class MemorySessionStore implements SessionStore {
   async delete(sessionId: string): Promise<void> {
     this.sessions.delete(sessionId);
   }
+
+  async compareAndSet(
+    sessionId: string,
+    expectedAccessToken: string,
+    session: BffSession,
+  ): Promise<boolean> {
+    const currentSession = await this.get(sessionId);
+
+    if (
+      !currentSession ||
+      currentSession.accessToken !== expectedAccessToken ||
+      session.sessionId !== sessionId
+    ) {
+      return false;
+    }
+
+    if (session.expiresAt <= Date.now()) {
+      return false;
+    }
+
+    this.sessions.set(sessionId, session);
+
+    return true;
+  }
 }

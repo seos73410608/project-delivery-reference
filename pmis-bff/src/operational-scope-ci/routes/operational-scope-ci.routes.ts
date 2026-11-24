@@ -73,6 +73,7 @@ export default async function operationalScopeCiRoutes(
           accessToken,
           request.params.scopeId,
           request.params.ciId,
+          request.backendAuthContext ?? undefined,
         );
 
         return reply.status(201).send({
@@ -109,6 +110,7 @@ export default async function operationalScopeCiRoutes(
         const data = await operationalScopeCiService.getAll(
           accessToken,
           request.params.scopeId,
+          request.backendAuthContext ?? undefined,
         );
 
         return reply.send({
@@ -146,6 +148,7 @@ export default async function operationalScopeCiRoutes(
           accessToken,
           request.params.scopeId,
           request.params.ciId,
+          request.backendAuthContext ?? undefined,
         );
 
         return reply.send({
@@ -183,6 +186,7 @@ export default async function operationalScopeCiRoutes(
           accessToken,
           request.params.scopeId,
           request.params.ciId,
+          request.backendAuthContext ?? undefined,
         );
 
         return reply.send({
