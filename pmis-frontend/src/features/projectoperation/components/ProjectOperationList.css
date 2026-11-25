@@ -1,0 +1,231 @@
+
+/* ========================================
+   Project Operation List
+   ======================================== */
+
+.project-operation-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+/* ========================================
+   Header
+   ======================================== */
+
+.project-operation-list__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.project-operation-list__section-label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--color-text-tertiary);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.project-operation-list__header h3 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  color: var(--color-text-primary);
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.project-operation-list__header p {
+  margin: 8px 0 0;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.project-operation-list__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 7px;
+  border-radius: 12px;
+  background: var(--color-bg-secondary);
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.project-operation-list__header .button {
+  flex-shrink: 0;
+}
+
+/* ========================================
+   States
+   ======================================== */
+
+.project-operation-list__state,
+.project-operation-list__empty,
+.project-operation-list__error {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 28px 20px;
+  border: 1px solid var(--color-border-light);
+  border-radius: 8px;
+  background: var(--color-bg-primary);
+  color: var(--color-text-secondary);
+  text-align: center;
+  font-size: 13px;
+}
+
+.project-operation-list__empty strong {
+  color: var(--color-text-primary);
+  font-size: 14px;
+}
+
+.project-operation-list__error {
+  border-color: #fecaca;
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+/* ========================================
+   List
+   ======================================== */
+
+.project-operation-list__items {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ========================================
+   Item
+   ======================================== */
+
+.project-operation-item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 20px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-bg-primary);
+}
+
+.project-operation-item__main {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.project-operation-item__heading {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.project-operation-item__code {
+  color: var(--color-text-tertiary);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.project-operation-item h4 {
+  margin: 0;
+  color: var(--color-text-primary);
+  font-size: 16px;
+  font-weight: 700;
+  word-break: break-word;
+}
+
+/* ========================================
+   Metadata
+   ======================================== */
+
+.project-operation-item__metadata {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+}
+
+.project-operation-item__period {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+}
+
+.project-operation-item__period strong {
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+
+.project-operation-item__description {
+  margin: 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--color-border-light);
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* ========================================
+   Actions
+   ======================================== */
+
+.project-operation-item__actions {
+  display: flex;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ========================================
+   Responsive
+   ======================================== */
+
+@media (max-width: 768px) {
+  .project-operation-item {
+    flex-direction: column;
+    gap: 16px;
+    padding: 16px;
+  }
+
+  .project-operation-item__actions {
+    width: 100%;
+    padding-top: 12px;
+    border-top: 1px solid var(--color-border-light);
+  }
+}
+
+@media (max-width: 480px) {
+  .project-operation-list__header {
+    flex-direction: column;
+  }
+
+  .project-operation-list__header .button {
+    width: 100%;
+  }
+
+  .project-operation-item__actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
