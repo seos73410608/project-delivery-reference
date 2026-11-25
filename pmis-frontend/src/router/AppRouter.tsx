@@ -1,4 +1,3 @@
-
 import {
   BrowserRouter,
   Routes,
@@ -22,6 +21,8 @@ import ProjectDetailPage from "../features/project/pages/ProjectDetailPage";
 import ProjectFormPage from "../features/project/pages/ProjectFormPage";
 
 import OperationPage from "../features/operation/pages/OperationPage";
+import OperationFormPage from "../features/operation/pages/OperationFormPage";
+import OperationDetailPage from "../features/operation/pages/OperationDetailPage";
 
 import SchedulePage from "../features/schedule/SchedulePage";
 
@@ -60,6 +61,9 @@ import RuntimeExecutionFilesPage from "../features/runtime/pages/RuntimeExecutio
  * - /project/:projectId/detail     Project Detail
  * - /project/:projectId/edit       Project Edit
  * - /operation                     Operation List
+ * - /operation/create              Operation Create
+ * - /operation/:operationId/detail Operation Detail
+ * - /operation/:operationId/edit   Operation Edit
  * - /schedule                      Schedule
  * - /task                          Task Management
  * - /issue                         Issue
@@ -213,6 +217,42 @@ function AppRouter() {
               path="/operation"
               element={
                 <OperationPage />
+              }
+            />
+
+
+            {/* =========================================
+                Operation Create
+                ========================================= */}
+
+            <Route
+              path="/operation/create"
+              element={
+                <OperationFormPage />
+              }
+            />
+
+
+            {/* =========================================
+                Operation Detail
+                ========================================= */}
+
+            <Route
+              path="/operation/:operationId/detail"
+              element={
+                <OperationDetailPage />
+              }
+            />
+
+
+            {/* =========================================
+                Operation Edit
+                ========================================= */}
+
+            <Route
+              path="/operation/:operationId/edit"
+              element={
+                <OperationFormPage />
               }
             />
 

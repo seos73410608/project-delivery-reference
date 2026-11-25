@@ -1,0 +1,78 @@
+/* =========================================================
+   Operation Form Page
+   ========================================================= */
+
+.operation-form-page {
+    width: 100%;
+    padding: 24px;
+    box-sizing: border-box;
+}
+
+.operation-form-page-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.operation-form-page-heading h1 {
+    margin: 0 0 8px;
+    color: #111827;
+    font-size: 24px;
+    font-weight: 700;
+}
+
+.operation-form-page-heading p {
+    margin: 0;
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.operation-form-page-state {
+    padding: 48px 24px;
+    color: #6b7280;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.operation-form-page-error {
+    padding: 24px;
+    color: #b91c1c;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+}
+
+.operation-form-page-error p {
+    margin: 0 0 12px;
+    line-height: 1.5;
+}
+
+.operation-form-page-error .button {
+    margin-top: 12px;
+}
+
+.operation-form-page>.button {
+    margin-top: 16px;
+}
+
+
+/* ---------------------------------------------------------
+   Responsive
+   --------------------------------------------------------- */
+
+@media (max-width: 640px) {
+
+    .operation-form-page {
+        padding: 16px;
+    }
+
+    .operation-form-page-heading {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+}

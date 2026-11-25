@@ -1,0 +1,156 @@
+/* =========================================================
+   Operation Detail
+   ========================================================= */
+
+.operation-detail {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
+}
+
+.operation-detail-card {
+    padding: 24px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    box-sizing: border-box;
+}
+
+.operation-detail-summary {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.operation-detail-title {
+    min-width: 0;
+}
+
+.operation-detail-code {
+    margin-bottom: 8px;
+    color: #6b7280;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+}
+
+.operation-detail-title h2 {
+    margin: 0;
+    color: #111827;
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+}
+
+.operation-detail-title p {
+    margin: 8px 0 0;
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.operation-detail-status {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.operation-detail-status--planned {
+    color: #92400e;
+    background: #fef3c7;
+}
+
+.operation-detail-status--active {
+    color: #166534;
+    background: #dcfce7;
+}
+
+.operation-detail-status--suspended {
+    color: #9a3412;
+    background: #ffedd5;
+}
+
+.operation-detail-status--closed {
+    color: #4b5563;
+    background: #f3f4f6;
+}
+
+.operation-detail-description {
+    margin-top: 24px;
+    padding-top: 20px;
+    color: #4b5563;
+    border-top: 1px solid #e5e7eb;
+    font-size: 14px;
+    line-height: 1.7;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.operation-detail-section-title {
+    margin: 0 0 22px;
+    padding-bottom: 14px;
+    color: #111827;
+    border-bottom: 1px solid #e5e7eb;
+    font-size: 17px;
+    font-weight: 700;
+}
+
+.operation-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px 32px;
+}
+
+.operation-detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+}
+
+.operation-detail-label {
+    color: #6b7280;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.operation-detail-value {
+    color: #111827;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+
+/* ---------------------------------------------------------
+   Responsive
+   --------------------------------------------------------- */
+
+@media (max-width: 640px) {
+
+    .operation-detail-card {
+        padding: 18px;
+    }
+
+    .operation-detail-summary {
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    .operation-detail-title h2 {
+        font-size: 20px;
+    }
+
+    .operation-detail-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+}
