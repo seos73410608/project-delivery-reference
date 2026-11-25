@@ -11,6 +11,7 @@ import projectOperationHandoverRoutes from "../../src/project-operation-handover
 import operationScopeRoutes from "../../src/operation-scope/routes/operation-scope.routes.js";
 import operationalScopeCiRoutes from "../../src/operational-scope-ci/routes/operational-scope-ci.routes.js";
 import operationalScopeRoutes from "../../src/operational-scope/routes/operational-scope.routes.js";
+import operationParticipantRoutes from "../../src/operation/routes/operation-participant.routes.js";
 
 interface TestAppDependencies {
   sessionStore: SessionStore;
@@ -78,6 +79,10 @@ export async function createTestApp(
 
   await app.register(operationalScopeRoutes, {
     prefix: "/api/operational-scopes",
+  });
+
+  await app.register(operationParticipantRoutes, {
+    prefix: "/api/operations",
   });
 
   await app.ready();
