@@ -21,6 +21,8 @@ import ProjectPage from "../features/project/pages/ProjectPage";
 import ProjectDetailPage from "../features/project/pages/ProjectDetailPage";
 import ProjectFormPage from "../features/project/pages/ProjectFormPage";
 
+import OperationPage from "../features/operation/pages/OperationPage";
+
 import SchedulePage from "../features/schedule/SchedulePage";
 
 import TaskPage from "../features/task/pages/TaskPage";
@@ -57,6 +59,7 @@ import RuntimeExecutionFilesPage from "../features/runtime/pages/RuntimeExecutio
  * - /project/create                Project Create
  * - /project/:projectId/detail     Project Detail
  * - /project/:projectId/edit       Project Edit
+ * - /operation                     Operation List
  * - /schedule                      Schedule
  * - /task                          Task Management
  * - /issue                         Issue
@@ -198,6 +201,18 @@ function AppRouter() {
               path="/project/:projectId/edit"
               element={
                 <ProjectFormPage />
+              }
+            />
+
+
+            {/* =========================================
+                Operation List
+                ========================================= */}
+
+            <Route
+              path="/operation"
+              element={
+                <OperationPage />
               }
             />
 

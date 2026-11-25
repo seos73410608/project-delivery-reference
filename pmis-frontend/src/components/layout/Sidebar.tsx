@@ -1,3 +1,4 @@
+
 import { NavLink } from "react-router-dom";
 
 
@@ -15,6 +16,10 @@ const menuItems: MenuItem[] = [
   {
     label: "Project",
     path: "/project",
+  },
+  {
+    label: "Operation",
+    path: "/operation",
   },
   {
     label: "WBS",
