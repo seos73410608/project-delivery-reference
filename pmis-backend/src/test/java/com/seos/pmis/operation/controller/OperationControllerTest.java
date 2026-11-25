@@ -9,10 +9,13 @@ import com.seos.pmis.auth.security.jwt.JwtProvider;
 import com.seos.pmis.auth.service.CustomUserDetailsService;
 import com.seos.pmis.auth.service.UserSessionService;
 import com.seos.pmis.config.security.SecurityConfig;
+import com.seos.pmis.operation.dto.response.OperationParticipantResponse;
 import com.seos.pmis.operation.dto.response.OperationResponse;
+import com.seos.pmis.operation.entity.OperationParticipantRole;
 import com.seos.pmis.operation.entity.OperationStatus;
 import com.seos.pmis.operation.entity.OperationType;
 import com.seos.pmis.operation.exception.OperationErrorCode;
+import com.seos.pmis.operation.service.OperationParticipantService;
 import com.seos.pmis.operation.service.OperationService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -30,7 +33,6 @@ import java.util.List;
 
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
-import static org.mockito.Mockito.never;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -53,6 +55,9 @@ class OperationControllerTest {
 
     @MockitoBean
     private OperationService operationService;
+
+    @MockitoBean
+    private OperationParticipantService participantService;
 
     @MockitoBean
     private JwtProvider jwtProvider;
@@ -79,6 +84,28 @@ class OperationControllerTest {
                 .effectiveTo(LocalDate.of(2026, 12, 31))
                 .createdAt(LocalDateTime.of(2026, 11, 23, 9, 0))
                 .updatedAt(LocalDateTime.of(2026, 11, 23, 9, 0))
+                .build();
+    }
+
+    private OperationParticipantResponse createParticipantResponse() {
+        return OperationParticipantResponse.builder()
+                .id(100L)
+                .role(OperationParticipantRole.OPERATOR)
+                .primary(true)
+                .company(
+                        OperationParticipantResponse.CompanySummary.builder()
+                                .id(10L)
+                                .companyCode("COMP-001")
+                                .companyName("운영 회사")
+                                .build()
+                )
+                .organization(
+                        OperationParticipantResponse.OrganizationSummary.builder()
+                                .id(20L)
+                                .organizationCode("ORG-001")
+                                .organizationName("운영 조직")
+                                .build()
+                )
                 .build();
     }
 
@@ -253,6 +280,113 @@ class OperationControllerTest {
                 .andExpect(jsonPath("$.code").value("PMIS_OPERATION_001"));
 
         then(operationService).should().getDetailResponse(OPERATION_ID);
+    }
+
+    // ---------------------------------------------------------------------
+    // Read participants
+    // ---------------------------------------------------------------------
+
+    @Test
+    @DisplayName("USER는 인계 대상 참여자 목록을 조회할 수 있다.")
+    @WithMockUser(roles = "USER")
+    void findHandoverEligibleParticipants_success() throws Exception {
+
+        given(participantService.findHandoverEligibleParticipants(
+                OPERATION_ID,
+                null
+        )).willReturn(List.of(createParticipantResponse()));
+
+        mockMvc.perform(get("/api/operations/{id}/participants", OPERATION_ID))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.length()").value(1))
+                .andExpect(jsonPath("$.data[0].id").value(100))
+                .andExpect(jsonPath("$.data[0].role").value("OPERATOR"))
+                .andExpect(jsonPath("$.data[0].primary").value(true))
+                .andExpect(jsonPath("$.data[0].company.companyCode")
+                        .value("COMP-001"))
+                .andExpect(jsonPath("$.data[0].company.companyName")
+                        .value("운영 회사"))
+                .andExpect(jsonPath("$.data[0].organization.organizationCode")
+                        .value("ORG-001"))
+                .andExpect(jsonPath("$.data[0].organization.organizationName")
+                        .value("운영 조직"));
+
+        then(participantService).should()
+                .findHandoverEligibleParticipants(OPERATION_ID, null);
+    }
+
+    @Test
+    @DisplayName("USER는 예정 인계일 기준으로 참여자를 조회할 수 있다.")
+    @WithMockUser(roles = "USER")
+    void findHandoverEligibleParticipants_withDate() throws Exception {
+
+        LocalDate plannedDate = LocalDate.of(2026, 11, 30);
+
+        given(participantService.findHandoverEligibleParticipants(
+                OPERATION_ID,
+                plannedDate
+        )).willReturn(List.of(createParticipantResponse()));
+
+        mockMvc.perform(get("/api/operations/{id}/participants", OPERATION_ID)
+                        .param("plannedHandoverDate", "2026-11-30"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.length()").value(1));
+
+        then(participantService).should()
+                .findHandoverEligibleParticipants(OPERATION_ID, plannedDate);
+    }
+
+    @Test
+    @DisplayName("인계 대상 참여자가 없으면 빈 목록을 반환한다.")
+    @WithMockUser(roles = "USER")
+    void findHandoverEligibleParticipants_empty() throws Exception {
+
+        given(participantService.findHandoverEligibleParticipants(
+                OPERATION_ID,
+                null
+        )).willReturn(List.of());
+
+        mockMvc.perform(get("/api/operations/{id}/participants", OPERATION_ID))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.length()").value(0));
+
+        then(participantService).should()
+                .findHandoverEligibleParticipants(OPERATION_ID, null);
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 운영 서비스의 참여자를 조회하면 404를 반환한다.")
+    @WithMockUser(roles = "USER")
+    void findHandoverEligibleParticipants_notFound() throws Exception {
+
+        given(participantService.findHandoverEligibleParticipants(
+                OPERATION_ID,
+                null
+        )).willThrow(new BusinessException(
+                OperationErrorCode.OPERATION_NOT_FOUND
+        ));
+
+        mockMvc.perform(get("/api/operations/{id}/participants", OPERATION_ID))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.code").value("PMIS_OPERATION_001"));
+
+        then(participantService).should()
+                .findHandoverEligibleParticipants(OPERATION_ID, null);
+    }
+
+    @Test
+    @DisplayName("USER보다 낮은 권한은 인계 대상 참여자를 조회할 수 없다.")
+    @WithMockUser(roles = "GUEST")
+    void findHandoverEligibleParticipants_forbidden() throws Exception {
+
+        mockMvc.perform(get("/api/operations/{id}/participants", OPERATION_ID))
+                .andExpect(status().isForbidden());
+
+        then(participantService).shouldHaveNoInteractions();
     }
 
     // ---------------------------------------------------------------------
@@ -493,5 +627,16 @@ class OperationControllerTest {
                 .andExpect(jsonPath("$.success").value(false));
 
         then(operationService).shouldHaveNoInteractions();
+    }
+
+    @Test
+    @DisplayName("인증되지 않은 사용자는 인계 대상 참여자를 조회할 수 없다.")
+    void findHandoverEligibleParticipants_unauthorized() throws Exception {
+
+        mockMvc.perform(get("/api/operations/{id}/participants", OPERATION_ID))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.success").value(false));
+
+        then(participantService).shouldHaveNoInteractions();
     }
 }
