@@ -1,4 +1,3 @@
-
 package com.seos.pmis.company.entity;
 
 import com.seos.common.entity.BaseEntity;
@@ -34,8 +33,8 @@ public class Company extends BaseEntity {
     private String businessRegistrationNumber;
 
     @Builder.Default
-    @Column(name = "country_code", nullable = false, length = 2)
-    private String countryCode = "KR";
+    @Column(name = "country_code", nullable = false, length = 3)
+    private String countryCode = "KOR";
 
     @Column(length = 500)
     private String website;
