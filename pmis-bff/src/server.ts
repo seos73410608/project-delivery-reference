@@ -1,5 +1,4 @@
-﻿
-import Fastify from "fastify";
+﻿import Fastify from "fastify";
 import helmet from "@fastify/helmet";
 import cors from "@fastify/cors";
 import cookie from "@fastify/cookie";
@@ -9,7 +8,9 @@ import { createAuthService } from "./auth/services/auth.service.js";
 import authRoutes from "./auth/routes/auth.routes.js";
 import projectRoutes from "./project/routes/project.routes.js";
 import projectDetailRoutes from "./project/routes/project-detail.routes.js";
+import projectOperationRoutes from "./project-operation/routes/project-operation.routes.js";
 import projectOperationHandoverRoutes from "./project-operation-handover/routes/project-operation-handover.routes.js";
+import operationRoutes from "./operation/routes/operation.routes.js";
 import operationParticipantRoutes from "./operation/routes/operation-participant.routes.js";
 import operationScopeRoutes from "./operation-scope/routes/operation-scope.routes.js";
 import operationalScopeCiRoutes from "./operational-scope-ci/routes/operational-scope-ci.routes.js";
@@ -61,8 +62,16 @@ async function startServer(): Promise<void> {
     prefix: "/api/projects",
   });
 
+  await app.register(projectOperationRoutes, {
+    prefix: "/api/project-operations",
+  });
+
   await app.register(projectOperationHandoverRoutes, {
     prefix: "/api/project-operation-handovers",
+  });
+
+  await app.register(operationRoutes, {
+    prefix: "/api/operations",
   });
 
   await app.register(operationParticipantRoutes, {

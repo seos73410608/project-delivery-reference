@@ -1,3 +1,56 @@
+
+export type OperationType =
+  | "BUSINESS_SERVICE"
+  | "APPLICATION_SERVICE"
+  | "INFRASTRUCTURE_SERVICE"
+  | "PLATFORM_SERVICE"
+  | "DATABASE_SERVICE"
+  | "OTHER";
+
+export type OperationStatus =
+  | "PLANNED"
+  | "ACTIVE"
+  | "SUSPENDED"
+  | "CLOSED";
+
+export interface OperationResponse {
+  id: number;
+  operationCode: string;
+  operationName: string;
+  operationType: OperationType;
+  status: OperationStatus;
+  managerUserId: number | null;
+  managerName: string | null;
+  description: string | null;
+  effectiveFrom: string | null;
+  effectiveTo: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateOperationRequest {
+  operationCode: string;
+  operationName: string;
+  operationType: OperationType;
+  managerUserId?: number;
+  description?: string;
+  effectiveFrom?: string;
+  effectiveTo?: string;
+}
+
+export interface UpdateOperationRequest {
+  operationName: string;
+  operationType: OperationType;
+  managerUserId?: number;
+  description?: string;
+  effectiveFrom?: string;
+  effectiveTo?: string;
+}
+
+export interface UpdateOperationStatusRequest {
+  status: OperationStatus;
+}
+
 export type OperationParticipantRole =
   | "SERVICE_OWNER"
   | "OPERATOR"
