@@ -7,6 +7,7 @@ import type {
 
 import type {
   OperationCreateRequest,
+  OperationParticipantResponse,
   OperationResponse,
   OperationStatusChangeRequest,
   OperationUpdateRequest,
@@ -58,6 +59,31 @@ export const getOperationByCode = async (
     ApiResponse<OperationResponse>
   >(
     `${OPERATION_API}/by-code/${encodeURIComponent(operationCode)}`,
+  );
+
+  return response.data.data;
+};
+
+/**
+ * GET /api/operations/{operationId}/participants
+ *
+ * 인계 가능한 운영 참여자 목록 조회
+ *
+ * plannedHandoverDate가 전달되면 해당 날짜의 유효 참여자만 조회
+ */
+export const getOperationParticipants = async (
+  operationId: number,
+  plannedHandoverDate?: string,
+): Promise<OperationParticipantResponse[]> => {
+  const response = await client.get<
+    ApiResponse<OperationParticipantResponse[]>
+  >(
+    `${OPERATION_API}/${operationId}/participants`,
+    {
+      params: plannedHandoverDate
+        ? { plannedHandoverDate }
+        : undefined,
+    },
   );
 
   return response.data.data;

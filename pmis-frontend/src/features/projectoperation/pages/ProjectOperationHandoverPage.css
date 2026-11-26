@@ -1,0 +1,453 @@
+
+/* =========================================================
+   Project Operation Handover Page
+   ========================================================= */
+
+.project-operation-handover-page {
+    width: 100%;
+    padding: 24px;
+    box-sizing: border-box;
+}
+
+.project-operation-handover-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
+.project-operation-handover-heading h1 {
+    margin: 0 0 8px;
+    color: #111827;
+    font-size: 24px;
+    font-weight: 700;
+}
+
+.project-operation-handover-heading p {
+    margin: 0;
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.project-operation-handover-page .button {
+    min-width: 90px;
+    padding: 10px 16px;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease;
+}
+
+.project-operation-handover-page .button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.project-operation-handover-page .button--primary {
+    color: #ffffff;
+    background: #2563eb;
+    border-color: #2563eb;
+}
+
+.project-operation-handover-page .button--primary:hover:not(:disabled) {
+    background: #1d4ed8;
+    border-color: #1d4ed8;
+}
+
+.project-operation-handover-page .button--secondary {
+    color: #374151;
+    background: #ffffff;
+    border-color: #d1d5db;
+}
+
+.project-operation-handover-page .button--secondary:hover:not(:disabled) {
+    background: #f9fafb;
+}
+
+.project-operation-handover-page .button--danger {
+    color: #b91c1c;
+    background: #ffffff;
+    border-color: #fecaca;
+}
+
+.project-operation-handover-page .button--danger:hover:not(:disabled) {
+    background: #fef2f2;
+}
+
+
+/* ---------------------------------------------------------
+   Summary
+   --------------------------------------------------------- */
+
+.project-operation-handover-summary,
+.project-operation-handover-create,
+.project-operation-handover-history {
+    margin-bottom: 24px;
+    padding: 24px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    box-sizing: border-box;
+}
+
+.project-operation-handover-summary h2,
+.project-operation-handover-section-heading h2 {
+    margin: 0 0 8px;
+    color: #111827;
+    font-size: 17px;
+    font-weight: 700;
+}
+
+.project-operation-handover-summary dl {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px;
+    margin: 20px 0 0;
+}
+
+.project-operation-handover-summary dl > div {
+    min-width: 0;
+}
+
+.project-operation-handover-summary dt,
+.project-operation-handover-details dt {
+    margin-bottom: 6px;
+    color: #6b7280;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.project-operation-handover-summary dd,
+.project-operation-handover-details dd {
+    margin: 0;
+    color: #111827;
+    font-size: 14px;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+}
+
+
+/* ---------------------------------------------------------
+   Section Heading
+   --------------------------------------------------------- */
+
+.project-operation-handover-section-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.project-operation-handover-section-heading h2 {
+    margin-bottom: 6px;
+}
+
+.project-operation-handover-section-heading p {
+    margin: 0;
+    color: #6b7280;
+    font-size: 13px;
+}
+
+
+/* ---------------------------------------------------------
+   Create Form
+   --------------------------------------------------------- */
+
+.project-operation-handover-form {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px 20px;
+}
+
+.project-operation-handover-form .form__group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+}
+
+.project-operation-handover-form .form__group--full {
+    grid-column: 1 / -1;
+}
+
+.project-operation-handover-form label {
+    color: #374151;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.project-operation-handover-form .form__select,
+.project-operation-handover-form .form__input,
+.project-operation-handover-form .form__textarea {
+    width: 100%;
+    min-height: 42px;
+    padding: 10px 12px;
+    color: #111827;
+    background: #ffffff;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    box-sizing: border-box;
+    font-family: inherit;
+    font-size: 14px;
+}
+
+.project-operation-handover-form .form__textarea {
+    min-height: 88px;
+    resize: vertical;
+}
+
+.project-operation-handover-form .form__select:focus,
+.project-operation-handover-form .form__input:focus,
+.project-operation-handover-form .form__textarea:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgb(37 99 235 / 10%);
+}
+
+.project-operation-handover-help {
+    margin: 16px 0 0;
+    color: #6b7280;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.project-operation-handover-action-error {
+    margin-top: 16px;
+    padding: 12px 14px;
+    color: #b91c1c;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 6px;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.project-operation-handover-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 20px;
+}
+
+
+/* ---------------------------------------------------------
+   Handover History
+   --------------------------------------------------------- */
+
+.project-operation-handover-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.project-operation-handover-card {
+    padding: 20px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+}
+
+.project-operation-handover-card-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.project-operation-handover-sequence {
+    display: inline-block;
+    margin-bottom: 6px;
+    color: #2563eb;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.project-operation-handover-card-heading h3 {
+    margin: 0;
+    color: #111827;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.project-operation-handover-status {
+    flex-shrink: 0;
+    padding: 6px 10px;
+    color: #374151;
+    background: #f3f4f6;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.project-operation-handover-status--requested {
+    color: #1d4ed8;
+    background: #dbeafe;
+}
+
+.project-operation-handover-status--in_progress {
+    color: #92400e;
+    background: #fef3c7;
+}
+
+.project-operation-handover-status--review {
+    color: #6d28d9;
+    background: #ede9fe;
+}
+
+.project-operation-handover-status--accepted {
+    color: #047857;
+    background: #d1fae5;
+}
+
+.project-operation-handover-status--completed {
+    color: #065f46;
+    background: #a7f3d0;
+}
+
+.project-operation-handover-status--rejected {
+    color: #b91c1c;
+    background: #fee2e2;
+}
+
+.project-operation-handover-status--cancelled {
+    color: #6b7280;
+    background: #e5e7eb;
+}
+
+.project-operation-handover-details {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px 24px;
+    margin: 20px 0;
+}
+
+.project-operation-handover-details > div {
+    min-width: 0;
+}
+
+.project-operation-handover-details .project-operation-handover-notes {
+    grid-column: 1 / -1;
+    padding-top: 14px;
+    border-top: 1px solid #f3f4f6;
+}
+
+.project-operation-handover-card-actions {
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding-top: 16px;
+    border-top: 1px solid #e5e7eb;
+}
+
+
+/* ---------------------------------------------------------
+   Empty / Error States
+   --------------------------------------------------------- */
+
+.project-operation-handover-state,
+.project-operation-handover-empty {
+    padding: 36px 20px;
+    color: #6b7280;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    text-align: center;
+    font-size: 14px;
+}
+
+.project-operation-handover-error {
+    padding: 28px;
+    background: #ffffff;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+}
+
+.project-operation-handover-error h2 {
+    margin: 0 0 12px;
+    color: #b91c1c;
+    font-size: 18px;
+}
+
+.project-operation-handover-error p {
+    margin: 0 0 20px;
+    color: #6b7280;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+
+/* ---------------------------------------------------------
+   Responsive
+   --------------------------------------------------------- */
+
+@media (max-width: 768px) {
+
+    .project-operation-handover-page {
+        padding: 16px;
+    }
+
+    .project-operation-handover-heading {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .project-operation-handover-summary,
+    .project-operation-handover-create,
+    .project-operation-handover-history {
+        padding: 18px;
+    }
+
+    .project-operation-handover-summary dl {
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+
+    .project-operation-handover-form {
+        grid-template-columns: 1fr;
+    }
+
+    .project-operation-handover-form .form__group--full {
+        grid-column: auto;
+    }
+
+    .project-operation-handover-details {
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+
+    .project-operation-handover-details .project-operation-handover-notes {
+        grid-column: auto;
+    }
+
+    .project-operation-handover-card-actions {
+        justify-content: flex-start;
+    }
+}
+
+@media (max-width: 480px) {
+
+    .project-operation-handover-card-heading {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .project-operation-handover-form-actions {
+        justify-content: stretch;
+    }
+
+    .project-operation-handover-form-actions .button {
+        width: 100%;
+    }
+
+    .project-operation-handover-card-actions .button {
+        flex: 1;
+    }
+}

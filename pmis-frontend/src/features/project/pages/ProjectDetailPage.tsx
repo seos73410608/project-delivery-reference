@@ -433,6 +433,29 @@ function ProjectDetailPage() {
 
   /**
    * =====================================================
+   * 인수인계 이력 페이지 이동
+   * =====================================================
+   *
+   * /project/{projectId}/operations/{projectOperationId}/handovers
+   */
+
+  const handleViewHandovers = (
+    projectOperation: ProjectOperationResponse,
+  ) => {
+
+    if (!project) {
+      return;
+    }
+
+    navigate(
+      `/project/${project.id}/operations/${projectOperation.id}/handovers`,
+    );
+
+  };
+
+
+  /**
+   * =====================================================
    * 운영 서비스 연결 모달 닫기
    * =====================================================
    */
@@ -1051,6 +1074,7 @@ function ProjectDetailPage() {
         onCreate={handleCreateProjectOperation}
         onEdit={handleEditProjectOperation}
         onStatusChange={handleProjectOperationStatusChange}
+        onViewHandovers={handleViewHandovers}
       />
 
 

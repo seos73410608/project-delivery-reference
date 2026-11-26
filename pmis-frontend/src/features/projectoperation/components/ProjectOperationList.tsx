@@ -22,6 +22,9 @@ interface ProjectOperationListProps {
     projectOperation: ProjectOperationResponse,
     status: ProjectOperationStatus,
   ) => void;
+  onViewHandovers: (
+    projectOperation: ProjectOperationResponse,
+  ) => void;
 }
 
 
@@ -94,6 +97,7 @@ function ProjectOperationList({
   onCreate,
   onEdit,
   onStatusChange,
+  onViewHandovers,
 }: ProjectOperationListProps) {
 
   const getAvailableTransitions = (
@@ -275,30 +279,40 @@ function ProjectOperationList({
 
                   {/* Actions */}
 
-                  {isAdmin && (
-                    <div className="project-operation-item__actions">
+                  <div className="project-operation-item__actions">
 
-                      <button
-                        type="button"
-                        className="button button--secondary button--small"
-                        onClick={() => onEdit(item)}
-                      >
-                        수정
-                      </button>
+                    <button
+                      type="button"
+                      className="button button--secondary button--small"
+                      onClick={() => onViewHandovers(item)}
+                    >
+                      인수인계 이력
+                    </button>
 
-                      {transitions.map((nextStatus) => (
+                    {isAdmin && (
+                      <>
                         <button
-                          key={nextStatus}
                           type="button"
                           className="button button--secondary button--small"
-                          onClick={() => onStatusChange(item, nextStatus)}
+                          onClick={() => onEdit(item)}
                         >
-                          {STATUS_LABELS[nextStatus]}
+                          수정
                         </button>
-                      ))}
 
-                    </div>
-                  )}
+                        {transitions.map((nextStatus) => (
+                          <button
+                            key={nextStatus}
+                            type="button"
+                            className="button button--secondary button--small"
+                            onClick={() => onStatusChange(item, nextStatus)}
+                          >
+                            {STATUS_LABELS[nextStatus]}
+                          </button>
+                        ))}
+                      </>
+                    )}
+
+                  </div>
 
                 </article>
               );

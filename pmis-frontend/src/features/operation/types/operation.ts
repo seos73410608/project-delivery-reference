@@ -1,3 +1,4 @@
+
 /**
  * Operation Type
  *
@@ -107,4 +108,60 @@ export interface OperationSearchParams {
     operationName?: string;
     operationType?: OperationType;
     status?: OperationStatus;
+}
+
+
+/**
+ * Operation Participant Role
+ *
+ * Backend:
+ * OperationParticipantRole.java
+ */
+export type OperationParticipantRole =
+    | "SERVICE_OWNER"
+    | "OPERATOR"
+    | "SERVICE_PROVIDER"
+    | "SUPPORT_PROVIDER"
+    | "CUSTOMER"
+    | "PARTNER";
+
+
+/**
+ * Operation Participant Company Summary
+ *
+ * GET /api/operations/{operationId}/participants
+ */
+export interface OperationParticipantCompanySummary {
+    id: number;
+    companyCode: string;
+    companyName: string;
+}
+
+
+/**
+ * Operation Participant Organization Summary
+ *
+ * GET /api/operations/{operationId}/participants
+ */
+export interface OperationParticipantOrganizationSummary {
+    id: number;
+    organizationCode: string;
+    organizationName: string;
+}
+
+
+/**
+ * Operation Participant Response
+ *
+ * GET /api/operations/{operationId}/participants
+ *
+ * Optional query:
+ * plannedHandoverDate
+ */
+export interface OperationParticipantResponse {
+    id: number;
+    role: OperationParticipantRole;
+    primary: boolean;
+    company: OperationParticipantCompanySummary;
+    organization: OperationParticipantOrganizationSummary | null;
 }

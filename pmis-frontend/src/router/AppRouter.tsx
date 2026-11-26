@@ -36,6 +36,8 @@ import ChangePage from "../features/change/ChangePage";
 
 import RuntimeExecutionFilesPage from "../features/runtime/pages/RuntimeExecutionFilesPage";
 
+import ProjectOperationHandoverPage from "../features/projectoperation/pages/ProjectOperationHandoverPage";
+
 
 /**
  * =====================================================
@@ -325,6 +327,17 @@ function AppRouter() {
               path="/runtime/executions/:executionUuid/files"
               element={
                 <RuntimeExecutionFilesPage />
+              }
+            />
+            
+            {/* =========================================
+                Project Operation Handover
+                ========================================= */}
+
+            <Route
+              path="/project/:projectId/operations/:projectOperationId/handovers"
+              element={
+                <ProjectOperationHandoverPage />
               }
             />
 

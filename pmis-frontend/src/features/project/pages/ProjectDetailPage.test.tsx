@@ -1,3 +1,4 @@
+
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
@@ -16,12 +17,16 @@ import {
     getProjectOperationsByProject,
 } from '@/features/projectoperation/api/projectOperationApi';
 
+const { mockNavigate } = vi.hoisted(() => ({
+    mockNavigate: vi.fn(),
+}));
+
 vi.mock('react-router-dom', async (importOriginal) => {
     const actual = await importOriginal<typeof import('react-router-dom')>();
 
     return {
         ...actual,
-        useNavigate: () => vi.fn(),
+        useNavigate: () => mockNavigate,
         useParams: () => ({ projectId: '1' }),
     };
 });
@@ -54,12 +59,16 @@ vi.mock('@/features/projectoperation/components/ProjectOperationList', () => ({
         error,
         isAdmin,
         onCreate,
+        onViewHandovers,
     }: {
         projectOperations: { id: number; operationName: string }[];
         loading: boolean;
         error: string | null;
         isAdmin: boolean;
         onCreate: () => void;
+        onViewHandovers: (
+            projectOperation: { id: number; operationName: string },
+        ) => void;
     }) => (
         <section>
             <h3>연계 운영 서비스</h3>
@@ -68,7 +77,16 @@ vi.mock('@/features/projectoperation/components/ProjectOperationList', () => ({
             {error && <div role="alert">{error}</div>}
 
             {projectOperations.map((item) => (
-                <div key={item.id}>{item.operationName}</div>
+                <div key={item.id}>
+                    <span>{item.operationName}</span>
+
+                    <button
+                        type="button"
+                        onClick={() => onViewHandovers(item)}
+                    >
+                        인수인계 이력
+                    </button>
+                </div>
             ))}
 
             {isAdmin && (
@@ -209,6 +227,34 @@ describe('ProjectDetailPage', () => {
         expect(
             screen.queryByRole('button', { name: '운영 서비스 연결' }),
         ).not.toBeInTheDocument();
+    });
+
+    it('일반 사용자에게도 인수인계 이력 버튼을 표시한다', async () => {
+        vi.mocked(getProjectOperationsByProject).mockResolvedValue([
+            mockProjectOperation,
+        ]);
+
+        renderPage();
+
+        expect(
+            await screen.findByRole('button', { name: '인수인계 이력' }),
+        ).toBeInTheDocument();
+    });
+
+    it('인수인계 이력 버튼을 누르면 해당 운영 서비스의 이력 페이지로 이동한다', async () => {
+        vi.mocked(getProjectOperationsByProject).mockResolvedValue([
+            mockProjectOperation,
+        ]);
+
+        renderPage();
+
+        fireEvent.click(
+            await screen.findByRole('button', { name: '인수인계 이력' }),
+        );
+
+        expect(mockNavigate).toHaveBeenCalledWith(
+            '/project/1/operations/10/handovers',
+        );
     });
 
     it('관리자에게 운영 서비스 연결 버튼을 표시한다', async () => {

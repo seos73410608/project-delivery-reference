@@ -17,6 +17,7 @@ import {
   createOperation,
   getOperation,
   getOperationByCode,
+  getOperationParticipants,
   getOperations,
   updateOperation,
   updateOperationStatus,
@@ -24,6 +25,7 @@ import {
 
 import type {
   OperationCreateRequest,
+  OperationParticipantResponse,
   OperationResponse,
   OperationStatusChangeRequest,
   OperationUpdateRequest,
@@ -52,6 +54,35 @@ const mockOperation: OperationResponse = {
   createdAt: '2026-01-01T09:00:00',
   updatedAt: '2026-01-02T09:00:00',
 };
+
+const mockOperationParticipants: OperationParticipantResponse[] = [
+  {
+    id: 10,
+    role: 'OPERATOR',
+    primary: true,
+    company: {
+      id: 1,
+      companyCode: 'COMP-001',
+      companyName: '운영사',
+    },
+    organization: {
+      id: 11,
+      organizationCode: 'ORG-001',
+      organizationName: '운영 조직',
+    },
+  },
+  {
+    id: 20,
+    role: 'SERVICE_PROVIDER',
+    primary: false,
+    company: {
+      id: 2,
+      companyCode: 'COMP-002',
+      companyName: '서비스 제공사',
+    },
+    organization: null,
+  },
+];
 
 describe('operationApi', () => {
   beforeEach(() => {
@@ -128,6 +159,57 @@ describe('operationApi', () => {
       expect(client.get).toHaveBeenCalledWith(
         '/operations/by-code/OPS%2F2026%20001',
       );
+    });
+  });
+
+  // ============================================================
+  // Operation Participants
+  // ============================================================
+
+  describe('getOperationParticipants', () => {
+    it('인계 가능한 운영 참여자 목록을 조회한다', async () => {
+      vi.mocked(client.get).mockResolvedValue({
+        data: {
+          success: true,
+          code: 'SUCCESS',
+          data: mockOperationParticipants,
+        } satisfies ApiResponse<OperationParticipantResponse[]>,
+      });
+
+      const result = await getOperationParticipants(1);
+
+      expect(client.get).toHaveBeenCalledWith(
+        '/operations/1/participants',
+        {
+          params: undefined,
+        },
+      );
+      expect(result).toEqual(mockOperationParticipants);
+    });
+
+    it('인계 예정일을 전달하여 유효한 운영 참여자 목록을 조회한다', async () => {
+      vi.mocked(client.get).mockResolvedValue({
+        data: {
+          success: true,
+          code: 'SUCCESS',
+          data: mockOperationParticipants,
+        } satisfies ApiResponse<OperationParticipantResponse[]>,
+      });
+
+      const result = await getOperationParticipants(
+        1,
+        '2026-12-01',
+      );
+
+      expect(client.get).toHaveBeenCalledWith(
+        '/operations/1/participants',
+        {
+          params: {
+            plannedHandoverDate: '2026-12-01',
+          },
+        },
+      );
+      expect(result).toEqual(mockOperationParticipants);
     });
   });
 
