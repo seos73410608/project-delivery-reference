@@ -1,11 +1,15 @@
 package com.seos.pmis.company.controller;
 
 import com.seos.common.response.ApiResponse;
+import com.seos.pmis.company.dto.request.CloseCompanyRoleAssignmentRequest;
 import com.seos.pmis.company.dto.request.CompanySearchRequest;
 import com.seos.pmis.company.dto.request.CreateCompanyRequest;
+import com.seos.pmis.company.dto.request.CreateCompanyRoleAssignmentRequest;
 import com.seos.pmis.company.dto.request.UpdateCompanyRequest;
 import com.seos.pmis.company.dto.response.CompanyResponse;
+import com.seos.pmis.company.dto.response.CompanyRoleAssignmentResponse;
 import com.seos.pmis.company.entity.CompanyStatus;
+import com.seos.pmis.company.service.CompanyRoleAssignmentService;
 import com.seos.pmis.company.service.CompanyService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -28,6 +32,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @Tag(
         name = "Company",
         description = "회사 기준정보 관리 API"
@@ -38,6 +44,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class CompanyController {
 
     private final CompanyService companyService;
+    private final CompanyRoleAssignmentService companyRoleAssignmentService;
 
     /**
      * 회사 등록
@@ -137,6 +144,74 @@ public class CompanyController {
         return ApiResponse.success(
                 "회사 상태가 변경되었습니다.",
                 companyService.changeStatus(companyId, status)
+        );
+    }
+
+    /**
+     * 회사 역할 배정 이력 조회
+     */
+    @Operation(
+            summary = "회사 역할 이력 조회",
+            description = "회사의 전체 역할 배정 및 종료 이력을 조회합니다."
+    )
+    @PreAuthorize("hasRole('USER')")
+    @GetMapping("/{companyId}/roles")
+    public ApiResponse<List<CompanyRoleAssignmentResponse>> getCompanyRoleAssignments(
+            @Parameter(description = "회사 ID")
+            @PathVariable Long companyId
+    ) {
+
+        return ApiResponse.success(
+                companyRoleAssignmentService.getAssignments(companyId)
+        );
+    }
+
+    /**
+     * 회사 역할 부여
+     */
+    @Operation(
+            summary = "회사 역할 부여",
+            description = "회사에 새로운 역할을 부여합니다."
+    )
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/{companyId}/roles")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ApiResponse<CompanyRoleAssignmentResponse> assignCompanyRole(
+            @Parameter(description = "회사 ID")
+            @PathVariable Long companyId,
+            @Valid @RequestBody CreateCompanyRoleAssignmentRequest request
+    ) {
+
+        return ApiResponse.success(
+                "회사 역할이 부여되었습니다.",
+                companyRoleAssignmentService.assign(companyId, request)
+        );
+    }
+
+    /**
+     * 회사 역할 종료
+     */
+    @Operation(
+            summary = "회사 역할 종료",
+            description = "회사에 부여된 역할을 종료 처리합니다."
+    )
+    @PreAuthorize("hasRole('ADMIN')")
+    @PatchMapping("/{companyId}/roles/{assignmentId}/close")
+    public ApiResponse<CompanyRoleAssignmentResponse> closeCompanyRoleAssignment(
+            @Parameter(description = "회사 ID")
+            @PathVariable Long companyId,
+            @Parameter(description = "역할 배정 ID")
+            @PathVariable Long assignmentId,
+            @Valid @RequestBody CloseCompanyRoleAssignmentRequest request
+    ) {
+
+        return ApiResponse.success(
+                "회사 역할이 종료되었습니다.",
+                companyRoleAssignmentService.close(
+                        companyId,
+                        assignmentId,
+                        request
+                )
         );
     }
 }

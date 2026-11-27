@@ -10,7 +10,9 @@ import com.seos.pmis.company.dto.request.CompanySearchRequest;
 import com.seos.pmis.company.dto.request.CreateCompanyRequest;
 import com.seos.pmis.company.dto.request.UpdateCompanyRequest;
 import com.seos.pmis.company.dto.response.CompanyResponse;
+import com.seos.pmis.company.dto.response.CompanyRoleAssignmentResponse;
 import com.seos.pmis.company.entity.CompanyStatus;
+import com.seos.pmis.company.service.CompanyRoleAssignmentService;
 import com.seos.pmis.company.service.CompanyService;
 import com.seos.pmis.config.security.SecurityConfig;
 import org.junit.jupiter.api.DisplayName;
@@ -26,6 +28,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -57,6 +60,9 @@ class CompanyControllerTest {
     private CompanyService companyService;
 
     @MockitoBean
+    private CompanyRoleAssignmentService companyRoleAssignmentService;
+
+    @MockitoBean
     private JwtProvider jwtProvider;
 
     @MockitoBean
@@ -66,6 +72,7 @@ class CompanyControllerTest {
     private UserSessionService userSessionService;
 
     private static final Long COMPANY_ID = 1L;
+    private static final Long ASSIGNMENT_ID = 10L;
 
     private CompanyResponse createResponse() {
         return CompanyResponse.builder()
@@ -80,6 +87,20 @@ class CompanyControllerTest {
                 .description("테스트 회사 설명")
                 .createdAt(LocalDateTime.of(2026, 11, 27, 9, 0))
                 .updatedAt(LocalDateTime.of(2026, 11, 27, 9, 0))
+                .build();
+    }
+
+    private CompanyRoleAssignmentResponse createRoleAssignmentResponse() {
+        return CompanyRoleAssignmentResponse.builder()
+                .id(ASSIGNMENT_ID)
+                .companyId(COMPANY_ID)
+                .companyCode("TEST-COMPANY")
+                .companyName("테스트 회사")
+                .companyRoleId(1L)
+                .roleCode("CUSTOMER")
+                .roleName("고객사")
+                .effectiveFrom(LocalDate.of(2026, 11, 27))
+                .description("프로젝트 고객사")
                 .build();
     }
 
@@ -412,6 +433,171 @@ class CompanyControllerTest {
                 .andExpect(status().isBadRequest());
 
         then(companyService).shouldHaveNoInteractions();
+    }
+
+    /**
+     * 회사 역할 배정 이력 조회
+     */
+    @Test
+    @DisplayName("USER는 회사 역할 배정 이력을 조회할 수 있다.")
+    @WithMockUser(roles = "USER")
+    void getCompanyRoleAssignments_success() throws Exception {
+
+        given(companyRoleAssignmentService.getAssignments(COMPANY_ID))
+                .willReturn(List.of(createRoleAssignmentResponse()));
+
+        mockMvc.perform(get(
+                        "/api/companies/{companyId}/roles",
+                        COMPANY_ID
+                ))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.length()").value(1))
+                .andExpect(jsonPath("$.data[0].id").value(ASSIGNMENT_ID))
+                .andExpect(jsonPath("$.data[0].roleCode").value("CUSTOMER"))
+                .andExpect(jsonPath("$.data[0].roleName").value("고객사"));
+
+        then(companyRoleAssignmentService).should()
+                .getAssignments(COMPANY_ID);
+    }
+
+    @Test
+    @DisplayName("미인증 사용자는 회사 역할 배정 이력을 조회할 수 없다.")
+    void getCompanyRoleAssignments_unauthorized() throws Exception {
+
+        mockMvc.perform(get(
+                        "/api/companies/{companyId}/roles",
+                        COMPANY_ID
+                ))
+                .andExpect(status().isUnauthorized());
+
+        then(companyRoleAssignmentService).shouldHaveNoInteractions();
+    }
+
+    /**
+     * 회사 역할 배정
+     */
+    @Test
+    @DisplayName("ADMIN은 회사 역할을 배정할 수 있다.")
+    @WithMockUser(roles = "ADMIN")
+    void assignCompanyRole_success() throws Exception {
+
+        given(companyRoleAssignmentService.assign(
+                eq(COMPANY_ID),
+                any()
+        )).willReturn(createRoleAssignmentResponse());
+
+        mockMvc.perform(post(
+                        "/api/companies/{companyId}/roles",
+                        COMPANY_ID
+                )
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                    "roleCode": "CUSTOMER",
+                                    "effectiveFrom": "2026-11-27",
+                                    "description": "프로젝트 고객사"
+                                }
+                                """))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.id").value(ASSIGNMENT_ID))
+                .andExpect(jsonPath("$.data.roleCode").value("CUSTOMER"))
+                .andExpect(jsonPath("$.data.effectiveFrom")
+                        .value("2026-11-27"));
+
+        then(companyRoleAssignmentService).should()
+                .assign(eq(COMPANY_ID), any());
+    }
+
+    @Test
+    @DisplayName("USER는 회사 역할을 배정할 수 없다.")
+    @WithMockUser(roles = "USER")
+    void assignCompanyRole_forbidden() throws Exception {
+
+        mockMvc.perform(post(
+                        "/api/companies/{companyId}/roles",
+                        COMPANY_ID
+                )
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                    "roleCode": "CUSTOMER",
+                                    "effectiveFrom": "2026-11-27"
+                                }
+                                """))
+                .andExpect(status().isForbidden());
+
+        then(companyRoleAssignmentService).shouldHaveNoInteractions();
+    }
+
+    @Test
+    @DisplayName("역할 코드가 없으면 회사 역할을 배정할 수 없다.")
+    @WithMockUser(roles = "ADMIN")
+    void assignCompanyRole_invalidRoleCode() throws Exception {
+
+        mockMvc.perform(post(
+                        "/api/companies/{companyId}/roles",
+                        COMPANY_ID
+                )
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                    "effectiveFrom": "2026-11-27"
+                                }
+                                """))
+                .andExpect(status().isBadRequest());
+
+        then(companyRoleAssignmentService).shouldHaveNoInteractions();
+    }
+
+    /**
+     * 회사 역할 배정 종료
+     */
+    @Test
+    @DisplayName("ADMIN은 회사 역할 배정을 종료할 수 있다.")
+    @WithMockUser(roles = "ADMIN")
+    void closeCompanyRoleAssignment_success() throws Exception {
+
+        CompanyRoleAssignmentResponse closedResponse =
+                CompanyRoleAssignmentResponse.builder()
+                        .id(ASSIGNMENT_ID)
+                        .companyId(COMPANY_ID)
+                        .companyCode("TEST-COMPANY")
+                        .companyName("테스트 회사")
+                        .companyRoleId(1L)
+                        .roleCode("CUSTOMER")
+                        .roleName("고객사")
+                        .effectiveFrom(LocalDate.of(2026, 11, 27))
+                        .effectiveTo(LocalDate.of(2026, 12, 31))
+                        .description("프로젝트 고객사")
+                        .build();
+
+        given(companyRoleAssignmentService.close(
+                eq(COMPANY_ID),
+                eq(ASSIGNMENT_ID),
+                any()
+        )).willReturn(closedResponse);
+
+        mockMvc.perform(patch(
+                        "/api/companies/{companyId}/roles/{assignmentId}/close",
+                        COMPANY_ID,
+                        ASSIGNMENT_ID
+                )
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                    "effectiveTo": "2026-12-31"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.id").value(ASSIGNMENT_ID))
+                .andExpect(jsonPath("$.data.effectiveTo")
+                        .value("2026-12-31"));
+
+        then(companyRoleAssignmentService).should()
+                .close(eq(COMPANY_ID), eq(ASSIGNMENT_ID), any());
     }
 
     /**

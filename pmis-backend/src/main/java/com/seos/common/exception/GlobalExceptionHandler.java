@@ -4,6 +4,7 @@ import com.seos.common.exception.code.CommonErrorCode;
 import com.seos.common.exception.code.ErrorCode;
 import com.seos.common.response.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.validation.BindException;
@@ -71,6 +72,24 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(CommonErrorCode.INVALID_PARAMETER.getHttpStatus())
                 .body(ApiResponse.fail(CommonErrorCode.INVALID_PARAMETER));
+    }
+
+    /**
+     * Data Integrity Violation (400)
+     */
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ApiResponse<Void>> handleDataIntegrityViolation(
+            DataIntegrityViolationException exception
+    ) {
+
+        log.warn(
+                "[DataIntegrityViolationException] message={}",
+                exception.getMostSpecificCause().getMessage()
+        );
+
+        return ResponseEntity
+                .status(CommonErrorCode.INVALID_REQUEST.getHttpStatus())
+                .body(ApiResponse.fail(CommonErrorCode.INVALID_REQUEST));
     }
 
     /**
