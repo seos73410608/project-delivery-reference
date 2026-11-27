@@ -8,6 +8,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.validation.BindException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
@@ -72,6 +73,24 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(CommonErrorCode.INVALID_PARAMETER.getHttpStatus())
                 .body(ApiResponse.fail(CommonErrorCode.INVALID_PARAMETER));
+    }
+
+    /**
+     * Missing Required Request Parameter (400)
+     */
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<ApiResponse<Void>> handleMissingRequestParameter(
+            MissingServletRequestParameterException exception
+    ) {
+
+        log.warn(
+                "[MissingServletRequestParameterException] parameter={}",
+                exception.getParameterName()
+        );
+
+        return ResponseEntity
+                .status(CommonErrorCode.INVALID_REQUEST.getHttpStatus())
+                .body(ApiResponse.fail(CommonErrorCode.INVALID_REQUEST));
     }
 
     /**
