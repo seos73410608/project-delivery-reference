@@ -18,6 +18,7 @@ import operationalScopeRoutes from "./operational-scope/routes/operational-scope
 import companyRoutes from "./company/routes/company.routes.js";
 import organizationRoutes from "./organization/routes/organization.routes.js";
 import contractRoutes from "./contract/routes/contract.routes.js";
+import contractPartyRoutes from "./contract-party/routes/contract-party.routes.js";
 
 const app = Fastify({
   logger: true,
@@ -104,6 +105,8 @@ async function startServer(): Promise<void> {
   await app.register(contractRoutes, {
     prefix: "/api/contracts",
   });
+
+  await app.register(contractPartyRoutes);
 
   app.get("/health", async () => {
     return {
