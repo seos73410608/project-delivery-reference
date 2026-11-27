@@ -16,6 +16,7 @@ import operationalScopeCiRoutes from "../../src/operational-scope-ci/routes/oper
 import operationalScopeRoutes from "../../src/operational-scope/routes/operational-scope.routes.js";
 import companyRoutes from "../../src/company/routes/company.routes.js";
 import organizationRoutes from "../../src/organization/routes/organization.routes.js";
+import contractRoutes from "../../src/contract/routes/contract.routes.js";
 
 interface TestAppDependencies {
   sessionStore: SessionStore;
@@ -99,6 +100,10 @@ export async function createTestApp(
 
   await app.register(organizationRoutes, {
     prefix: "/api/companies",
+  });
+
+  await app.register(contractRoutes, {
+    prefix: "/api/contracts",
   });
 
   await app.ready();

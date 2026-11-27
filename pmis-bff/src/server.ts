@@ -1,5 +1,4 @@
-﻿
-import Fastify from "fastify";
+﻿import Fastify from "fastify";
 import helmet from "@fastify/helmet";
 import cors from "@fastify/cors";
 import cookie from "@fastify/cookie";
@@ -18,6 +17,7 @@ import operationalScopeCiRoutes from "./operational-scope-ci/routes/operational-
 import operationalScopeRoutes from "./operational-scope/routes/operational-scope.routes.js";
 import companyRoutes from "./company/routes/company.routes.js";
 import organizationRoutes from "./organization/routes/organization.routes.js";
+import contractRoutes from "./contract/routes/contract.routes.js";
 
 const app = Fastify({
   logger: true,
@@ -99,6 +99,10 @@ async function startServer(): Promise<void> {
 
   await app.register(organizationRoutes, {
     prefix: "/api/companies",
+  });
+
+  await app.register(contractRoutes, {
+    prefix: "/api/contracts",
   });
 
   app.get("/health", async () => {
