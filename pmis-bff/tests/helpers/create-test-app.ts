@@ -3,6 +3,7 @@ import cookie from "@fastify/cookie";
 import type { AuthService } from "../../src/auth/services/auth.service.js";
 import type { SessionStore } from "../../src/auth/session/session-store.js";
 import type { BffSession } from "../../src/auth/session/session.types.js";
+import type {} from "../../src/auth/types/fastify.d.ts";
 import authRoutes from "../../src/auth/routes/auth.routes.js";
 import projectRoutes from "../../src/project/routes/project.routes.js";
 import projectDetailRoutes from "../../src/project/routes/project-detail.routes.js";
@@ -13,6 +14,7 @@ import operationParticipantRoutes from "../../src/operation/routes/operation-par
 import operationScopeRoutes from "../../src/operation-scope/routes/operation-scope.routes.js";
 import operationalScopeCiRoutes from "../../src/operational-scope-ci/routes/operational-scope-ci.routes.js";
 import operationalScopeRoutes from "../../src/operational-scope/routes/operational-scope.routes.js";
+import companyRoutes from "../../src/company/routes/company.routes.js";
 
 interface TestAppDependencies {
   sessionStore: SessionStore;
@@ -88,6 +90,10 @@ export async function createTestApp(
 
   await app.register(operationParticipantRoutes, {
     prefix: "/api/operations",
+  });
+
+  await app.register(companyRoutes, {
+    prefix: "/api/companies",
   });
 
   await app.ready();
